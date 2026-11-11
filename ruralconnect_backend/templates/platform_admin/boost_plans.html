@@ -1,0 +1,818 @@
+{% extends "base_admin.html" %}
+{% block title %}Boost Plans | RuralConnect Admin{% endblock %}
+{% block page_title %}Seller Boost Plans &amp; Sponsored Listings{% endblock %}
+{% block nav_boosts %}active{% endblock %}
+
+{% block top_actions %}
+<div class="d-none d-md-flex align-items-center gap-2">
+  <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-secondary d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-arrow-left me-2 text-secondary"></i><span>Overview</span>
+  </a>
+  <a href="{% url 'marketplace:home' %}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-shop text-primary me-2"></i><span>Storefront</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Compact Proportional KPI Metric Cards (Same design standard as Campaigns & Dashboard) -->
+<div class="row g-3 mb-3">
+  <!-- 1. Active Boosted Products -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card boost-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #fffbeb; color: #b45309; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-rocket-takeoff-fill"></i>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-bold d-inline-flex align-items-center gap-1">
+          <span class="live-pulse-dot" style="width: 6px; height: 6px;"></span> Live Now
+        </span>
+      </div>
+      <div>
+        <div class="stat-number fw-bold" style="color: #b45309;">{{ active_boosts|length }}</div>
+        <div class="text-muted small fw-medium">Active Sponsored Listing{{ active_boosts|length|pluralize }}</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>Promoted on Homepage &amp; Search</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Ad Monetization Revenue -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card boost-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #f3e8ff; color: #7e22ce; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-cash-stack"></i>
+        </div>
+        <span class="badge rounded-pill px-2 py-1 small fw-bold" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
+          Monetization
+        </span>
+      </div>
+      <div>
+        <div class="stat-number fw-bold" style="color: #7e22ce;">₹{{ total_boost_revenue|floatformat:0 }}</div>
+        <div class="text-muted small fw-medium">Total Boost Revenue</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>₹{{ active_boost_revenue|floatformat:0 }} currently active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Participating Sellers -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card boost-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #f0f9ff; color: #0284c7; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-shop"></i>
+        </div>
+        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1 small fw-bold">
+          Merchants
+        </span>
+      </div>
+      <div>
+        <div class="stat-number fw-bold" style="color: #0284c7;">{{ active_sellers_count }}</div>
+        <div class="text-muted small fw-medium">Active Advertising Seller{{ active_sellers_count|pluralize }}</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>{{ total_sellers_count }} lifetime participating</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Configured Boost Tiers -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card boost-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #ecfdf5; color: #059669; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-layers-fill"></i>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-bold">
+          Tiers Hub
+        </span>
+      </div>
+      <div>
+        <div class="stat-number text-dark fw-bold">{{ plans|length }}</div>
+        <div class="text-muted small fw-medium">Configured Boost Tier{{ plans|length|pluralize }}</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>{{ active_plans_count }} active &amp; available to sellers</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main 2-Column Operational Grid -->
+<div class="row g-4">
+  <!-- Left Column: Boost Plans Management & Add Form -->
+  <div class="col-lg-5">
+    
+    <!-- 1. Available Boost Plans Panel -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: #fbfcfe;">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 28px; height: 28px; background: #eff6ff;">
+            <i class="bi bi-tag-fill" style="font-size: 0.85rem;"></i>
+          </div>
+          <div>
+            <h3 class="h6 mb-0 fw-bold text-dark">Available Boost Plans</h3>
+            <span class="text-muted" style="font-size: 0.74rem;">Offered to sellers in their portal</span>
+          </div>
+        </div>
+        <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small fw-semibold">
+          {{ plans|length }} tier{{ plans|length|pluralize }}
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light text-secondary" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em;">
+            <tr>
+              <th class="ps-3" style="width: 42%;">Plan Details</th>
+              <th style="width: 22%;">Pricing</th>
+              <th style="width: 18%;">Status</th>
+              <th class="text-end pe-3" style="width: 18%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in plans %}
+            <tr>
+              <td class="ps-3 py-3">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="fw-bold text-dark" style="font-size: 0.88rem;">{{ p.name }}</span>
+                  <span class="badge bg-light text-dark border rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                    {{ p.duration_days }}d
+                  </span>
+                </div>
+                {% if p.description %}
+                  <div class="text-muted text-truncate" style="max-width: 190px; font-size: 0.75rem;" title="{{ p.description }}">
+                    {{ p.description }}
+                  </div>
+                {% else %}
+                  <div class="text-muted fst-italic" style="font-size: 0.72rem;">Standard storefront promotion</div>
+                {% endif %}
+              </td>
+              <td class="py-3">
+                <div class="fw-bold text-dark" style="font-size: 0.95rem;">₹{{ p.price|floatformat:0 }}</div>
+                <div class="text-muted" style="font-size: 0.72rem;">₹{{ p.daily_rate|floatformat:0 }}/day</div>
+              </td>
+              <td class="py-3">
+                <form method="post" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle">
+                  <input type="hidden" name="plan_id" value="{{ p.pk }}">
+                  {% if p.is_active %}
+                    <button type="submit" class="btn btn-sm btn-subtle-toggle active-pill rounded-pill d-inline-flex align-items-center gap-2 px-2 py-1" title="Click to pause this tier">
+                      <span class="dot-green"></span>
+                      <span class="fw-semibold">Active</span>
+                    </button>
+                  {% else %}
+                    <button type="submit" class="btn btn-sm btn-subtle-toggle paused-pill rounded-pill d-inline-flex align-items-center gap-2 px-2 py-1" title="Click to activate this tier">
+                      <span class="dot-gray"></span>
+                      <span class="fw-semibold">Paused</span>
+                    </button>
+                  {% endif %}
+                </form>
+              </td>
+              <td class="text-end pe-3 py-3">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <!-- Edit Modal Trigger -->
+                  <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" data-bs-toggle="modal" data-bs-target="#editPlanModal{{ p.pk }}" title="Edit plan parameters">
+                    <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
+                  </button>
+                  <!-- Delete Form -->
+                  <form method="post" class="d-inline" onsubmit="return confirm('Delete boost plan &quot;{{ p.name|escapejs }}&quot;?\n\nExisting active boosts under this plan will remain valid until expiry.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="plan_id" value="{{ p.pk }}">
+                    <button type="submit" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Delete plan">
+                      <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Edit Plan Modal -->
+                <div class="modal fade text-start" id="editPlanModal{{ p.pk }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="plan_id" value="{{ p.pk }}">
+                        <div class="modal-header border-bottom px-4 py-3 bg-light">
+                          <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 32px; height: 32px; background: #e0f2fe;">
+                              <i class="bi bi-pencil-fill" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <h5 class="modal-title fw-bold text-dark fs-6 mb-0">Edit Plan: {{ p.name }}</h5>
+                          </div>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4 row g-3">
+                          <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Plan Name</label>
+                            <input class="form-control rounded-3" name="name" value="{{ p.name }}" required>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label small fw-semibold text-secondary">Description</label>
+                            <textarea class="form-control rounded-3" name="description" rows="2">{{ p.description }}</textarea>
+                          </div>
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold text-secondary">Price (₹)</label>
+                            <div class="input-group">
+                              <span class="input-group-text bg-light text-muted border-end-0">₹</span>
+                              <input class="form-control rounded-end-3 border-start-0" type="number" step="1" name="price" value="{{ p.price|floatformat:0 }}" required>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold text-secondary">Duration (Days)</label>
+                            <input class="form-control rounded-3" type="number" name="duration_days" id="editDurationInput{{ p.pk }}" value="{{ p.duration_days }}" min="1" required>
+                          </div>
+                          <div class="col-12">
+                            <span class="text-muted small d-block mb-1">Quick Duration Presets:</span>
+                            <div class="d-flex gap-2">
+                              <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 small" onclick="document.getElementById('editDurationInput{{ p.pk }}').value='7'">7 days</button>
+                              <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 small" onclick="document.getElementById('editDurationInput{{ p.pk }}').value='14'">14 days</button>
+                              <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 small" onclick="document.getElementById('editDurationInput{{ p.pk }}').value='30'">30 days</button>
+                              <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 small" onclick="document.getElementById('editDurationInput{{ p.pk }}').value='60'">60 days</button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                          <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-rc rounded-pill px-4 fw-semibold">Save Changes</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">
+                <i class="bi bi-tag opacity-25 fs-2 d-block mb-1"></i>
+                <span class="small">No boost plans configured yet.</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. Create Plan Form Card with Live Preview -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 32px; height: 32px; background: #eff6ff;">
+            <i class="bi bi-plus-circle-fill text-primary" style="font-size: 1rem;"></i>
+          </div>
+          <div>
+            <h3 class="h6 mb-0 fw-bold text-dark">Create Boost Tier</h3>
+            <span class="text-muted" style="font-size: 0.74rem;">Define pricing &amp; exposure duration</span>
+          </div>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-semibold">
+          New Tier
+        </span>
+      </div>
+
+      <!-- Live Plan Preview Box (What sellers see) -->
+      <div class="p-3 mb-3 rounded-3 border" style="background: #f8fafc; border-color: #e2e8f0 !important;">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.05em;">Seller Portal Preview</span>
+          <span class="badge bg-warning text-dark fw-bold rounded-pill" style="font-size: 0.68rem;">Sponsored Boost</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-bold text-dark" id="previewPlanName" style="font-size: 0.95rem;">7 Days Spotlight</div>
+            <div class="text-muted text-truncate" id="previewPlanDesc" style="font-size: 0.74rem; max-width: 220px;">Featured placement on homepage &amp; category top</div>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold text-primary" id="previewPlanPrice" style="font-size: 1.15rem;">₹499</div>
+            <div class="text-muted" id="previewPlanDuration" style="font-size: 0.72rem;">7 days exposure</div>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold text-secondary">Plan Name</label>
+          <input class="form-control rounded-3" name="name" id="createPlanName" placeholder="e.g. 7 Days Spotlight" value="7 Days Spotlight" required>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold text-secondary">Description</label>
+          <textarea class="form-control rounded-3" name="description" id="createPlanDesc" rows="2" placeholder="e.g. Featured on homepage and top of category search">Featured on homepage and top of category search</textarea>
+        </div>
+
+        <div class="col-6">
+          <label class="form-label small fw-semibold text-secondary">Price (₹)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted border-end-0">₹</span>
+            <input class="form-control rounded-end-3 border-start-0" type="number" name="price" id="createPlanPrice" placeholder="499" value="499" min="0" required>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <label class="form-label small fw-semibold text-secondary">Duration (Days)</label>
+          <input class="form-control rounded-3" type="number" name="duration_days" id="planDurationInput" value="7" min="1" required>
+        </div>
+
+        <div class="col-12">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small" style="font-size: 0.75rem;">Preset Durations:</span>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm duration-chip active rounded-pill px-3 py-1 small fw-semibold" onclick="setCreateDuration(7, this)">7 days</button>
+            <button type="button" class="btn btn-sm duration-chip rounded-pill px-3 py-1 small fw-semibold" onclick="setCreateDuration(14, this)">14 days</button>
+            <button type="button" class="btn btn-sm duration-chip rounded-pill px-3 py-1 small fw-semibold" onclick="setCreateDuration(30, this)">30 days</button>
+            <button type="button" class="btn btn-sm duration-chip rounded-pill px-3 py-1 small fw-semibold" onclick="setCreateDuration(60, this)">60 days</button>
+          </div>
+        </div>
+
+        <div class="col-12 mt-4">
+          <button class="btn btn-rc w-100 rounded-pill py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2" type="submit">
+            <i class="bi bi-rocket-takeoff-fill"></i> Add Boost Plan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Column: Active Boosts & History -->
+  <div class="col-lg-7">
+    
+    <!-- 1. Currently Boosted Products Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+      <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: #fbfcfe;">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-warning" style="width: 32px; height: 32px; background: #fffbeb;">
+            <i class="bi bi-stars" style="font-size: 1rem;"></i>
+          </div>
+          <div>
+            <h3 class="h6 mb-0 fw-bold text-dark">Currently Boosted Products</h3>
+            <span class="text-muted" style="font-size: 0.74rem;">Live sponsored items appearing across storefront and category tops</span>
+          </div>
+        </div>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-2">
+          <span class="live-pulse-dot" style="width: 6px; height: 6px;"></span>
+          {{ active_boosts|length }} Live
+        </span>
+      </div>
+
+      {% if active_boosts %}
+      <div class="p-3">
+        {% for boost in active_boosts %}
+        <div class="p-3 rounded-3 border mb-3 bg-white hover-shadow-subtle transition-all" style="border-color: #e5e7eb !important;">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            
+            <!-- Product & Seller Info -->
+            <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
+              <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs border overflow-hidden"
+                   style="width: 52px; height: 52px; background: hsl({{ boost.product.hue }}, 45%, 90%); font-size: 1.6rem;">
+                {% if boost.product.main_image %}
+                  <img src="{{ boost.product.main_image.url }}" alt="{{ boost.product.name }}" style="width: 52px; height: 52px; object-fit: cover;">
+                {% else %}
+                  {{ boost.product.emoji }}
+                {% endif %}
+              </div>
+              <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                  <a href="{% url 'marketplace:product_detail' boost.product.pk %}" class="fw-bold text-dark text-decoration-none text-truncate" style="font-size: 0.95rem; max-width: 260px;" target="_blank">
+                    {{ boost.product.name }}
+                    <i class="bi bi-arrow-up-right-square small text-muted ms-1" style="font-size: 0.75rem;"></i>
+                  </a>
+                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1" style="font-size: 0.68rem;">
+                    <i class="bi bi-lightning-fill me-1"></i>Sponsored
+                  </span>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.78rem;">
+                  <span class="d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-shop text-secondary"></i> {{ boost.product.seller.business_name }}
+                  </span>
+                  {% if boost.product.location %}
+                    <span class="text-secondary">&bull;</span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                      <i class="bi bi-geo-alt text-secondary"></i> {{ boost.product.location }}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Plan Badge & Cancel Action -->
+            <div class="d-flex align-items-center gap-3 flex-shrink-0">
+              <div class="text-end">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fw-semibold" style="font-size: 0.78rem;">
+                  {{ boost.plan.name }}
+                </span>
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">₹{{ boost.plan.price|floatformat:0 }} paid</div>
+              </div>
+
+              <!-- Cancel Button with confirmation -->
+              <form method="post" onsubmit="return confirm('Cancel boost for &quot;{{ boost.product.name|escapejs }}&quot;?\n\nThis will immediately remove the Sponsored badge from the product on the storefront and homepage.');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deactivate_boost">
+                <input type="hidden" name="boost_id" value="{{ boost.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1" title="Cancel this boost listing">
+                  <i class="bi bi-x-circle"></i> Cancel
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Progress Bar & Remaining Days Indicator -->
+          <div class="mt-3 pt-2 border-top">
+            <div class="d-flex justify-content-between align-items-center small mb-2">
+              <span class="fw-semibold {% if boost.is_expiring_soon %}text-warning{% else %}text-success{% endif %}" style="font-size: 0.78rem;">
+                <i class="bi bi-hourglass-split me-1"></i>
+                {% if boost.days_remaining == 0 %}
+                  Expires today
+                {% elif boost.days_remaining == 1 %}
+                  1 day remaining
+                {% else %}
+                  {{ boost.days_remaining }} days remaining
+                {% endif %}
+              </span>
+              <span class="text-muted" style="font-size: 0.72rem;">
+                Started {{ boost.start_date|date:"d M" }} &rarr; Ends <strong>{{ boost.end_date|date:"d M Y" }}</strong> ({{ boost.progress_pct }}% elapsed)
+              </span>
+            </div>
+            <div class="progress rounded-pill" style="height: 6px; background-color: #f1f5f9;">
+              <div class="progress-bar rounded-pill {% if boost.is_expiring_soon %}bg-warning{% else %}bg-success{% endif %}" 
+                   role="progressbar" 
+                   style="width: {{ boost.progress_pct }}%; min-width: 4px;" 
+                   aria-valuenow="{{ boost.progress_pct }}" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 56px; height: 56px; font-size: 1.7rem;">
+          <i class="bi bi-rocket-takeoff opacity-50"></i>
+        </div>
+        <p class="mb-1 fw-bold text-dark">No active boosts at the moment</p>
+        <p class="small text-muted mb-0" style="max-width: 380px; margin: 0 auto;">
+          Sellers can subscribe to boost tiers directly from their Seller Portal to feature their handcrafted products across the storefront.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- 2. Boost History & Expired Plans Panel with Live Search & Tabs -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+      <div class="p-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: #fbfcfe;">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-secondary" style="width: 30px; height: 30px; background: #f1f5f9;">
+            <i class="bi bi-clock-history" style="font-size: 0.85rem;"></i>
+          </div>
+          <div>
+            <h3 class="h6 mb-0 fw-bold text-dark">Boost History &amp; Expired Listings</h3>
+            <span class="text-muted" style="font-size: 0.74rem;">Historical sponsored product campaigns</span>
+          </div>
+        </div>
+
+        <!-- Filter Pill Tabs -->
+        <div class="d-flex align-items-center gap-1" id="historyFilterTabs">
+          <button type="button" class="btn btn-sm filter-pill active rounded-pill px-2 py-1 small fw-semibold" data-filter="all" onclick="filterHistory('all', this)">
+            All ({{ past_boosts|length }})
+          </button>
+          <button type="button" class="btn btn-sm filter-pill rounded-pill px-2 py-1 small fw-semibold" data-filter="expired" onclick="filterHistory('expired', this)">
+            Expired ({{ past_expired_count }})
+          </button>
+          <button type="button" class="btn btn-sm filter-pill rounded-pill px-2 py-1 small fw-semibold" data-filter="cancelled" onclick="filterHistory('cancelled', this)">
+            Cancelled ({{ past_cancelled_count }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Search Bar -->
+      <div class="px-3 py-2 bg-light border-bottom d-flex align-items-center">
+        <div class="position-relative flex-grow-1" style="max-width: 380px;">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
+          <input type="search" id="historySearchInput" class="form-control form-control-sm rounded-pill ps-5 py-1 bg-white border" placeholder="Search by product, seller, or plan...">
+        </div>
+        <div class="ms-auto text-muted small" style="font-size: 0.74rem;">
+          Showing <span id="historyVisibleCount" class="fw-bold text-dark">{{ past_boosts|length }}</span> archived
+        </div>
+      </div>
+
+      {% if past_boosts %}
+      <div class="table-responsive" style="max-height: 480px;">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light text-secondary sticky-top" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em;">
+            <tr>
+              <th class="ps-3" style="width: 36%;">Product</th>
+              <th style="width: 24%;">Seller</th>
+              <th style="width: 18%;">Plan</th>
+              <th style="width: 10%;">Status</th>
+              <th class="text-end pe-3" style="width: 12%;">Ended</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            {% for boost in past_boosts %}
+            <tr class="history-row" 
+                data-status="{% if boost.status == 'cancelled' %}cancelled{% else %}expired{% endif %}"
+                data-product="{{ boost.product.name|lower }}"
+                data-seller="{{ boost.product.seller.business_name|lower }}"
+                data-plan="{{ boost.plan.name|lower }}">
+              <td class="ps-3 py-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                       style="width: 32px; height: 32px; background: hsl({{ boost.product.hue }}, 45%, 90%); font-size: 1.1rem; opacity: 0.85;">
+                    {% if boost.product.main_image %}
+                      <img src="{{ boost.product.main_image.url }}" alt="{{ boost.product.name }}" class="rounded-2" style="width: 32px; height: 32px; object-fit: cover;">
+                    {% else %}
+                      {{ boost.product.emoji }}
+                    {% endif %}
+                  </div>
+                  <div class="min-w-0">
+                    <a href="{% url 'marketplace:product_detail' boost.product.pk %}" class="fw-semibold text-decoration-none text-dark d-block text-truncate" style="font-size: 0.82rem; max-width: 180px;" target="_blank">
+                      {{ boost.product.name }}
+                    </a>
+                    <span class="text-muted" style="font-size: 0.72rem;">{{ boost.product.category.name }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-2">
+                <div class="text-dark fw-medium text-truncate" style="font-size: 0.8rem; max-width: 150px;">
+                  {{ boost.product.seller.business_name }}
+                </div>
+              </td>
+              <td class="py-2">
+                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                  {{ boost.plan.name }}
+                </span>
+              </td>
+              <td class="py-2">
+                {% if boost.status == 'cancelled' %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                    Cancelled
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                    Expired
+                  </span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-3 py-2">
+                <div class="text-dark fw-medium" style="font-size: 0.78rem;">{{ boost.end_date|date:"d M Y" }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">From {{ boost.start_date|date:"d M" }}</div>
+              </td>
+            </tr>
+            {% endfor %}
+            <tr id="historyNoResults" style="display: none;">
+              <td colspan="5" class="text-center py-4 text-muted">
+                <i class="bi bi-search opacity-25 fs-3 d-block mb-1"></i>
+                <span class="small">No matching boost history found.</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted small">
+        No past boost campaigns recorded yet.
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<style>
+/* Proportional Compact KPI Hero Cards */
+.boost-kpi-card {
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 1rem 1.15rem !important;
+  border-radius: 16px !important;
+  gap: 0.55rem !important;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+.boost-kpi-card .stat-number {
+  font-size: 1.75rem !important;
+  line-height: 1.1 !important;
+  margin-bottom: 0.15rem !important;
+}
+.boost-kpi-card .action-link-subtle {
+  margin-top: 0.25rem !important;
+  padding-top: 0.45rem !important;
+  font-size: 0.75rem !important;
+}
+
+/* Live Pulse Indicator Dot */
+.live-pulse-dot {
+  display: inline-block;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse-dot 1.8s infinite cubic-bezier(0.45, 0, 0.55, 1);
+}
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Subtle Status Toggle Buttons */
+.btn-subtle-toggle {
+  font-size: 0.74rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.btn-subtle-toggle.active-pill {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+.btn-subtle-toggle.active-pill:hover {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+.btn-subtle-toggle.active-pill:hover .dot-green {
+  background-color: #ef4444;
+}
+.btn-subtle-toggle.paused-pill {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+.btn-subtle-toggle.paused-pill:hover {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+.btn-subtle-toggle.paused-pill:hover .dot-gray {
+  background-color: #10b981;
+}
+
+.dot-green {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
+}
+.dot-gray {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+  display: inline-block;
+}
+
+/* Duration Preset Chips */
+.duration-chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  transition: all 0.15s ease;
+}
+.duration-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.duration-chip.active {
+  background: #102d59;
+  color: #ffffff;
+  border-color: #102d59;
+}
+
+/* History Filter Pills */
+.filter-pill {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid transparent;
+  font-size: 0.74rem;
+  transition: all 0.15s ease;
+}
+.filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+.filter-pill.active {
+  background: #102d59;
+  color: #ffffff;
+}
+
+.hover-shadow-subtle:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border-color: #cbd5e1 !important;
+}
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+</style>
+
+<script>
+// --- Live Plan Preview Syncer ---
+const planNameInput = document.getElementById('createPlanName');
+const planDescInput = document.getElementById('createPlanDesc');
+const planPriceInput = document.getElementById('createPlanPrice');
+const planDurationInput = document.getElementById('planDurationInput');
+
+const previewName = document.getElementById('previewPlanName');
+const previewDesc = document.getElementById('previewPlanDesc');
+const previewPrice = document.getElementById('previewPlanPrice');
+const previewDuration = document.getElementById('previewPlanDuration');
+
+function updatePlanPreview() {
+  if (previewName && planNameInput) {
+    previewName.textContent = planNameInput.value.trim() || 'Custom Plan';
+  }
+  if (previewDesc && planDescInput) {
+    previewDesc.textContent = planDescInput.value.trim() || 'Featured placement across category search';
+  }
+  if (previewPrice && planPriceInput) {
+    const val = planPriceInput.value.trim() || '0';
+    previewPrice.textContent = '₹' + val;
+  }
+  if (previewDuration && planDurationInput) {
+    const d = planDurationInput.value.trim() || '7';
+    previewDuration.textContent = d + ' days exposure';
+  }
+}
+
+if (planNameInput) planNameInput.addEventListener('input', updatePlanPreview);
+if (planDescInput) planDescInput.addEventListener('input', updatePlanPreview);
+if (planPriceInput) planPriceInput.addEventListener('input', updatePlanPreview);
+if (planDurationInput) planDurationInput.addEventListener('input', updatePlanPreview);
+
+function setCreateDuration(days, btn) {
+  if (planDurationInput) {
+    planDurationInput.value = days;
+    updatePlanPreview();
+  }
+  document.querySelectorAll('.duration-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// --- History Filter & Live Search ---
+let currentHistoryFilter = 'all';
+
+function filterHistory(status, btn) {
+  currentHistoryFilter = status;
+  if (btn) {
+    document.querySelectorAll('#historyFilterTabs .filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  applyHistoryFilters();
+}
+
+function applyHistoryFilters() {
+  const search = (document.getElementById('historySearchInput')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('.history-row');
+  let visibleCount = 0;
+
+  rows.forEach(row => {
+    const status = row.getAttribute('data-status');
+    const product = row.getAttribute('data-product') || '';
+    const seller = row.getAttribute('data-seller') || '';
+    const plan = row.getAttribute('data-plan') || '';
+
+    const matchesStatus = (currentHistoryFilter === 'all') || (currentHistoryFilter === status);
+    const matchesSearch = !search || product.includes(search) || seller.includes(search) || plan.includes(search);
+
+    if (matchesStatus && matchesSearch) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countBadge = document.getElementById('historyVisibleCount');
+  if (countBadge) countBadge.textContent = visibleCount;
+
+  const noResultsRow = document.getElementById('historyNoResults');
+  if (noResultsRow) {
+    noResultsRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+  }
+}
+
+const historySearchInput = document.getElementById('historySearchInput');
+if (historySearchInput) {
+  historySearchInput.addEventListener('input', applyHistoryFilters);
+}
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+  updatePlanPreview();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends "base_public.html" %}
+{% load static %}
+{% block title %}{% if is_edit %}Edit Delivery Address{% else %}Add New Delivery Address{% endif %} | RuralConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .card-profile-section {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    transition: all 0.2s ease;
+  }
+  .section-divider-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #102d59;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-floating-custom label {
+    display: block !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 0.2rem rgba(18, 88, 168, 0.15) !important;
+  }
+  .input-group:focus-within .input-group-text {
+    border-color: var(--blue) !important;
+  }
+  .address-perk-badge {
+    background: #f0f4f9;
+    border: 1px dashed #1258a8;
+    color: #102d59;
+    border-radius: 14px;
+    padding: 0.85rem 1.1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}" class="text-decoration-none text-muted">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-decoration-none text-muted">My Profile</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">
+        {% if is_edit %}Edit Delivery Address{% else %}Add New Delivery Address{% endif %}
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header Banner -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h3 fw-bold text-dark mb-1">
+        {% if is_edit %}Edit Delivery Address{% else %}Add New Delivery Address{% endif %}
+      </h1>
+      <p class="text-muted small mb-0">Save residential, office, or relative addresses for seamless checkout.</p>
+    </div>
+    <div>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-pill fw-semibold">
+        <i class="bi bi-arrow-left me-1"></i> Back to Profile
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Edit Form Column -->
+    <div class="col-lg-8">
+      <div class="card-profile-section p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="section-divider-title">
+            <i class="bi bi-geo-alt-fill text-primary"></i> Delivery Destination Details
+          </div>
+          <p class="text-muted small mb-3">
+            Please ensure phone numbers and PIN codes are accurate for courier dispatch.
+          </p>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+              {% for err in form.non_field_errors %}
+                <div>{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <!-- Address Type -->
+            <div class="col-md-4 form-floating-custom">
+              <label for="{{ form.address_type.id_for_label }}">
+                <i class="bi bi-tag text-secondary me-1"></i> {{ form.address_type.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.address_type }}
+              {% if form.address_type.errors %}
+                <div class="text-danger small mt-1">{{ form.address_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Recipient Full Name -->
+            <div class="col-md-8 form-floating-custom">
+              <label for="{{ form.full_name.id_for_label }}">
+                <i class="bi bi-person text-secondary me-1"></i> {{ form.full_name.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Delivery Mobile -->
+            <div class="col-md-6 form-floating-custom">
+              <label for="{{ form.phone.id_for_label }}">
+                <i class="bi bi-telephone text-secondary me-1"></i> {{ form.phone.label }} <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary fw-semibold border-end-0 small">+91</span>
+                {{ form.phone }}
+              </div>
+              <div class="form-text small text-muted">Primary phone called by the delivery partner.</div>
+              {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Alternate Mobile -->
+            <div class="col-md-6 form-floating-custom">
+              <label for="{{ form.alt_phone.id_for_label }}">
+                <i class="bi bi-telephone-plus text-secondary me-1"></i> {{ form.alt_phone.label }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary fw-semibold border-end-0 small">+91</span>
+                {{ form.alt_phone }}
+              </div>
+              <div class="form-text small text-muted">Optional backup contact number.</div>
+              {% if form.alt_phone.errors %}
+                <div class="text-danger small mt-1">{{ form.alt_phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Street Address -->
+            <div class="col-12 form-floating-custom">
+              <label for="{{ form.street_address.id_for_label }}">
+                <i class="bi bi-house-door text-secondary me-1"></i> {{ form.street_address.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.street_address }}
+              <div class="form-text small text-muted">Include flat/house number, apartment/building name, street, and locality.</div>
+              {% if form.street_address.errors %}
+                <div class="text-danger small mt-1">{{ form.street_address.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- City / Town -->
+            <div class="col-md-4 form-floating-custom">
+              <label for="{{ form.city.id_for_label }}">
+                <i class="bi bi-building text-secondary me-1"></i> {{ form.city.label }} <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-building"></i></span>
+                {{ form.city }}
+              </div>
+              {% if form.city.errors %}
+                <div class="text-danger small mt-1">{{ form.city.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- State -->
+            <div class="col-md-4 form-floating-custom">
+              <label for="{{ form.state.id_for_label }}">
+                <i class="bi bi-map text-secondary me-1"></i> {{ form.state.label }} <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-map"></i></span>
+                {{ form.state }}
+              </div>
+              {% if form.state.errors %}
+                <div class="text-danger small mt-1">{{ form.state.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- PIN Code -->
+            <div class="col-md-4 form-floating-custom">
+              <label for="{{ form.postal_code.id_for_label }}">
+                <i class="bi bi-pin-map text-secondary me-1"></i> {{ form.postal_code.label }} <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-geo-alt"></i></span>
+                {{ form.postal_code }}
+              </div>
+              {% if form.postal_code.errors %}
+                <div class="text-danger small mt-1">{{ form.postal_code.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Landmark -->
+            <div class="col-12 form-floating-custom">
+              <label for="{{ form.landmark.id_for_label }}">
+                <i class="bi bi-signpost-split text-secondary me-1"></i> {{ form.landmark.label }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary border-end-0"><i class="bi bi-compass"></i></span>
+                {{ form.landmark }}
+              </div>
+              <div class="form-text small text-muted">Nearby prominent junction, school, temple, or bank.</div>
+              {% if form.landmark.errors %}
+                <div class="text-danger small mt-1">{{ form.landmark.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Default Checkbox -->
+            <div class="col-12 mt-3">
+              <div class="form-check p-3 bg-light rounded-3 border" style="border-color: var(--line) !important;">
+                {{ form.is_default }}
+                <label class="form-check-label fw-semibold text-dark ms-2" for="{{ form.is_default.id_for_label }}">
+                  Set as my primary default delivery address
+                  <div class="small fw-normal text-muted">
+                    This address will be selected automatically during checkout for 1-click orders.
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="d-flex align-items-center justify-content-between pt-4 mt-4 border-top flex-wrap gap-3">
+            <div class="text-muted small">
+              <i class="bi bi-shield-check text-primary me-1"></i>
+              Address information is encrypted and securely stored.
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                Cancel
+              </a>
+              <button type="submit" class="btn px-4 py-2 fw-bold text-white rounded-pill shadow-sm" style="background: #102d59;">
+                <i class="bi bi-check2-circle me-1"></i>
+                {% if is_edit %}Update Address{% else %}Save Address{% endif %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Tips Column -->
+    <div class="col-lg-4">
+      <div class="address-perk-badge mb-4">
+        <div class="d-flex gap-2">
+          <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
+          <div>
+            <div class="fw-bold text-dark small mb-1">Instant Checkout</div>
+            <div class="small text-secondary">
+              Having multiple addresses saved lets you easily pick between your Home or Office when checking out without retyping.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-profile-section p-3 p-md-4">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-primary me-1"></i> Courier Accuracy</h6>
+        <p class="text-muted small mb-0">
+          Providing landmarks and active phone numbers helps rural delivery couriers locate your doorstep on the first attempt without delays.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

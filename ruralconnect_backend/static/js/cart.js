@@ -1,0 +1,15 @@
+/* Demo cart in localStorage (non-sensitive). Django: replace with server-side cart/session + checkout. */
+document.addEventListener('DOMContentLoaded',()=>{
+ const app=document.getElementById('cartApp'); if(!app) return;
+ const draw=()=>{ const items=RC.cart.get().map(l=>({l,p:RC.PRODUCTS.find(x=>x.id===l.id)})).filter(x=>x.p&&x.p.status==='approved');
+  if(!items.length){app.innerHTML='<div class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i><h2 class="h4 mt-3">Your cart is empty</h2><p class="text-muted">Add something you like and it will show up here.</p><a class="btn btn-rc" href="products.html">Continue shopping</a></div>';return;}
+  const sub=items.reduce((a,x)=>a+RC.price(x.p)*x.l.qty,0), mrp=items.reduce((a,x)=>a+x.p.price*x.l.qty,0), n=items.reduce((a,x)=>a+x.l.qty,0), ship=sub>=999?0:60;
+  app.innerHTML=`<div class="row g-4"><div class="col-lg-8"><div class="cart-list">${items.map(({l,p})=>`<div class="cart-row"><a href="${RC.href(p)}"><img src="${RC.img(p)}" alt="${p.name}"></a><div class="flex-fill"><a class="fw-semibold text-decoration-none text-dark pname" href="${RC.href(p)}">${p.name}</a><div class="small text-muted">Sold by ${p.seller}</div><div class="small text-success">${p.stock?'In stock':'Out of stock'}</div>
+  <div class="d-flex align-items-center gap-2 mt-2"><div class="qty"><button data-q="-1" data-id="${p.id}" aria-label="Decrease quantity"><i class="bi bi-dash"></i></button><span aria-live="polite">${l.qty}</span><button data-q="1" data-id="${p.id}" aria-label="Increase quantity" ${l.qty>=p.stock?'disabled':''}><i class="bi bi-plus"></i></button></div><button class="btn btn-link btn-sm text-danger" data-rm="${p.id}">Remove</button></div></div><div class="text-end"><strong>${RC.inr(RC.price(p)*l.qty)}</strong>${RC.bestDisc(p)?`<div class="small text-muted"><s>${RC.inr(p.price*l.qty)}</s></div>`:''}</div></div>`).join('')}</div></div>
+  <div class="col-lg-4"><div class="cart-sum"><h2 class="h5">Order summary</h2><div class="d-flex justify-content-between"><span>Items (${n})</span><span>${RC.inr(mrp)}</span></div><div class="d-flex justify-content-between text-success"><span>Discount</span><span>−${RC.inr(mrp-sub)}</span></div><div class="d-flex justify-content-between"><span>Delivery</span><span>${ship?RC.inr(ship):'Free'}</span></div><hr><div class="d-flex justify-content-between fs-5 fw-bold"><span>Total</span><span>${RC.inr(sub+ship)}</span></div>
+  <button class="btn btn-rc w-100 mt-3" data-demo="Demo only: checkout and payment will be handled by the backend." data-type="info">Proceed to buy</button><p class="small text-muted mt-2 mb-0">Demo cart saved in this browser. The server must recalculate prices at checkout.</p></div></div></div>`; };
+ app.addEventListener('click',e=>{const q=e.target.closest('[data-q]'),r=e.target.closest('[data-rm]'),c=RC.cart.get();
+  if(q){const l=c.find(x=>x.id===+q.dataset.id);l.qty+=+q.dataset.q;RC.cart.set(l.qty<1?c.filter(x=>x!==l):c);draw();}
+  if(r){RC.cart.set(c.filter(x=>x.id!==+r.dataset.rm));draw();RC.toast('Item removed','secondary');}});
+ draw();
+});

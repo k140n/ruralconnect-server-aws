@@ -1,0 +1,442 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Core Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+% --- Hyperlink Setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=teal!80!black,
+    citecolor=blue!70!black,
+    urlcolor=teal!70!black
+}
+
+% --- Code Snippet Styling ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=pythonstyle}
+
+% --- Header and Footer Styling ---
+\setlength{\headheight}{14.5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\slshape RuralConnect Project Report --- Week 2}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% --- Title Page ---
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    
+    {\Huge \textbf{RuralConnect}}\\[0.4cm]
+    {\Large \textbf{A Multi-Role E-Commerce Marketplace for Rural Artisans}}\\[1.5cm]
+    \textbf{Project Progress \& Technical Implementation Report}\\[0.5cm]
+    {\large \textbf{Phase II: Monetization, Analytics, Governance \& Direct Commerce}}\\[2.0cm]
+    
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushleft} \large
+            \emph{Authors:}\\
+            Kiran Pallathu\\
+            Yaswanth\\
+        \end{flushleft}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \begin{flushright} \large
+            \emph{Domain:}\\
+            Web Development\\
+            Django / Python / PostgreSQL
+        \end{flushright}
+    \end{minipage}
+    
+    \vfill
+    {\large \textbf{Reporting Period:} November 02, 2026 -- November 07, 2026}\\[0.3cm]
+    {\large \today}
+\end{titlepage}
+
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+
+% --- Abstract ---
+\begin{abstract}
+Following the successful implementation of the foundational Model-Template-View (MTV) architecture, three-tier Role-Based Access Control (RBAC), guest cart synchronization, and instant artisan publishing in Week 1, the \textbf{RuralConnect} project progressed into its commercialization, intelligence, and platform governance phase during the week of \textbf{November 02, 2026 to November 07, 2026}.
+
+This technical report documents the implementation of major second-phase modules:
+\begin{enumerate}
+    \item An \textbf{Artisan Business Intelligence \& Analytics Engine} providing real-time time-series sales metrics, multi-stage customer conversion funnels, inventory warnings, and a formal print-ready financial statement/ledger (\texttt{analytics\_report.html}).
+    \item A \textbf{Direct WhatsApp Conversational Commerce Pipeline} featuring automated contextual inquiry URL generation and background lead attribution tracking (\texttt{WhatsAppLead}, \texttt{ProductDailyView}).
+    \item A \textbf{Multi-Tier Seller Subscription \& Quota Gating Engine} (\texttt{SellerSubscriptionPlan}, \texttt{SellerSubscription}) controlling product creation quotas.
+    \item A \textbf{Promotional Boost Lifecycle Engine} with self-healing background synchronization (\texttt{sync\_expired\_boosts}) and an automated CLI daemon (\texttt{expire\_boosts.py}).
+    \item \textbf{Administrative Risk Governance} enabling instantaneous seller malpractice suspension cascading to active store listings.
+    \item An \textbf{Atomic Transaction-Safe Order Placement \& Tracking Workflow} (\texttt{checkout\_place\_order\_api}) with concurrent stock validation and multi-address support.
+    \item A \textbf{Sub-Second Multi-Entity Search Autocomplete Engine} (\texttt{search\_suggest\_api}) paired with a Glassmorphism UI redesign across all customer and management portals.
+\end{enumerate}
+\end{abstract}
+
+\section{Introduction \& Week 2 Objectives}
+
+\subsection{Phase Review \& Evolution}
+In the preceding project sprint (October 26 to October 31, 2026), \textbf{RuralConnect} established its baseline infrastructure: a custom user model supporting distinct roles (Buyer, Seller, Admin), an authoritative pricing engine protecting margins against conflicting discounts, unauthenticated guest session cart migration, dynamic wishlists, and OTP-based verification.
+
+During the second sprint (November 02 to November 07, 2026), project development focused on transforming the baseline prototype into a fully transactional, financially viable, data-driven, and strictly moderated marketplace. Rural craftspeople often operate with low digital literacy and distinct operational constraints; bridging this gap required direct conversational channels, zero-friction financial accounting, time-bounded promotional tools, and robust platform safeguards against bad actors.
+
+\subsection{Primary Objectives for Week 2}
+\begin{enumerate}
+    \item \textbf{Artisan Business Intelligence \& Financial Reporting:} Construct an end-to-end sales analytics pipeline delivering conversion funnels, revenue time-series graphs, and a printable ledger statement for rural micro-entrepreneurs.
+    \item \textbf{Conversational Commerce \& Direct Lead Attribution:} Integrate direct-to-artisan WhatsApp inquiry capabilities with automatic price/product prefilling and asynchronous click attribution tracking.
+    \item \textbf{Seller Monetization \& Quota Enforcement:} Introduce tiered subscription plans (Monthly/Annual) with enforced product listing limits on catalog CRUD operations.
+    \item \textbf{Self-Expiring Promotional Boosts:} Implement a promotional boost system with mathematical expiration safeguards and a cron-compatible Django management command.
+    \item \textbf{Administrative Risk Control \& Seller Suspension:} Provide platform administrators with single-action powers to suspend rogue sellers, lock accounts, and batch-quarantine offending catalog items.
+    \item \textbf{Atomic Order Placement \& Customer Fulfillment:} Build an atomic checkout API with database transactions to ensure race-condition-free inventory decrement and order generation.
+    \item \textbf{Multi-Entity Live Search \& Modern Glassmorphic UI:} Develop a fast autocomplete endpoint matching products, categories, and artisans, complemented by modern responsive Glassmorphism styling.
+\end{enumerate}
+
+\section{System Architecture \& Module Additions}
+
+\subsection{Modular Architecture Progression}
+The modular Django architecture was extended to accommodate monetization, tracking, and governance workflows without tightly coupling domain logic:
+
+\begin{itemize}
+    \item \texttt{seller}: Expanded beyond basic CRUD to incorporate analytical aggregation queries, subscription validation checks, printable financial statements, and order stage transitions.
+    \item \texttt{marketplace}: Enhanced with transaction-wrapped checkout endpoints, asynchronous WhatsApp lead logging, daily impression counters, live search suggestion APIs, and boost synchronization routines.
+    \item \texttt{platform\_admin}: Upgraded with seller suspension controllers, boost revenue analytics, campaign scheduling engines, and multi-parameter catalog moderation tables.
+    \item \texttt{accounts}: Enhanced with subscription validity helper methods (\texttt{has\_active\_subscription}), international phone formatting for WhatsApp communication, and delivery address default resolution.
+\end{itemize}
+
+\subsection{Updated Technology Stack Specifications}
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l p{3.8cm} X}
+\toprule
+\textbf{Layer} & \textbf{Technology} & \textbf{Week 2 Implementations \& Functional Role} \\
+\midrule
+Backend Logic & Python 3.12, Django 5.x & Atomic transactions (\texttt{transaction.atomic}), ORM aggregations (\texttt{TruncDate}, \texttt{Sum}, \texttt{Avg}), management commands. \\
+Database & PostgreSQL / SQLite & Compound indexing on daily views and leads; foreign-key cascading across subscription records. \\
+Analytics Engine & Django ORM + Chart.js JSON & Time-series aggregation across 7d/30d/90d/year; conversion funnel computation; sales velocity calculation. \\
+Conversational API & WhatsApp Click-to-Chat & Context-aware wa.me URL builder with international phone parsing and async lead tracking. \\
+Monetization & Django Model Logic & Tier-based listing quota checks, automated expiration daemons, subscription gating decorators. \\
+Frontend \& UI & Glassmorphism CSS3 & Redesigned components, responsive drawer filters, sticky action bars, print media stylesheets. \\
+Client-Side Scripts & Vanilla ES6+ JavaScript & Live search autocomplete, debounced fetch calls, toast micro-notifications, AJAX lead logging. \\
+\bottomrule
+\end{tabularx}
+\caption{Incremental Technology Stack Specifications for Week 2}
+\label{tab:week2_tech_stack}
+\end{table}
+
+\section{Detailed Implementation \& Delivered Features}
+
+\subsection{Artisan Business Intelligence \& Analytics Engine}
+Rural artisans require transparent visibility into their commercial performance without having to navigate convoluted enterprise software. During this sprint, a comprehensive analytics suite was deployed in \texttt{seller/views.py} and rendered in \texttt{templates/seller/analytics.html}:
+
+\begin{itemize}
+    \item \textbf{Core Executive Metrics:} Dynamic calculation of Gross Revenue, Total Units Sold, Total Orders Processed, Average Order Value (AOV), and Return/Cancellation Revenue.
+    \item \textbf{Customer Conversion Funnel:} Quantifies buyer drop-off across four explicit operational stages:
+    \begin{equation}
+        \begin{split}
+            \text{Catalog Impressions} &\longrightarrow \text{Customer Engagement (Leads + Wishlists)} \\
+            &\longrightarrow \text{Orders Placed} \longrightarrow \text{Delivered Orders}
+        \end{split}
+    \end{equation}
+    \item \textbf{Time-Series Revenue \& Traffic Trends:} Date-truncated aggregation (\texttt{TruncDate}) feeding serializable JSON arrays (\texttt{chart\_revenue\_json}, \texttt{chart\_views\_json}) across variable time horizons (7 Days, 30 Days, 90 Days, Year-to-Date, and All-Time).
+    \item \textbf{Regional Provenance Mapping:} Aggregates shipping state information from customer delivery addresses to provide artisans with an empirical geographic breakdown of customer demand across India.
+    \item \textbf{Automated Business Insights:} Heuristic rule cards providing instant guidance (e.g., flagging low-stock craft lines, highlighting items with high wishlist demand but zero inventory, and nudging prompt order fulfillment).
+\end{itemize}
+
+\subsection{Print-Ready Financial \& Performance Statement Engine}
+To empower rural craftspeople who interface with local microfinance institutions, artisan cooperatives, or tax authorities, a dedicated printable financial statement view (\texttt{analytics\_report}) was constructed:
+\begin{itemize}
+    \item Formats all financial figures into a formal, stamp-ready ledger document with dedicated print CSS media queries.
+    \item Summarizes net realizable revenue, payment method distribution (UPI vs Cash-on-Delivery), and delivered vs pending consignments.
+    \item Provides an itemized transaction ledger recording customer details, dates, unit quantities, and individual order fulfillment statuses.
+\end{itemize}
+
+\subsection{Conversational Commerce \& WhatsApp Lead Attribution}
+A significant barrier for rural artisans is the complexity of digital communication portals. Integrating WhatsApp provides a natural, high-trust communication channel while maintaining platform data attribution:
+\begin{itemize}
+    \item \textbf{Contextual URL Generation (\texttt{Product.get\_whatsapp\_inquiry\_url}):} Formats the artisan's registered contact into an E.164 international standard number (e.g., \texttt{+91...}) and builds a prefilled inquiry containing the product title, final discounted price, and direct product URL.
+    \item \textbf{Asynchronous Click-Tracking Service (\texttt{track\_whatsapp\_click}):} When a buyer taps the ``Chat with Artisan'' button, an asynchronous AJAX request records a \texttt{WhatsAppLead} record before opening WhatsApp, capturing buyer identity, seller profile, product ID, and timestamp.
+    \item \textbf{Daily View Attribution (\texttt{ProductDailyView}):} Tracks daily catalog impressions per product and seller with compound database indexes for sub-millisecond query performance during analytics aggregation.
+\end{itemize}
+
+\subsection{Multi-Tier Seller Subscription \& Quota Enforcement}
+To establish sustainable platform monetization, a subscription engine was implemented in \texttt{seller/models.py} and integrated into catalog management:
+\begin{itemize}
+    \item \textbf{Subscription Model Architecture:} Introduces \texttt{SellerSubscriptionPlan} and \texttt{SellerSubscription}. Plans define duration, price, listing limits (\texttt{max\_products}), and promotional perks.
+    \item \textbf{Catalog Creation Gating:} The \texttt{add\_product} and \texttt{edit\_product} views inspect active seller subscriptions via \texttt{seller.has\_active\_subscription()}. Unsubscribed sellers are automatically redirected to plan selection with a preservation query parameter (\texttt{?next=...}).
+    \item \textbf{Listing Quota Enforcement:} For tiers with listing constraints (e.g., starter plans), the system verifies current catalog depth against \texttt{plan.max\_products}, prompting artisans to upgrade to the \emph{Heritage Annual Pass} for unlimited inventory slots.
+\end{itemize}
+
+\subsection{Promotional Boosts \& Automated Expiration Daemon}
+To provide verified artisans with heightened storefront visibility without distorting marketplace fairness, a time-bounded promotional boost engine was implemented:
+\begin{itemize}
+    \item \textbf{Boost Lifecycle Management:} Artisans purchase promotional boosts (\texttt{BoostPlan}) that elevate their crafts to sponsored positions on the homepage, deal carousels, and search results.
+    \item \textbf{Self-Healing Expiration Routine (\texttt{sync\_expired\_boosts}):} Automatically transitions elapsed boosts to \texttt{STATUS\_EXPIRED}, audits affected products, and resets \texttt{Product.promoted = False} unless a concurrent active boost exists.
+    \item \textbf{Automated Django Management Command (\texttt{expire\_boosts.py}):} An executable command suitable for crontab scheduling that executes the synchronization routine and outputs summary metrics to standard output.
+    \item \textbf{Balanced Feed Sampling:} Homepage curation algorithms randomize and interleave boosted products with organic new arrivals, preventing sponsored listings from monopolizing catalog discovery.
+\end{itemize}
+
+\subsection{Administrative Governance \& Seller Malpractice Suspension}
+To maintain craft authenticity and protect buyers against fraud or non-fulfillment, platform governance was significantly strengthened in \texttt{platform\_admin/views.py}:
+\begin{itemize}
+    \item \textbf{One-Click Malpractice Suspension (\texttt{toggle\_seller\_suspension}):} Platform administrators can instantly suspend a seller profile. The action deactivates the user account (\texttt{user.is\_active = False}), instantly terminates their active session via auth decorators, and executes a cascading batch-update marking all their live listings as \texttt{STATUS\_SUSPENDED}.
+    \item \textbf{Safe Restoration Protocol:} When an administrative audit clears a seller, the restore action re-enables the user account and safely restores suspended listings back to \texttt{STATUS\_APPROVED}.
+    \item \textbf{Granular Catalog Moderation:} The \texttt{manage\_products} console was upgraded with multi-parameter filtering: moderation status, promotional status, category taxonomies, stock-out detection, and price sorting.
+\end{itemize}
+
+\subsection{Atomic Checkout \& Order Fulfillment Workflow}
+During Week 2, the end-to-end purchasing lifecycle was completed from shopping cart to order delivery:
+\begin{itemize}
+    \item \textbf{Atomic Order Placement (\texttt{checkout\_place\_order\_api}):} Wrapped in \texttt{transaction.atomic()}, the endpoint validates real-time stock levels, applies authoritative pricing rules, calculates shipping, creates parent \texttt{Order} and individual \texttt{OrderItem} records, decrements product inventory, and empties the customer's cart in a single atomic transaction.
+    \item \textbf{Multi-Address Selection:} Integrates with the \texttt{DeliveryAddress} model, allowing buyers to select existing home/office addresses or supply inline delivery details.
+    \item \textbf{Order Tracking \& Fulfillment Portals:} Customers monitor order status stages (\emph{Pending}, \emph{Confirmed}, \emph{Shipped}, \emph{Delivered}) on \texttt{my\_orders.html}, while artisans update dispatch timelines directly from their order management dashboard.
+\end{itemize}
+
+\subsection{Multi-Entity Live Search Autocomplete \& UI Modernization}
+To accelerate craft discovery and elevate user engagement, the storefront frontend received major performance and aesthetic enhancements:
+\begin{itemize}
+    \item \textbf{Multi-Entity Autocomplete API (\texttt{search\_suggest\_api}):} A debounced, lightweight JSON endpoint returning instantaneous tri-facet search suggestions: matching products (with thumbnails and final prices), craft categories (with emojis/slugs), and verified artisan studios (with geographic locations).
+    \item \textbf{Glassmorphism Design Overhaul:} Deployed unified CSS design tokens across \texttt{marketplace.css}, \texttt{dashboard.css}, and \texttt{responsive.css}, featuring translucent glass backdrops, mobile-optimized filter drawers, sticky mobile checkout actions, and micro-interaction toast notifications.
+\end{itemize}
+
+\section{Algorithmic Models \& Formulations}
+
+\subsection{Conversion Funnel \& Business Intelligence Metrics}
+The seller analytics engine computes the customer conversion rate ($CR$) and Average Order Value ($AOV$) over any selected time window $T$:
+\begin{equation}
+    CR = \left( \frac{N_{\text{orders}}}{N_{\text{views}}} \right) \times 100\%
+\end{equation}
+\begin{equation}
+    AOV = \frac{\sum_{k=1}^{N_{\text{items}}} \left( P_{k,\text{final}} \times Q_k \right)}{N_{\text{orders}}}
+\end{equation}
+where $N_{\text{orders}}$ is the total number of distinct orders, $N_{\text{views}}$ represents aggregate page impressions from \texttt{ProductDailyView}, $P_{k,\text{final}}$ is the line item unit price, and $Q_k$ is the unit quantity.
+
+\subsection{Authoritative Boost Expiration Model}
+To guarantee that products are only marked promoted when backed by a paid, non-expired boost, the state of the product promotion flag is defined by:
+\begin{equation}
+    \text{Promoted}(p) = 
+    \begin{cases} 
+        \text{True}, & \exists \, b \in \mathcal{B}_p : \left( b.\text{status} = \text{active} \land b.t_{\text{start}} \le t \le b.t_{\text{end}} \right) \\
+        \text{False}, & \text{otherwise}
+    \end{cases}
+\end{equation}
+where $\mathcal{B}_p$ is the set of all boosts associated with product $p$, and $t$ is the current system date.
+
+\subsection{Subscription Quota Validation Rule}
+Product listing authorization is governed by the following conditional rule:
+\begin{equation}
+    \begin{aligned}
+        \text{CanPublish}(s) =\; &\text{HasValidSub}(s) \;\land \\
+        &\left( \text{Plan}(s).\text{max\_products} = 0 \lor |\mathcal{P}_s| < \text{Plan}(s).\text{max\_products} \right)
+    \end{aligned}
+\end{equation}
+where $s$ is the artisan profile, $\text{HasValidSub}(s) \iff \exists \text{ active subscription with } t \le \text{end\_date}$, and $|\mathcal{P}_s|$ represents the artisan's current catalog size.
+
+\section{Database Design \& Entity Relationships}
+
+During Week 2, the relational schema was expanded with four key models to support subscriptions, traffic logging, and conversational leads:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l p{4.2cm} X}
+\toprule
+\textbf{Model Entity} & \textbf{Relationship Mapping} & \textbf{Core Purpose \& Constraints} \\
+\midrule
+\texttt{SellerSubscriptionPlan} & 1 $\leftrightarrow$ Many with \texttt{SellerSubscription} & Defines commercial tiers (Monthly, Annual), pricing, duration in days, and product listing quota limits. \\
+\texttt{SellerSubscription} & Many $\leftrightarrow$ 1 with \texttt{SellerProfile} & Tracks artisan billing records, active status, expiration timestamps, payment tokens, and auto-renewal flags. \\
+\texttt{ProductDailyView} & Many $\leftrightarrow$ 1 with \texttt{Product} \& \texttt{SellerProfile} & Aggregates daily catalog impression counts. Indexed compoundly on \texttt{(seller, date)} and \texttt{(product, date)}. \\
+\texttt{WhatsAppLead} & Many $\leftrightarrow$ 1 with \texttt{Product}, \texttt{SellerProfile}, \& \texttt{User} & Logs buyer click-to-chat inquiry events for lead attribution and artisan engagement tracking. \\
+\texttt{Boost} & Many $\leftrightarrow$ 1 with \texttt{BoostPlan} \& \texttt{Product} & Governs sponsored product visibility periods; managed by custom \texttt{BoostQuerySet}. \\
+\bottomrule
+\end{tabularx}
+\caption{New and Extended Database Entities in Week 2}
+\label{tab:new_entities}
+\end{table}
+
+\section{Core Implementation Highlights}
+
+\subsection{Automated Boost Synchronization \& Quota Recovery}
+\begin{lstlisting}[language=Python, caption={Authoritative Boost Expiration Service}]
+def sync_expired_boosts():
+    """
+    Finds active boosts whose end_date has passed, marks them
+    as 'expired', and resets Product.promoted=False if the product
+    has no other live boost. Cleans orphaned promoted flags.
+    """
+    today = timezone.now().date()
+    past_active_boosts = Boost.objects.filter(
+        status=Boost.STATUS_ACTIVE, 
+        end_date__lt=today
+    )
+    affected_product_ids = set(
+        past_active_boosts.values_list('product_id', flat=True)
+    )
+
+    if past_active_boosts.exists():
+        past_active_boosts.update(status=Boost.STATUS_EXPIRED)
+
+    for pid in affected_product_ids:
+        has_active = Boost.objects.filter(
+            product_id=pid,
+            status=Boost.STATUS_ACTIVE,
+            start_date__lte=today,
+            end_date__gte=today
+        ).exists()
+        if not has_active:
+            Product.objects.filter(pk=pid).update(promoted=False)
+
+    valid_promoted_pids = Boost.objects.filter(
+        status=Boost.STATUS_ACTIVE,
+        start_date__lte=today,
+        end_date__gte=today
+    ).values_list('product_id', flat=True)
+    Product.objects.filter(promoted=True).exclude(
+        id__in=valid_promoted_pids
+    ).update(promoted=False)
+\end{lstlisting}
+
+\subsection{Administrative Seller Suspension \& Catalog Cascade}
+\begin{lstlisting}[language=Python, caption={Seller Suspension Governance Action}]
+@admin_required
+def toggle_seller_suspension(request, pk):
+    seller = get_object_or_404(SellerProfile, pk=pk)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'suspend':
+            seller.user.is_active = False
+            seller.user.save(update_fields=['is_active'])
+            affected = Product.objects.filter(seller=seller)\
+                .exclude(status=Product.STATUS_REJECTED)\
+                .update(status=Product.STATUS_SUSPENDED)
+            messages.warning(
+                request,
+                f'Seller "{seller.business_name}" suspended. '
+                f'Account locked and {affected} listings removed from store.'
+            )
+        elif action == 'restore':
+            seller.user.is_active = True
+            seller.user.save(update_fields=['is_active'])
+            affected = Product.objects.filter(
+                seller=seller, 
+                status=Product.STATUS_SUSPENDED
+            ).update(status=Product.STATUS_APPROVED)
+            messages.success(
+                request,
+                f'Seller "{seller.business_name}" restored. '
+                f'{affected} listings reactivated.'
+            )
+    return redirect(f"{reverse('platform_admin:dashboard')}?open_sellers=1")
+\end{lstlisting}
+
+\subsection{Atomic Checkout with Concurrent Stock Verification}
+\begin{lstlisting}[language=Python, caption={Atomic Order Placement Pipeline}]
+@require_POST
+def checkout_place_order_api(request):
+    cart_items = CartItem.objects.filter(user=request.user).select_related('product')
+    if not cart_items.exists():
+        return JsonResponse({'success': False, 'error': 'Cart is empty'}, status=400)
+
+    with transaction.atomic():
+        # Validate stock availability across all line items
+        for item in cart_items:
+            if item.product.stock < item.quantity:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Insufficient stock for {item.product.name}'
+                }, status=400)
+
+        # Create parent order
+        order = Order.objects.create(
+            user=request.user,
+            shipping_address=selected_address,
+            payment_method=payment_method,
+            total_amount=calculated_total
+        )
+
+        # Generate line items and decrement inventory atomically
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                seller=item.product.seller,
+                quantity=item.quantity,
+                unit_price=item.product.final_price(),
+                line_total=item.product.final_price() * item.quantity
+            )
+            item.product.stock -= item.quantity
+            item.product.save(update_fields=['stock'])
+
+        cart_items.delete()
+
+    return JsonResponse({'success': True, 'order_id': order.id})
+\end{lstlisting}
+
+\section{Challenges Solved \& Technical Solutions}
+\begin{itemize}
+    \item \textbf{Challenge 1: Bridging Digital Literacy with WhatsApp Direct Commerce}\\
+    \emph{Problem:} Rural craftspeople frequently abandon complex digital marketplaces because managing web-based customer inquiries is intimidating or technically prohibitive.\\
+    \emph{Solution:} Engineered a direct-to-artisan WhatsApp pipeline that generates contextual, pre-filled inquiry links in the customer's mobile app while asynchronously registering lead records (\texttt{WhatsAppLead}) on the backend for sales attribution.
+    
+    \item \textbf{Challenge 2: Preventing Promotional State Inconsistencies \& Orphaned Boosts}\\
+    \emph{Problem:} If an artisan's promotional boost expires at midnight, cached flags or server downtime could cause non-paying products to remain featured indefinitely.\\
+    \emph{Solution:} Formulated a deterministic synchronization engine (\texttt{sync\_expired\_boosts}) that evaluates active boosts on demand, resets stale product flags, and operates concurrently via a scheduled CLI command (\texttt{expire\_boosts.py}).
+
+    \item \textbf{Challenge 3: Seamless Subscription Gate Redirection}\\
+    \emph{Problem:} Gating product creation behind a paid subscription can frustrate artisans if they fill out a complex listing form only to be blocked upon submission.\\
+    \emph{Solution:} Implemented proactive view gates on both \texttt{add\_product} and \texttt{edit\_product} that detect missing or expired subscriptions upon initial entry, redirecting artisans to the subscription tier page with an automatic \texttt{?next=} parameter that resumes listing creation once subscribed.
+
+    \item \textbf{Challenge 4: Race Conditions in Order Inventory Decrement}\\
+    \emph{Problem:} Concurrent checkouts on limited-quantity handcrafted items risked selling inventory below zero.\\
+    \emph{Solution:} Enclosed order creation, multi-item stock validation, line item generation, and inventory decrements inside a database transaction block (\texttt{transaction.atomic()}) with strict pre-commit verification.
+\end{itemize}
+
+\section{Future Roadmap \& Conclusion}
+
+\subsection{Upcoming Engineering Milestones (Phase III)}
+\begin{itemize}
+    \item \textbf{Payment Gateway Webhook Integration:} Replacing simulated checkouts with live Razorpay/Stripe webhooks and UPI deep-linking for seamless mobile payments.
+    \item \textbf{Automated SMS \& WhatsApp Dispatch Alerts:} Integrating Twilio or Gupshup SMS webhooks to notify artisans of incoming orders via basic text messaging without requiring smartphone data connectivity.
+    \item \textbf{Multilingual Audio Descriptions:} Introducing audio snippet generation for artisans who wish to narrate the cultural heritage and craftsmanship behind their artifacts in regional vernaculars.
+\end{itemize}
+
+\subsection{Conclusion}
+During the second sprint (November 02 to November 07, 2026), \textbf{RuralConnect} successfully evolved from an architectural prototype into a commercial-grade, multi-role e-commerce platform. The introduction of artisan business analytics, formal print-ready ledgers, WhatsApp lead attribution, subscription tier enforcement, automated promotional lifecycles, administrative malpractice controls, and atomic order checkouts establishes a resilient and equitable digital marketplace that honors both artisan simplicity and platform integrity.
+
+\end{document}

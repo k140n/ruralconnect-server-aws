@@ -1,0 +1,1396 @@
+{% extends "base_seller.html" %}
+{% block title %}Overview | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Seller Overview{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card-btn {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.stat-card-btn .stat {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+.stat-card-btn:hover .stat {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(30, 77, 59, 0.12);
+  border-color: var(--rc-green, #1e4d3b) !important;
+}
+.stat-card-btn .action-hint {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+.stat-card-btn:hover .action-hint {
+  opacity: 1;
+  transform: translateX(3px);
+}
+.product-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.product-row-clickable:hover {
+  background-color: #f7faf8 !important;
+}
+.tab-filter-btn {
+  cursor: pointer;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.tab-filter-btn.active {
+  background-color: var(--rc-green, #1e4d3b);
+  color: #fff !important;
+  border-color: var(--rc-green, #1e4d3b);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Seller Membership & Subscription Status Alert -->
+{% if active_subscription %}
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #1b4332 0%, #285e45 100%); color: #ffffff;">
+  <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+      <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px;">
+        <i class="bi bi-patch-check-fill fs-5"></i>
+      </div>
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-bold text-white fs-6">{{ active_subscription.plan.name }}</span>
+          <span class="badge bg-warning text-dark small px-2 py-0">ACTIVE</span>
+        </div>
+        <div class="small text-white-50">
+          Expires on <strong>{{ active_subscription.end_date|date:"d M Y" }}</strong> ({{ active_subscription.days_remaining }} day{{ active_subscription.days_remaining|pluralize }} remaining)
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="{% url 'seller:subscription_plans' %}" class="btn btn-outline-light btn-sm px-3 rounded-pill">
+        <i class="bi bi-gear-fill me-1"></i> Manage Plan
+      </a>
+      <a href="{% url 'seller:add_product' %}" class="btn btn-warning btn-sm px-3 rounded-pill fw-bold text-dark">
+        <i class="bi bi-plus-lg me-1"></i> Add Product
+      </a>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+  <div class="d-flex align-items-center gap-3">
+    <div class="rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+      <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+    </div>
+    <div>
+      <div class="fw-bold text-dark">No Active Seller Subscription Plan</div>
+      <div class="small text-muted">You must have an active monthly or annual plan to publish products and accept orders on RuralConnect.</div>
+    </div>
+  </div>
+  <a href="{% url 'seller:subscription_plans' %}" class="btn btn-rc fw-bold px-4 py-2 rounded-pill shadow-sm">
+    <i class="bi bi-patch-check-fill me-1"></i> Choose a Plan
+  </a>
+</div>
+{% endif %}
+
+<!-- Artisan KYC Trust & Verification Notice -->
+{% if not seller.is_verified %}
+  {% if seller.verification_status == 'pending' %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background-color: #fffbeb; border-left: 4px solid #f59e0b !important;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+          <i class="bi bi-clock-history fs-5"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark">Artisan Verification Under Review</div>
+          <div class="small text-muted">Your credential document is in the review queue. Platform admins review within 24-48 hours.</div>
+        </div>
+      </div>
+      <a href="{% url 'seller:profile' %}#kyc" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold">
+        View Status
+      </a>
+    </div>
+  {% elif seller.verification_status == 'rejected' %}
+    <div class="alert alert-danger border-0 shadow-sm rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background-color: #fef2f2; border-left: 4px solid #ef4444 !important;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+          <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-danger">Verification Needs Resubmission</div>
+          <div class="small text-muted">{{ seller.verification_rejection_reason|default:"Your previous submission was not approved. Please upload valid proof." }}</div>
+        </div>
+      </div>
+      <a href="{% url 'seller:profile' %}#kyc" class="btn btn-sm btn-danger text-white rounded-pill px-3 py-1.5 fw-semibold">
+        Update Documents
+      </a>
+    </div>
+  {% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center flex-row flex-wrap gap-3" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #16a34a !important;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; background: #16a34a;">
+          <i class="bi bi-patch-check-fill fs-5"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark">Get Your "Verified Artisan" Badge</div>
+          <div class="small text-muted">Upload your Pehchan Artisan ID, Handloom Board card, or Govt ID to build trust with buyers and unlock priority search.</div>
+        </div>
+      </div>
+      <a href="{% url 'seller:profile' %}#kyc" class="btn btn-sm text-white rounded-pill px-3.5 py-1.5 fw-semibold" style="background: #16a34a;">
+        <i class="bi bi-cloud-arrow-up me-1"></i> Submit Verification
+      </a>
+    </div>
+  {% endif %}
+{% endif %}
+
+<!-- Business Overview & Revenue Cards -->
+<div class="row g-3 mb-4">
+
+  <!-- Revenue -->
+  <div class="col-sm-6 col-xl-3">
+    <a href="{% url 'seller:analytics' %}" class="card border-0 shadow-sm rounded-4 p-3 bg-white text-decoration-none" style="border-left: 4px solid var(--rc-green, #1e4d3b) !important;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small fw-semibold">TOTAL SALES REVENUE</div>
+          <div class="fs-4 fw-bold text-success mt-1">₹{{ total_revenue|floatformat:0 }}</div>
+        </div>
+        <div class="p-2 bg-success-subtle rounded-circle text-success fs-5">
+          <i class="bi bi-currency-rupee"></i>
+        </div>
+      </div>
+      <div class="small text-success mt-2 fw-semibold">
+        View analytics &amp; charts <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- Total Orders -->
+  <div class="col-sm-6 col-xl-3">
+    <a href="{% url 'seller:orders' %}" class="card border-0 shadow-sm rounded-4 p-3 bg-white text-decoration-none" style="border-left: 4px solid #0d6efd !important;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small fw-semibold">TOTAL ORDERS</div>
+          <div class="fs-4 fw-bold text-dark mt-1">{{ total_orders }}</div>
+        </div>
+        <div class="p-2 bg-primary-subtle rounded-circle text-primary fs-5">
+          <i class="bi bi-receipt"></i>
+        </div>
+      </div>
+      <div class="small text-primary mt-2 fw-semibold">
+        View order history <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- Pending Fulfillment -->
+  <div class="col-sm-6 col-xl-3">
+    <a href="{% url 'seller:orders' %}?status=pending" class="card border-0 shadow-sm rounded-4 p-3 bg-white text-decoration-none" style="border-left: 4px solid #fd7e14 !important;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small fw-semibold">PENDING DISPATCH</div>
+          <div class="fs-4 fw-bold {% if pending_orders > 0 %}text-warning-emphasis{% else %}text-dark{% endif %} mt-1">
+            {{ pending_orders }}
+          </div>
+        </div>
+        <div class="p-2 bg-warning-subtle rounded-circle text-warning-emphasis fs-5">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+      <div class="small {% if pending_orders > 0 %}text-danger fw-bold{% else %}text-muted{% endif %} mt-2">
+        {% if pending_orders > 0 %}
+          <i class="bi bi-bell-fill me-1"></i> Requires packing!
+        {% else %}
+          All caught up!
+        {% endif %}
+      </div>
+    </a>
+  </div>
+
+  <!-- Shipped / Delivered -->
+  <div class="col-sm-6 col-xl-3">
+    <a href="{% url 'seller:orders' %}?status=delivered" class="card border-0 shadow-sm rounded-4 p-3 bg-white text-decoration-none" style="border-left: 4px solid #198754 !important;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small fw-semibold">FULFILLED ORDERS</div>
+          <div class="fs-4 fw-bold text-dark mt-1">{{ delivered_orders }}</div>
+        </div>
+        <div class="p-2 bg-success-subtle rounded-circle text-success fs-5">
+          <i class="bi bi-check-circle"></i>
+        </div>
+      </div>
+      <div class="small text-muted mt-2">
+        Completed handovers
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Interactive Stat Cards: Catalog & Status Overview -->
+<div class="row g-3">
+  <!-- 1. Total Products -->
+  <div class="col-6 col-xl-4">
+    <button type="button" class="stat-card-btn" data-bs-toggle="modal" data-bs-target="#allProductsModal" title="Click to view all listed products">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid var(--rc-green, #1e4d3b);">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-box-seam fs-4 text-primary"></i>
+          <span class="badge bg-light text-dark border">Catalog</span>
+        </div>
+        <div class="my-2">
+          <div class="n mb-0">{{ total }}</div>
+          <div class="text-muted small">Total products listed</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 text-primary">
+          <i class="bi bi-eye me-1"></i> View all products <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <!-- 2. Approved Products -->
+  <div class="col-6 col-xl-4">
+    <button type="button" class="stat-card-btn" data-bs-toggle="modal" data-bs-target="#approvedModal" title="Click to view approved & live products">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid #28a745;">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-check-circle-fill fs-4 text-success"></i>
+          <span class="badge bg-success-subtle text-success border border-success-subtle">Live on Store</span>
+        </div>
+        <div class="my-2">
+          <div class="n mb-0 text-success">{{ approved }}</div>
+          <div class="text-muted small">Approved &amp; active</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 text-success">
+          <i class="bi bi-eye me-1"></i> View live listings <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <!-- 3. Paused / Hidden Listings -->
+  <div class="col-6 col-xl-4">
+    <button type="button" class="stat-card-btn" data-bs-toggle="modal" data-bs-target="#pausedModal" title="Click to view paused products (hidden from buyers)">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid #6c757d;">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-pause-circle-fill fs-4 text-secondary"></i>
+          {% if paused > 0 %}
+            <span class="badge bg-secondary text-white fw-bold">Paused</span>
+          {% else %}
+            <span class="badge bg-light text-muted border">None</span>
+          {% endif %}
+        </div>
+        <div class="my-2">
+          <div class="n mb-0 text-secondary">{{ paused }}</div>
+          <div class="text-muted small">Paused listings (hidden)</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 text-secondary">
+          <i class="bi bi-play-fill me-1"></i> View &amp; activate <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <!-- 4. Inventory Alert / Out of Stock -->
+  <div class="col-6 col-xl-4">
+    <a href="{% url 'seller:my_products' %}" class="stat-card-btn" title="Click to view inventory and restock">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid {% if out_of_stock > 0 %}#dc3545{% else %}#198754{% endif %};">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-box2-fill fs-4 {% if out_of_stock > 0 %}text-danger{% else %}text-success{% endif %}"></i>
+          {% if out_of_stock > 0 %}
+            <span class="badge bg-danger text-white fw-bold">Needs Restock</span>
+          {% else %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Stocked</span>
+          {% endif %}
+        </div>
+        <div class="my-2">
+          <div class="n mb-0 {% if out_of_stock > 0 %}text-danger{% else %}text-dark{% endif %}">{{ out_of_stock }}</div>
+          <div class="text-muted small">Out of stock items</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 {% if out_of_stock > 0 %}text-danger{% else %}text-success{% endif %}">
+          <i class="bi bi-boxes me-1"></i> Manage inventory <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- 5. Active Promotions (Boosts) -->
+  <div class="col-6 col-xl-4">
+    <button type="button" class="stat-card-btn" data-bs-toggle="modal" data-bs-target="#promotionsModal" title="Click to view promoted items & boost tiers">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid #fd7e14;">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-rocket-takeoff-fill fs-4 text-warning"></i>
+          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Spotlight</span>
+        </div>
+        <div class="my-2">
+          <div class="n mb-0 text-warning-emphasis">{{ promos }}</div>
+          <div class="text-muted small">Active promoted items</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 text-warning-emphasis">
+          <i class="bi bi-rocket me-1"></i> Manage boosts <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <!-- 6. Average Customer Rating -->
+  <div class="col-6 col-xl-4">
+    <button type="button" class="stat-card-btn" data-bs-toggle="modal" data-bs-target="#reviewsModal" title="Click to view customer feedback & ratings">
+      <div class="stat d-flex flex-column justify-content-between" style="border-left: 4px solid #b8860b;">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-star-fill fs-4 text-warning"></i>
+          <span class="badge bg-light text-dark border">Customer Trust</span>
+        </div>
+        <div class="my-2">
+          <div class="n mb-0 text-dark">
+            {% if avg_rating > 0 %}{{ avg_rating }} <small class="fs-6 text-muted">/ 5</small>{% else %}—{% endif %}
+          </div>
+          <div class="text-muted small">Average rating</div>
+        </div>
+        <div class="action-hint fw-semibold mt-1 text-dark">
+          <i class="bi bi-chat-quote me-1"></i> Read buyer reviews <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- Alert Banner: Action Required for Rejected Submissions -->
+{% if rejected_items %}
+<div class="alert alert-danger mt-4 p-3 shadow-sm border-danger rounded-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+      <h3 class="h6 mb-1 text-danger fw-bold">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> Admin Feedback: {{ rejected_items|length }} Product{{ rejected_items|length|pluralize }} Need{{ rejected_items|length|pluralize:"s," }} Edits
+      </h3>
+      <div class="small text-dark mt-2">
+        {% for p in rejected_items %}
+          <div class="mb-2 p-2 bg-white rounded border border-danger-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <strong class="text-danger">{{ p.name }}</strong>
+              <div class="text-muted small">Reason: <em>"{{ p.reject_reason|default:'Please review product details and guidelines.' }}"</em></div>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 product-detail-trigger"
+                      data-id="{{ p.id }}"
+                      data-name="{{ p.name }}"
+                      data-category="{{ p.category.name }}"
+                      data-price="{{ p.price|floatformat:0 }}"
+                      data-final-price="{{ p.final_price|floatformat:0 }}"
+                      data-discount="{{ p.seller_discount }}"
+                      data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                      data-stock="{{ p.stock }}"
+                      data-status="{{ p.status }}"
+                      data-status-label="{{ p.get_status_display }}"
+                      data-description="{{ p.description|escapejs }}"
+                      data-location="{{ p.location }}"
+                      data-reject-reason="{{ p.reject_reason|default:''|escapejs }}"
+                      data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                      data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                      data-emoji="{{ p.emoji }}"
+                      data-hue="{{ p.hue }}"
+                      data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                      data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                      data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+                <i class="bi bi-eye"></i> Details
+              </button>
+              <a href="{% url 'seller:edit_product' p.pk %}" class="btn btn-sm btn-danger py-0 px-2 fw-semibold">
+                <i class="bi bi-pencil-square"></i> Edit &amp; Resubmit
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Incoming Customer Orders Highlight -->
+<div class="card border-0 shadow-sm rounded-4 bg-white mt-4 mb-4 overflow-hidden">
+  <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="h6 mb-0 fw-bold text-dark">
+        <i class="bi bi-receipt text-success me-2"></i>Incoming Customer Orders
+        {% if pending_orders > 0 %}
+          <span class="badge bg-danger ms-2">{{ pending_orders }} Pending Dispatch</span>
+        {% endif %}
+      </h3>
+      <span class="text-muted small">Items bought by customers in RuralConnect store</span>
+    </div>
+    <a href="{% url 'seller:orders' %}" class="btn btn-sm btn-outline-secondary">
+      View All Orders ({{ total_orders }}) <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  {% if not recent_orders %}
+    <div class="p-4 text-center text-muted small">
+      <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+      No customer orders received yet. When a buyer places an order with your items, it will appear here immediately!
+    </div>
+  {% else %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 small">
+        <thead class="table-light text-muted">
+          <tr>
+            <th class="ps-3">Order #</th>
+            <th>Item</th>
+            <th>Customer &amp; Address</th>
+            <th>Qty &amp; Total</th>
+            <th>Fulfillment Status</th>
+            <th class="text-end pe-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ord in recent_orders %}
+          <tr>
+            <td class="ps-3">
+              <span class="fw-bold text-dark">#{{ ord.order.order_number }}</span>
+              <div class="text-muted" style="font-size:0.75rem;">{{ ord.created_at|date:"d M Y, h:i A" }}</div>
+              <span class="badge bg-light text-muted border" style="font-size:0.7rem;">
+                {{ ord.order.get_payment_method_display }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                {% if ord.product and ord.product.main_image %}
+                  <img src="{{ ord.product.main_image.url }}" alt="{{ ord.product_name }}" class="rounded" style="width: 38px; height: 38px; object-fit: cover;">
+                {% else %}
+                  <div class="rounded d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px; background: #e8f5e9; font-size: 1.1rem;">
+                    {{ ord.product.emoji|default:"📦" }}
+                  </div>
+                {% endif %}
+                <div>
+                  <div class="fw-semibold text-dark text-truncate" style="max-width:160px;">{{ ord.product_name }}</div>
+                  <div class="text-muted" style="font-size:0.75rem;">₹{{ ord.unit_price|floatformat:0 }} each</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ ord.order.full_name }}</div>
+              <div class="text-muted text-truncate" style="font-size:0.75rem; max-width:180px;" title="{{ ord.order.shipping_address }}, {{ ord.order.city }} - {{ ord.order.postal_code }}">
+                {{ ord.order.city }}, {{ ord.order.state }}
+              </div>
+              <div class="text-muted" style="font-size:0.75rem;">{{ ord.order.phone }}</div>
+            </td>
+            <td>
+              <span class="fw-bold">{{ ord.quantity }} unit{% if ord.quantity > 1 %}s{% endif %}</span>
+              <div class="text-success fw-bold">₹{{ ord.line_total|floatformat:0 }}</div>
+            </td>
+            <td>
+              <span class="badge {% if ord.status == 'delivered' %}bg-success-subtle text-success border border-success-subtle{% elif ord.status == 'shipped' %}bg-primary-subtle text-primary border border-primary-subtle{% elif ord.status == 'confirmed' %}bg-info-subtle text-info-emphasis border border-info-subtle{% elif ord.status == 'cancelled' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}">
+                {{ ord.get_status_display }}
+              </span>
+              {% if ord.tracking_number %}
+                <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                  {{ ord.courier_name|default:"Courier" }}: {{ ord.tracking_number }}
+                </div>
+              {% endif %}
+            </td>
+            <td class="text-end pe-3">
+              <a href="{% url 'seller:orders' %}" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:0.75rem;">
+                <i class="bi bi-pencil-square me-1"></i> Update
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Main Section: Products with Filter Tabs & Click-to-View Details -->
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="panel p-0 shadow-sm overflow-hidden h-100">
+      <!-- Panel Header & Filter Tabs -->
+      <div class="p-3 border-bottom bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+          <div>
+            <h3 class="h6 mb-0 fw-bold"><i class="bi bi-box-seam me-1 text-rc"></i> Your Products Catalog</h3>
+            <span class="text-muted small">Click any product row to view full details &amp; actions</span>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'seller:my_products' %}" class="btn btn-sm btn-outline-secondary">
+              Open Full Catalog <i class="bi bi-arrow-right"></i>
+            </a>
+            <a href="{% url 'seller:add_product' %}" class="btn btn-sm btn-rc">
+              <i class="bi bi-plus-lg"></i> Add New
+            </a>
+          </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="d-flex gap-2 pt-2 border-top flex-wrap align-items-center" id="catalogFilterPills">
+          <span class="text-muted small fw-bold me-1">Filter:</span>
+          <button type="button" class="btn btn-sm btn-outline-rc tab-filter-btn active" data-filter="all">All ({{ total }})</button>
+          <button type="button" class="btn btn-sm btn-outline-rc tab-filter-btn" data-filter="approved">Approved ({{ approved }})</button>
+          <button type="button" class="btn btn-sm btn-outline-rc tab-filter-btn" data-filter="pending">Pending ({{ pending }})</button>
+          <button type="button" class="btn btn-sm btn-outline-rc tab-filter-btn" data-filter="rejected">Rejected ({{ rejected }})</button>
+          <button type="button" class="btn btn-sm btn-outline-rc tab-filter-btn" data-filter="promoted">Promoted ({{ promos }})</button>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Product (Click for details)</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="catalogTableBody">
+            {% for p in all_products %}
+            <tr class="product-row-clickable product-detail-trigger"
+                data-status="{{ p.status }}"
+                data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                data-id="{{ p.id }}"
+                data-name="{{ p.name }}"
+                data-category="{{ p.category.name }}"
+                data-price="{{ p.price|floatformat:0 }}"
+                data-final-price="{{ p.final_price|floatformat:0 }}"
+                data-discount="{{ p.seller_discount }}"
+                data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                data-stock="{{ p.stock }}"
+                data-status-label="{{ p.get_status_display }}"
+                data-description="{{ p.description|escapejs }}"
+                data-location="{{ p.location }}"
+                data-reject-reason="{{ p.reject_reason|default:''|escapejs }}"
+                data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                data-emoji="{{ p.emoji }}"
+                data-hue="{{ p.hue }}"
+                data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                       style="width:40px;height:40px;background:hsl({{ p.hue }},45%,90%);font-size:1.3rem;">
+                    {% if p.main_image %}
+                      <img src="{{ p.main_image.url }}" alt="{{ p.name }}" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                    {% else %}
+                      {{ p.emoji }}
+                    {% endif %}
+                  </div>
+                  <div>
+                    <strong class="d-block text-dark">{{ p.name }}</strong>
+                    <div class="text-muted small">
+                      Stock: <span class="{% if p.stock <= 2 %}text-danger fw-bold{% endif %}">{{ p.stock }}</span>
+                      {% if p.promoted %}
+                        · <span class="badge bg-warning text-dark py-0 px-1" style="font-size:0.65rem">Boosted</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="small">{{ p.category.name }}</td>
+              <td>
+                <div><strong>₹{{ p.final_price|floatformat:0 }}</strong></div>
+                {% if p.effective_discount > 0 %}
+                  <span class="badge bg-light text-success border" style="font-size:0.7rem">{{ p.effective_discount }}% off</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if p.status == 'approved' %}
+                  <span class="badge bg-success">Approved</span>
+                {% elif p.status == 'pending' %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% elif p.status == 'rejected' %}
+                  <span class="badge bg-danger">Rejected</span>
+                {% elif p.status == 'suspended' %}
+                  <span class="badge bg-secondary">Suspended</span>
+                {% endif %}
+              </td>
+              <td class="text-end" onclick="event.stopPropagation();">
+                <div class="d-flex justify-content-end gap-1">
+                  <button type="button" class="btn btn-sm btn-outline-rc product-detail-btn" title="View full details"
+                          onclick="openDetailFromRow(this);">
+                    <i class="bi bi-eye"></i> Details
+                  </button>
+                  <a href="{% url 'seller:edit_product' p.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit listing">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                You haven't listed any products yet.
+                <div class="mt-2">
+                  <a href="{% url 'seller:add_product' %}" class="btn btn-sm btn-rc">Add your first product</a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Quick Shortcuts & Marketplace Rules -->
+  <div class="col-lg-4">
+    <!-- Quick Actions Card -->
+    <div class="panel p-3 shadow-sm mb-3 bg-white">
+      <h3 class="h6 fw-bold mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Actions</h3>
+      <div class="d-grid gap-2">
+        <a href="{% url 'seller:add_product' %}" class="btn btn-rc">
+          <i class="bi bi-plus-circle me-1"></i> Add New Product
+        </a>
+        <a href="{% url 'seller:promotions' %}" class="btn btn-outline-rc">
+          <i class="bi bi-rocket-takeoff me-1"></i> Boost Approved Items
+        </a>
+        <a href="{% url 'seller:reviews' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-star me-1"></i> View Buyer Reviews
+        </a>
+      </div>
+    </div>
+
+    <!-- Marketplace Rules Card -->
+    <div class="panel p-3 shadow-sm bg-white">
+      <h3 class="h6 fw-bold mb-2"><i class="bi bi-shield-check text-rc me-1"></i> Marketplace Guidelines</h3>
+      <ul class="small text-muted ps-3 mb-0" style="line-height:1.7;">
+        <li class="mb-1"><strong>Review Process:</strong> New submissions and significant edits (title, price, category) wait for platform admin approval.</li>
+        <li class="mb-1"><strong>Discount Policy:</strong> You set your own discount. If a platform campaign offers a higher discount, the larger one automatically applies (they never stack).</li>
+        <li class="mb-1"><strong>Product Boosting:</strong> Only approved products can be boosted to the homepage spotlight via the Promotions tab.</li>
+        <li class="mb-1"><strong>Inventory Management:</strong> Keep stock quantities up to date to maintain high fulfillment ratings.</li>
+        <li><strong>Need Support?</strong> Contact the platform administrator if your product approval is pending for over 24 hours.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL: Comprehensive Product Details Modal (When clicking any item) -->
+<!-- ================================================================= -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <div>
+          <span class="badge bg-light text-dark border small mb-1" id="mCategory">Category</span>
+          <h5 class="modal-title fw-bold" id="productDetailModalLabel">Product Details</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Rejection Notice (shown only if product is rejected) -->
+        <div id="mRejectionBox" class="alert alert-danger mb-3 d-none">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-exclamation-triangle-fill fs-5 mt-1 text-danger"></i>
+            <div>
+              <strong class="d-block text-danger">Platform Admin Rejection Feedback:</strong>
+              <div id="mRejectionText" class="mt-1"></div>
+              <small class="text-muted d-block mt-2">
+                Click <strong>"Edit Product"</strong> below to make the required adjustments and re-submit for review.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Left: Image Preview -->
+          <div class="col-md-5">
+            <div id="mImageWrapper" class="rounded border p-2 text-center bg-light d-flex align-items-center justify-content-center"
+                 style="min-height: 220px; max-height: 260px; overflow: hidden;">
+              <img id="mImage" src="" alt="Product" class="img-fluid rounded d-none" style="max-height: 220px; object-fit: contain;">
+              <div id="mEmojiBox" class="d-flex align-items-center justify-content-center rounded w-100" style="height: 220px; font-size: 4.5rem;">
+                🎨
+              </div>
+            </div>
+            <div class="mt-2 text-center">
+              <span id="mStatusBadge" class="badge bg-secondary px-3 py-2 fs-6">Status</span>
+              <span id="mPromotedBadge" class="badge bg-warning text-dark px-2 py-2 fs-6 ms-1 d-none">
+                <i class="bi bi-rocket-takeoff-fill"></i> Boosted
+              </span>
+            </div>
+          </div>
+
+          <!-- Right: Information & Pricing Breakdown -->
+          <div class="col-md-7">
+            <h4 class="fw-bold mb-1" id="mTitle">Product Name</h4>
+            <div class="text-muted small mb-3"><i class="bi bi-geo-alt"></i> <span id="mLocation">Location</span></div>
+
+            <!-- Price Breakdown Box -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="d-flex justify-content-between align-items-baseline">
+                <span class="text-muted small">Customer Price:</span>
+                <span class="fs-4 fw-bold text-rc" id="mFinalPrice">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 border-top pt-2">
+                <span>Base Price:</span>
+                <span id="mBasePrice">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1" id="mSellerDiscountRow">
+                <span>Your Seller Discount:</span>
+                <span class="text-success fw-semibold" id="mSellerDiscount">0%</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 d-none" id="mCampaignDiscountRow">
+                <span>Active Festival Campaign:</span>
+                <span class="text-danger fw-semibold" id="mCampaignDiscount">0%</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 border-top pt-1">
+                <span>Stock in Inventory:</span>
+                <span class="fw-bold" id="mStock">0 units</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <h6 class="fw-bold mb-1 small text-uppercase text-muted">Artisan Story &amp; Description</h6>
+              <div class="small text-muted p-2 bg-light rounded" id="mDescription" style="max-height: 120px; overflow-y: auto; white-space: pre-line;">
+                No description provided.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <div>
+          <form id="mDeleteForm" method="post" action="" class="d-inline"
+                onsubmit="return confirm('Are you sure you want to permanently delete this product? This action cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </form>
+        </div>
+        <div class="d-flex gap-2">
+          <a id="mStoreLink" href="#" target="_blank" class="btn btn-outline-rc btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i> View Live on Store
+          </a>
+          <a id="mEditLink" href="#" class="btn btn-rc btn-sm">
+            <i class="bi bi-pencil-square me-1"></i> Edit Product
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 1: Total Listed Products Directory -->
+<!-- ================================================================= -->
+<div class="modal fade" id="allProductsModal" tabindex="-1" aria-labelledby="allProductsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold" id="allProductsModalLabel">
+          <i class="bi bi-box-seam text-primary me-2"></i> All Products in Your Catalog ({{ total }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive" style="max-height: 460px;">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in all_products %}
+              <tr class="product-row-clickable product-detail-trigger"
+                  data-status="{{ p.status }}"
+                  data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                  data-id="{{ p.id }}"
+                  data-name="{{ p.name }}"
+                  data-category="{{ p.category.name }}"
+                  data-price="{{ p.price|floatformat:0 }}"
+                  data-final-price="{{ p.final_price|floatformat:0 }}"
+                  data-discount="{{ p.seller_discount }}"
+                  data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                  data-stock="{{ p.stock }}"
+                  data-status-label="{{ p.get_status_display }}"
+                  data-description="{{ p.description|escapejs }}"
+                  data-location="{{ p.location }}"
+                  data-reject-reason="{{ p.reject_reason|default:''|escapejs }}"
+                  data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                  data-emoji="{{ p.emoji }}"
+                  data-hue="{{ p.hue }}"
+                  data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                  data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                  data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:36px;height:36px;background:hsl({{ p.hue }},45%,90%);font-size:1.2rem;">
+                      {% if p.main_image %}
+                        <img src="{{ p.main_image.url }}" alt="{{ p.name }}" class="rounded" style="width:36px;height:36px;object-fit:cover;">
+                      {% else %}
+                        {{ p.emoji }}
+                      {% endif %}
+                    </div>
+                    <div>
+                      <strong class="d-block">{{ p.name }}</strong>
+                      <span class="text-muted small">Stock: {{ p.stock }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="small">{{ p.category.name }}</td>
+                <td><strong>₹{{ p.final_price|floatformat:0 }}</strong></td>
+                <td>
+                  {% if p.status == 'approved' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% elif p.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% elif p.status == 'rejected' %}
+                    <span class="badge bg-danger">Rejected</span>
+                  {% elif p.status == 'suspended' %}
+                    <span class="badge bg-secondary">Suspended</span>
+                  {% endif %}
+                </td>
+                <td class="text-end" onclick="event.stopPropagation();">
+                  <button type="button" class="btn btn-sm btn-outline-rc" onclick="openDetailFromRow(this);">
+                    Details
+                  </button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No products found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <a href="{% url 'seller:my_products' %}" class="btn btn-outline-secondary btn-sm">Go to Catalog Page</a>
+        <a href="{% url 'seller:add_product' %}" class="btn btn-rc btn-sm">Add New Product</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 2: Approved & Live Products -->
+<!-- ================================================================= -->
+<div class="modal fade" id="approvedModal" tabindex="-1" aria-labelledby="approvedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-success" id="approvedModalLabel">
+          <i class="bi bi-check-circle-fill me-2"></i> Approved &amp; Live on Storefront ({{ approved }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive" style="max-height: 460px;">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Promotion</th>
+                <th class="text-end">Storefront</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in approved_items %}
+              <tr class="product-row-clickable product-detail-trigger"
+                  data-status="{{ p.status }}"
+                  data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                  data-id="{{ p.id }}"
+                  data-name="{{ p.name }}"
+                  data-category="{{ p.category.name }}"
+                  data-price="{{ p.price|floatformat:0 }}"
+                  data-final-price="{{ p.final_price|floatformat:0 }}"
+                  data-discount="{{ p.seller_discount }}"
+                  data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                  data-stock="{{ p.stock }}"
+                  data-status-label="{{ p.get_status_display }}"
+                  data-description="{{ p.description|escapejs }}"
+                  data-location="{{ p.location }}"
+                  data-reject-reason=""
+                  data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                  data-emoji="{{ p.emoji }}"
+                  data-hue="{{ p.hue }}"
+                  data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                  data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                  data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+                <td>
+                  <strong class="d-block">{{ p.name }}</strong>
+                  <span class="text-muted small">{{ p.category.name }}</span>
+                </td>
+                <td><strong>₹{{ p.final_price|floatformat:0 }}</strong></td>
+                <td>{{ p.stock }} units</td>
+                <td>
+                  {% if p.promoted %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-rocket-takeoff-fill"></i> Boosted</span>
+                  {% else %}
+                    <a href="{% url 'seller:promotions' %}" class="btn btn-sm btn-outline-warning py-0 px-2 text-dark" onclick="event.stopPropagation();">
+                      Boost now
+                    </a>
+                  {% endif %}
+                </td>
+                <td class="text-end" onclick="event.stopPropagation();">
+                  <a href="{% url 'marketplace:product_detail' p.pk %}" target="_blank" class="btn btn-sm btn-outline-rc">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> View Live
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No approved products currently live.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 3: Paused / Hidden Listings Modal -->
+<!-- ================================================================= -->
+<div class="modal fade" id="pausedModal" tabindex="-1" aria-labelledby="pausedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-secondary" id="pausedModalLabel">
+          <i class="bi bi-pause-circle-fill me-2"></i> Paused Listings ({{ paused }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="p-3 bg-light border-bottom small text-muted">
+          <i class="bi bi-info-circle me-1 text-primary"></i> These listings are currently paused and hidden from buyers. You can reactivate them anytime with one click.
+        </div>
+        <div class="table-responsive" style="max-height: 460px;">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in paused_items %}
+              <tr class="product-row-clickable product-detail-trigger"
+                  data-status="{{ p.status }}"
+                  data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                  data-id="{{ p.id }}"
+                  data-name="{{ p.name }}"
+                  data-category="{{ p.category.name }}"
+                  data-price="{{ p.price|floatformat:0 }}"
+                  data-final-price="{{ p.final_price|floatformat:0 }}"
+                  data-discount="{{ p.seller_discount }}"
+                  data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                  data-stock="{{ p.stock }}"
+                  data-status-label="{{ p.get_status_display }}"
+                  data-description="{{ p.description|escapejs }}"
+                  data-location="{{ p.location }}"
+                  data-reject-reason=""
+                  data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                  data-emoji="{{ p.emoji }}"
+                  data-hue="{{ p.hue }}"
+                  data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                  data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                  data-toggle-url="{% url 'seller:toggle_product_status' p.pk %}"
+                  data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+                <td>
+                  <strong class="d-block">{{ p.name }}</strong>
+                  <span class="text-muted small">{{ p.location }}</span>
+                </td>
+                <td class="small">{{ p.category.name }}</td>
+                <td><strong>₹{{ p.final_price|floatformat:0 }}</strong></td>
+                <td><span class="badge bg-light text-dark border">{{ p.stock }} in stock</span></td>
+                <td class="text-end" onclick="event.stopPropagation();">
+                  <form method="post" action="{% url 'seller:toggle_product_status' p.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-play-fill"></i> Activate
+                    </button>
+                  </form>
+                  <a href="{% url 'seller:edit_product' p.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No paused products. All your listings are currently live!</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 4: Action Required: Rejected Submissions -->
+<!-- ================================================================= -->
+<div class="modal fade" id="rejectedModal" tabindex="-1" aria-labelledby="rejectedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-danger" id="rejectedModalLabel">
+          <i class="bi bi-x-circle-fill me-2"></i> Action Required: Rejected Products ({{ rejected }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        {% if rejected_items %}
+          <div class="alert alert-warning small mb-3">
+            <i class="bi bi-info-circle me-1"></i> Review the administrator's feedback below, edit the product to fix the issue, and save to re-submit.
+          </div>
+          {% for p in rejected_items %}
+          <div class="card mb-3 border-danger shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <h6 class="card-title fw-bold text-dark mb-1">{{ p.name }}</h6>
+                  <span class="badge bg-light text-muted border small">{{ p.category.name }} · ₹{{ p.final_price|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-secondary product-detail-trigger"
+                          data-status="{{ p.status }}"
+                          data-promoted="{{ p.promoted|yesno:'true,false' }}"
+                          data-id="{{ p.id }}"
+                          data-name="{{ p.name }}"
+                          data-category="{{ p.category.name }}"
+                          data-price="{{ p.price|floatformat:0 }}"
+                          data-final-price="{{ p.final_price|floatformat:0 }}"
+                          data-discount="{{ p.seller_discount }}"
+                          data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+                          data-stock="{{ p.stock }}"
+                          data-status-label="{{ p.get_status_display }}"
+                          data-description="{{ p.description|escapejs }}"
+                          data-location="{{ p.location }}"
+                          data-reject-reason="{{ p.reject_reason|default:''|escapejs }}"
+                          data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+                          data-emoji="{{ p.emoji }}"
+                          data-hue="{{ p.hue }}"
+                          data-edit-url="{% url 'seller:edit_product' p.pk %}"
+                          data-delete-url="{% url 'seller:delete_product' p.pk %}"
+                          data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+                    <i class="bi bi-eye"></i> View Details
+                  </button>
+                  <a href="{% url 'seller:edit_product' p.pk %}" class="btn btn-sm btn-danger fw-semibold">
+                    <i class="bi bi-pencil-square"></i> Edit &amp; Resubmit
+                  </a>
+                </div>
+              </div>
+              <div class="mt-3 p-2 bg-danger-subtle rounded border border-danger-subtle small">
+                <strong class="text-danger"><i class="bi bi-chat-left-dots-fill me-1"></i> Admin Feedback:</strong>
+                <div class="text-dark mt-1"><em>"{{ p.reject_reason|default:'Please update product details to match marketplace quality standards.' }}"</em></div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+            No rejected products! All your products are either approved or in review.
+          </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 5: Active Promotions & Boosts -->
+<!-- ================================================================= -->
+<div class="modal fade" id="promotionsModal" tabindex="-1" aria-labelledby="promotionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-warning-emphasis" id="promotionsModalLabel">
+          <i class="bi bi-rocket-takeoff-fill me-2"></i> Active Promotions &amp; Boosts ({{ promos }})
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive" style="max-height: 460px;">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Promoted Product</th>
+                <th>Plan Tier</th>
+                <th>Active Period</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in active_boosts %}
+              <tr>
+                <td>
+                  <strong>{{ b.product.name }}</strong>
+                  <div class="text-muted small">{{ b.product.category.name }}</div>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ b.plan.name }}</span></td>
+                <td class="small">{{ b.start_date|date:"d M" }} - {{ b.end_date|date:"d M Y" }}</td>
+                <td><span class="badge bg-success">Active</span></td>
+                <td class="text-end">
+                  <a href="{% url 'marketplace:product_detail' b.product.pk %}" target="_blank" class="btn btn-sm btn-outline-rc">
+                    <i class="bi bi-eye"></i> View Live
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+                {% for p in promoted_items %}
+                <tr>
+                  <td>
+                    <strong>{{ p.name }}</strong>
+                    <div class="text-muted small">{{ p.category.name }}</div>
+                  </td>
+                  <td><span class="badge bg-warning text-dark">Promoted</span></td>
+                  <td class="small text-muted">Active spotlight</td>
+                  <td><span class="badge bg-success">Active</span></td>
+                  <td class="text-end">
+                    <a href="{% url 'marketplace:product_detail' p.pk %}" target="_blank" class="btn btn-sm btn-outline-rc">
+                      <i class="bi bi-eye"></i> View Live
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    No active boosts. Boost your approved products to place them in the homepage spotlight!
+                  </td>
+                </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <span class="small text-muted">Boosting increases storefront visibility by up to 3x.</span>
+        <a href="{% url 'seller:promotions' %}" class="btn btn-warning btn-sm">
+          <i class="bi bi-rocket-takeoff me-1"></i> Purchase / Manage Boosts
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL 6: Customer Reviews & Ratings -->
+<!-- ================================================================= -->
+<div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold" id="reviewsModalLabel">
+          <i class="bi bi-star-fill text-warning me-2"></i> Buyer Reviews &amp; Ratings
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush" style="max-height: 480px; overflow-y: auto;">
+          {% for r in reviews %}
+          <div class="list-group-item p-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong class="d-block">{{ r.reviewer.full_name|default:r.reviewer.email }}</strong>
+                <span class="small text-muted">on <strong>{{ r.product.name }}</strong></span>
+              </div>
+              <div class="text-end">
+                <span class="text-warning">
+                  {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
+                  {% endfor %}
+                </span>
+                <div class="text-muted small" style="font-size:0.75rem;">{{ r.created_at|date:"d M Y" }}</div>
+              </div>
+            </div>
+            <div class="mt-2 text-dark small">{{ r.text }}</div>
+          </div>
+          {% empty %}
+          <div class="p-5 text-center text-muted">
+            <i class="bi bi-chat-heart fs-1 text-secondary opacity-50 d-block mb-2"></i>
+            No customer reviews yet. Reviews will appear here once buyers review your items.
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <span class="small text-muted">Average rating: <strong>{{ avg_rating }} / 5</strong></span>
+        <a href="{% url 'seller:reviews' %}" class="btn btn-outline-secondary btn-sm">Full Reviews Page</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Filter tabs on the catalog table
+  const filterBtns = document.querySelectorAll('#catalogFilterPills .tab-filter-btn');
+  const tableRows = document.querySelectorAll('#catalogTableBody tr.product-row-clickable');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const filter = this.dataset.filter;
+
+      tableRows.forEach(row => {
+        if (filter === 'all') {
+          row.style.display = '';
+        } else if (filter === 'approved') {
+          row.style.display = (row.dataset.status === 'approved') ? '' : 'none';
+        } else if (filter === 'pending') {
+          row.style.display = (row.dataset.status === 'pending') ? '' : 'none';
+        } else if (filter === 'rejected') {
+          row.style.display = (row.dataset.status === 'rejected') ? '' : 'none';
+        } else if (filter === 'promoted') {
+          row.style.display = (row.dataset.promoted === 'true') ? '' : 'none';
+        }
+      });
+    });
+  });
+
+  // 2. Attach click handlers to all product detail triggers
+  document.querySelectorAll('.product-detail-trigger').forEach(el => {
+    el.addEventListener('click', function(e) {
+      // Don't trigger if user clicked an explicit link or button inside
+      if (e.target.closest('a') || e.target.closest('button')) {
+        // unless it's specifically a product-detail-btn
+        if (!e.target.closest('.product-detail-btn') && !e.target.closest('.product-detail-trigger')) {
+          return;
+        }
+      }
+      populateProductModal(this.dataset);
+    });
+  });
+});
+
+function openDetailFromRow(btn) {
+  const row = btn.closest('.product-detail-trigger');
+  if (row) {
+    populateProductModal(row.dataset);
+  }
+}
+
+function populateProductModal(data) {
+  document.getElementById('mTitle').textContent = data.name || 'Product Details';
+  document.getElementById('mCategory').textContent = data.category || 'General';
+  document.getElementById('mLocation').textContent = data.location || 'Rural India';
+  document.getElementById('mFinalPrice').textContent = '₹' + (data.finalPrice || '0');
+  document.getElementById('mBasePrice').textContent = '₹' + (data.price || '0');
+  document.getElementById('mStock').textContent = (data.stock || '0') + ' units available';
+  document.getElementById('mDescription').textContent = data.description || 'No description provided.';
+
+  // Discounts
+  const sellerDisc = parseInt(data.discount || '0', 10);
+  const campDisc = parseInt(data.campaignDiscount || '0', 10);
+  document.getElementById('mSellerDiscount').textContent = sellerDisc + '% off';
+  
+  const campRow = document.getElementById('mCampaignDiscountRow');
+  if (campDisc > 0) {
+    campRow.classList.remove('d-none');
+    document.getElementById('mCampaignDiscount').textContent = campDisc + '% off';
+  } else {
+    campRow.classList.add('d-none');
+  }
+
+  // Status Badge
+  const statusBadge = document.getElementById('mStatusBadge');
+  statusBadge.className = 'badge px-3 py-2 fs-6 ';
+  if (data.status === 'approved') {
+    statusBadge.classList.add('bg-success');
+    statusBadge.textContent = 'Approved & Live';
+  } else if (data.status === 'pending') {
+    statusBadge.classList.add('bg-warning', 'text-dark');
+    statusBadge.textContent = 'Pending Admin Review';
+  } else if (data.status === 'rejected') {
+    statusBadge.classList.add('bg-danger');
+    statusBadge.textContent = 'Rejected - Action Required';
+  } else {
+    statusBadge.classList.add('bg-secondary');
+    statusBadge.textContent = data.statusLabel || data.status;
+  }
+
+  // Promoted Badge
+  const promoBadge = document.getElementById('mPromotedBadge');
+  if (data.promoted === 'true') {
+    promoBadge.classList.remove('d-none');
+  } else {
+    promoBadge.classList.add('d-none');
+  }
+
+  // Rejection Notice
+  const rejBox = document.getElementById('mRejectionBox');
+  const rejText = document.getElementById('mRejectionText');
+  if (data.status === 'rejected') {
+    rejBox.classList.remove('d-none');
+    rejText.textContent = data.rejectReason || 'Please review your product description, pricing, or quality guidelines.';
+  } else {
+    rejBox.classList.add('d-none');
+  }
+
+  // Image / Emoji
+  const imgEl = document.getElementById('mImage');
+  const emojiBox = document.getElementById('mEmojiBox');
+  if (data.image) {
+    imgEl.src = data.image;
+    imgEl.classList.remove('d-none');
+    emojiBox.classList.add('d-none');
+  } else {
+    imgEl.classList.add('d-none');
+    emojiBox.classList.remove('d-none');
+    emojiBox.textContent = data.emoji || '📦';
+    const hue = data.hue || '140';
+    emojiBox.style.backgroundColor = `hsl(${hue}, 45%, 90%)`;
+  }
+
+  // Action links
+  document.getElementById('mEditLink').href = data.editUrl || '#';
+  const storeLink = document.getElementById('mStoreLink');
+  if (data.status === 'approved' && data.storeUrl) {
+    storeLink.href = data.storeUrl;
+    storeLink.classList.remove('d-none');
+  } else {
+    storeLink.classList.add('d-none');
+  }
+
+  // Delete form action
+  document.getElementById('mDeleteForm').action = data.deleteUrl || '#';
+
+  // Open the modal
+  const modalEl = document.getElementById('productDetailModal');
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+</script>
+{% endblock %}

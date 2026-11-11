@@ -1,0 +1,67 @@
+{% extends "base_seller.html" %}
+{% block title %}Buyer Reviews | RuralConnect Seller portal{% endblock %}
+{% block page_title %}Customer Reviews &amp; Feedback{% endblock %}
+{% block nav_reviews %}active{% endblock %}
+
+{% block content %}
+{% if reviews %}
+<div class="panel p-0 shadow-sm overflow-hidden">
+  <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+    <h3 class="h6 mb-0 fw-bold"><i class="bi bi-chat-quote-fill me-1 text-rc"></i> Customer Feedback</h3>
+    <span class="badge bg-light text-dark border">{{ reviews|length }} review{{ reviews|length|pluralize }}</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="min-width:200px">Product</th>
+          <th>Customer</th>
+          <th>Rating</th>
+          <th style="min-width:280px">Review</th>
+          <th class="text-end">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reviews %}
+        <tr>
+          <td>
+            <a href="{% url 'marketplace:product_detail' r.product.pk %}" class="fw-semibold text-decoration-none text-dark" target="_blank">
+              {{ r.product.name }}
+            </a>
+            <div class="text-muted small">{{ r.product.category.name }}</div>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ r.reviewer.full_name|default:r.reviewer.email }}</div>
+            <div class="text-muted small">Verified Buyer</div>
+          </td>
+          <td>
+            <div class="text-warning">
+              {% for i in "12345"|make_list %}
+                {% if forloop.counter <= r.rating %}
+                  <i class="bi bi-star-fill"></i>
+                {% else %}
+                  <i class="bi bi-star text-muted opacity-50"></i>
+                {% endif %}
+              {% endfor %}
+              <span class="text-dark small fw-bold ms-1">{{ r.rating }}/5</span>
+            </div>
+          </td>
+          <td>
+            <div class="text-dark small" style="line-height:1.5;">{{ r.text }}</div>
+          </td>
+          <td class="text-end text-muted small">{{ r.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="panel text-center py-5 shadow-sm">
+  <i class="bi bi-star text-secondary opacity-50" style="font-size: 3.5rem;"></i>
+  <h5 class="mt-3 fw-bold text-dark">No reviews yet</h5>
+  <p class="text-muted small mb-0">When buyers purchase and review your products, their ratings and honest feedback will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

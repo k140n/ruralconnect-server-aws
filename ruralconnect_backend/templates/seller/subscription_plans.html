@@ -1,0 +1,208 @@
+{% extends "base_seller.html" %}
+{% block title %}Membership &amp; Subscription Plans | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Seller Subscription Plans{% endblock %}
+{% block nav_subscription %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0 py-3">
+
+  <!-- Active Subscription Status Banner -->
+  {% if current_sub %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #102d59 0%, #1258a8 100%); color: #ffffff;">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-warning text-dark fw-bold px-3 py-1 fs-6">
+                <i class="bi bi-patch-check-fill me-1"></i> Active Subscription
+              </span>
+              {% if current_sub.auto_renew %}
+                <span class="badge bg-light text-dark px-2 py-1 small"><i class="bi bi-arrow-repeat text-success me-1"></i>Auto-renew ON</span>
+              {% endif %}
+            </div>
+            <h2 class="h3 fw-bold text-white mb-1">{{ current_sub.plan.name }}</h2>
+            <p class="mb-0 text-white-50 small">
+              Valid until <strong>{{ current_sub.end_date|date:"d F Y" }}</strong> &bull;
+              <span class="text-white fw-bold">{{ current_sub.days_remaining }} day{{ current_sub.days_remaining|pluralize }} remaining</span>
+            </p>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'seller:add_product' %}" class="btn btn-warning fw-bold px-4 py-2 text-dark shadow-sm">
+              <i class="bi bi-plus-circle-fill me-1"></i> Add New Product
+            </a>
+            {% if current_sub.auto_renew %}
+            <form method="post" action="{% url 'seller:cancel_subscription' %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-light btn-sm py-2 px-3" onclick="return confirm('Turn off auto-renewal? Your plan remains active until expiration.')">
+                Turn off Auto-Renew
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 p-4 mb-4 d-flex align-items-center gap-3">
+      <div class="rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-flex align-items-center justify-content-center flex-shrink-0" style="width: 54px; height: 54px;">
+        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+      </div>
+      <div>
+        <h4 class="h5 fw-bold text-dark mb-1">No Active Seller Subscription</h4>
+        <p class="text-muted small mb-0">
+          To list your products and sell on RuralConnect, please activate a seller subscription plan below. Your products will be visible to thousands of buyers across India.
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Plans Header -->
+  <div class="text-center my-4">
+    <h2 class="fw-bold text-dark mb-2">Choose the right plan for your craft</h2>
+    <p class="text-muted max-w-600 mx-auto">
+      Simple, transparent pricing designed to support rural artisans, antique collectors, and handcrafted businesses.
+    </p>
+  </div>
+
+  <!-- Plans Cards Grid -->
+  <div class="row g-4 justify-content-center mb-5">
+    {% for plan in plans %}
+      <div class="col-12 col-md-6 col-lg-5 col-xl-4 d-flex">
+        <div class="card w-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column {% if plan.plan_type == 'annual' %}border border-2 border-success position-relative{% endif %}">
+
+          {% if plan.badge_text %}
+            <div class="bg-success text-white text-center py-1 fw-bold small text-uppercase letter-spacing-1">
+              ⭐ {{ plan.badge_text }}
+            </div>
+          {% endif %}
+
+          <div class="card-body p-4 d-flex flex-column flex-grow-1">
+            <div class="mb-3">
+              <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small fw-semibold">
+                {{ plan.get_plan_type_display }} Plan
+              </span>
+            </div>
+
+            <h3 class="h4 fw-bold text-dark mb-2">{{ plan.name }}</h3>
+
+            <div class="d-flex align-items-baseline gap-1 my-3">
+              <span class="fs-1 fw-extrabold text-success font-monospace">₹{{ plan.price|floatformat:0 }}</span>
+              <span class="text-muted">/ {{ plan.duration_days }} days</span>
+            </div>
+
+            <p class="text-muted small border-bottom pb-3">
+              {% if plan.max_products == 0 %}
+                <strong>Unlimited</strong> product listings &bull; Direct publishing
+              {% else %}
+                List up to <strong>{{ plan.max_products }} products</strong> simultaneously
+              {% endif %}
+            </p>
+
+            <!-- Features List -->
+            <ul class="list-unstyled mb-4 flex-grow-1 d-flex flex-column gap-2 small">
+              {% for feature in plan.features_list %}
+                <li class="d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                  <span>{{ feature }}</span>
+                </li>
+              {% empty %}
+                <li class="d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                  <span>Publish and manage your products</span>
+                </li>
+                <li class="d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                  <span>Verified seller badging</span>
+                </li>
+                <li class="d-flex align-items-start gap-2">
+                  <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                  <span>Direct buyer orders and customer support</span>
+                </li>
+              {% endfor %}
+            </ul>
+
+            <!-- Action Button -->
+            <div class="mt-auto pt-3 border-top">
+              {% if current_sub and current_sub.plan.id == plan.id %}
+                <a href="{% url 'seller:subscribe_checkout' plan.id %}{% if next_url %}?next={{ next_url }}{% endif %}" class="btn btn-outline-success w-100 py-3 fw-bold rounded-3">
+                  <i class="bi bi-arrow-clockwise me-1"></i> Renew / Extend {{ plan.name }}
+                </a>
+              {% else %}
+                <a href="{% url 'seller:subscribe_checkout' plan.id %}{% if next_url %}?next={{ next_url }}{% endif %}" class="btn btn-rc w-100 py-3 fw-bold rounded-3 shadow-sm">
+                  {% if current_sub %}Upgrade to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
+                  <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Subscription History Table -->
+  {% if past_subscriptions %}
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <h3 class="h5 fw-bold mb-0 text-dark"><i class="bi bi-receipt text-success me-2"></i>Billing &amp; Subscription History</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light small text-muted">
+            <tr>
+              <th scope="col" class="ps-4">Reference ID</th>
+              <th scope="col">Plan</th>
+              <th scope="col">Period</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="pe-4">Date</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            {% for sub in past_subscriptions %}
+              <tr>
+                <td class="ps-4 fw-mono text-dark fw-semibold">{{ sub.payment_id|default:"—" }}</td>
+                <td><strong>{{ sub.plan.name }}</strong></td>
+                <td>{{ sub.start_date|date:"d M Y" }} &rarr; {{ sub.end_date|date:"d M Y" }}</td>
+                <td class="fw-bold text-success">₹{{ sub.amount_paid|floatformat:0 }}</td>
+                <td>
+                  {% if sub.is_valid %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary">Expired</span>
+                  {% endif %}
+                </td>
+                <td class="pe-4 text-muted">{{ sub.created_at|date:"d M Y, h:i A" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- FAQs & Support -->
+  <div class="card border-0 bg-light rounded-4 p-4 text-center">
+    <h4 class="h6 fw-bold text-dark mb-1"><i class="bi bi-shield-check text-success me-1"></i> RuralConnect Artisan Guarantee</h4>
+    <p class="text-muted small mb-0">
+      Subscription fees fund regional artisan logistics, buyer verification, and digital promotion. Have questions about our plans? Contact our artisan partner desk at <a href="mailto:support@ruralconnect.in" class="text-success fw-bold">support@ruralconnect.in</a>.
+    </p>
+  </div>
+
+</div>
+
+<style>
+.fw-extrabold { font-weight: 800; }
+.letter-spacing-1 { letter-spacing: 1px; }
+.btn-rc {
+  background: #102d59;
+  color: #fff;
+  border: none;
+}
+.btn-rc:hover {
+  background: #1258a8;
+  color: #fff;
+}
+</style>
+{% endblock %}

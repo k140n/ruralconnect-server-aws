@@ -1,0 +1,935 @@
+{% extends "base_seller.html" %}
+{% load static %}
+
+{% block title %}Analytics &amp; Performance | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Seller Analytics{% endblock %}
+{% block nav_analytics %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-hero {
+  background: linear-gradient(135deg, #102d59 0%, #1258a8 100%);
+  color: #ffffff;
+  border-radius: 18px;
+  padding: 1.5rem 1.8rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 8px 24px rgba(16, 45, 89, 0.14);
+}
+.range-pill {
+  border-radius: 30px;
+  padding: 0.35rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #495057;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.range-pill:hover {
+  background: #f1f3f5;
+  color: #102d59;
+  border-color: #ced4da;
+}
+.range-pill.active {
+  background: #102d59;
+  color: #ffffff;
+  border-color: #102d59;
+  box-shadow: 0 2px 8px rgba(16, 45, 89, 0.25);
+}
+.metric-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  height: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+.metric-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+.chart-container-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 18px;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  height: 100%;
+}
+.funnel-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 18px;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+.funnel-step {
+  background: #f8faf9;
+  border: 1px solid #e6ede9;
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  position: relative;
+  transition: all 0.2s ease;
+}
+.funnel-step:hover {
+  background: #ffffff;
+  border-color: #1258a8;
+  box-shadow: 0 6px 16px rgba(18, 88, 168, 0.08);
+}
+.funnel-step-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.funnel-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 1.25rem;
+}
+.insight-card {
+  border-radius: 14px;
+  border: 1px solid;
+  padding: 1rem 1.25rem;
+  transition: all 0.2s ease;
+}
+.insight-card:hover {
+  transform: translateX(4px);
+}
+.product-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #eef2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.rating-bar-bg {
+  background-color: #e9ecef;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+}
+.rating-bar-fill {
+  background: #f59e0b;
+  height: 100%;
+  border-radius: 6px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header & Date Range Filter -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h2 class="h4 fw-bold text-dark m-0 d-flex align-items-center gap-2">
+      <i class="bi bi-graph-up-arrow text-success"></i> Performance Analytics
+    </h2>
+    <p class="text-muted small m-0 mt-1">
+      Real-time business insights &amp; buyer demand for <strong>{{ seller.business_name }}</strong> &bull; Showing data for <strong>{{ range_label }}</strong>
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <!-- Time Filter Pills -->
+    <div class="btn-group p-1 bg-white rounded-pill border shadow-sm">
+      <a href="?range=7d" class="range-pill {% if range_param == '7d' %}active{% endif %}">7D</a>
+      <a href="?range=30d" class="range-pill {% if range_param == '30d' %}active{% endif %}">30D</a>
+      <a href="?range=90d" class="range-pill {% if range_param == '90d' %}active{% endif %}">90D</a>
+      <a href="?range=year" class="range-pill {% if range_param == 'year' %}active{% endif %}">This Year</a>
+      <a href="?range=all" class="range-pill {% if range_param == 'all' %}active{% endif %}">All Time</a>
+    </div>
+
+    <!-- Export & Print Buttons -->
+    <a href="{% url 'seller:analytics_report' %}?range={{ range_param }}" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+      <i class="bi bi-printer"></i> Print Statement
+    </a>
+    <a href="?range={{ range_param }}&export=csv" class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+      <i class="bi bi-download"></i> Export CSV
+    </a>
+  </div>
+</div>
+
+<!-- Smart Actionable Insights (Contextual Alerts) -->
+{% if insights %}
+<div class="row g-3 mb-4">
+  {% for item in insights %}
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="insight-card bg-{{ item.type }}-subtle border-{{ item.type }}-subtle text-{{ item.type }}-emphasis d-flex flex-column justify-content-between h-100">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi {{ item.icon }} fs-5 text-{{ item.type }}"></i>
+          <span class="fw-bold small">{{ item.title }}</span>
+        </div>
+        <p class="small text-muted mb-3" style="font-size: 0.8rem; line-height: 1.35;">{{ item.desc }}</p>
+      </div>
+      <div>
+        <a href="{{ item.action_url }}" class="btn btn-sm btn-outline-{{ item.type }} rounded-pill px-3 py-1 fw-medium" style="font-size: 0.78rem;">
+          {{ item.action_text }} <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Key Metrics Cards Row -->
+<div class="row g-3 mb-4">
+  <!-- Metric 1: Total Revenue -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Gross Revenue</span>
+        <div class="metric-icon-box bg-success-subtle text-success">
+          <i class="bi bi-currency-rupee"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">₹{{ total_revenue|floatformat:2 }}</div>
+      <div class="d-flex align-items-center gap-1 small text-muted">
+        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0">Completed</span>
+        <span class="ms-1">in {{ range_label }}</span>
+      </div>
+      {% if cancelled_revenue > 0 %}
+      <div class="small text-danger opacity-75 mt-2" style="font-size: 0.75rem;">
+        <i class="bi bi-x-circle"></i> ₹{{ cancelled_revenue|floatformat:0 }} in cancelled orders
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Metric 2: Units Sold & Orders -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Units Sold</span>
+        <div class="metric-icon-box bg-primary-subtle text-primary">
+          <i class="bi bi-box-seam"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_units }} <span class="fs-6 fw-normal text-muted">items</span></div>
+      <div class="small text-muted">
+        Across <strong>{{ orders_count }}</strong> customer order{{ orders_count|pluralize }}
+      </div>
+      <div class="small text-muted mt-2" style="font-size: 0.75rem;">
+        <i class="bi bi-truck text-primary me-1"></i> {{ status_counts.delivered }} delivered, {{ status_counts.shipped }} in transit
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric 3: Product Views & Conversion Rate (Phase 2) -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Traffic &amp; Conversion</span>
+        <div class="metric-icon-box bg-info-subtle text-info-emphasis">
+          <i class="bi bi-eye-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_views }} <span class="fs-6 fw-normal text-muted">views</span></div>
+      <div class="small text-muted d-flex align-items-center gap-1">
+        <span>Conversion:</span>
+        <strong class="{% if conversion_rate > 2.0 %}text-success{% else %}text-dark{% endif %}">{{ conversion_rate }}%</strong>
+      </div>
+      <div class="small text-muted mt-2" style="font-size: 0.75rem;">
+        <i class="bi bi-people text-info me-1"></i> Unique customer page visits
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric 4: WhatsApp Leads & Ratings -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Leads &amp; Rating</span>
+        <div class="metric-icon-box bg-success-subtle text-success">
+          <i class="bi bi-whatsapp"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">
+        {{ total_leads }} <span class="fs-6 fw-normal text-muted">inquir{{ total_leads|pluralize:"y,ies" }}</span>
+      </div>
+      <div class="small text-muted d-flex align-items-center gap-1">
+        <span>Artisan Rating:</span>
+        <strong class="text-warning">{{ avg_rating }} ★</strong>
+        <span class="text-muted">({{ total_reviews }})</span>
+      </div>
+      <div class="small text-muted mt-2" style="font-size: 0.75rem;">
+        <i class="bi bi-chat-dots text-success me-1"></i> Direct buyer inquiries on WhatsApp
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 2: Conversion Funnel Card -->
+<div class="funnel-card mb-4" id="funnelSection">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h3 class="h6 fw-bold text-dark m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-funnel-fill text-success"></i> Customer Conversion Funnel
+      </h3>
+      <span class="text-muted small">Tracking buyer journey from initial craft discovery to completed order</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill small">
+        <i class="bi bi-lightning-charge-fill me-1"></i> {{ conversion_rate }}% Discovery &rarr; Order Rate
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-3 align-items-center">
+    <!-- Step 1: Views -->
+    <div class="col-12 col-md-6 col-lg">
+      <div class="funnel-step">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="funnel-step-icon bg-info-subtle text-info-emphasis">
+            <i class="bi bi-eye"></i>
+          </div>
+          <span class="badge bg-light text-secondary rounded-pill border small">Step 1</span>
+        </div>
+        <div class="h4 fw-bold text-dark mb-0">{{ funnel.views }}</div>
+        <div class="fw-semibold text-dark small mt-1">Product Page Views</div>
+        <div class="text-muted" style="font-size: 0.74rem;">Buyers discovered your craft</div>
+      </div>
+    </div>
+
+    <div class="col-auto d-none d-lg-flex funnel-arrow">
+      <i class="bi bi-arrow-right"></i>
+    </div>
+
+    <!-- Step 2: Warm Intent (Wishlists + WhatsApp) -->
+    <div class="col-12 col-md-6 col-lg">
+      <div class="funnel-step">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="funnel-step-icon bg-danger-subtle text-danger">
+            <i class="bi bi-heart"></i>
+          </div>
+          <span class="badge bg-light text-secondary rounded-pill border small">Step 2</span>
+        </div>
+        <div class="h4 fw-bold text-dark mb-0">{{ funnel.interest }}</div>
+        <div class="fw-semibold text-dark small mt-1">High-Intent Leads</div>
+        <div class="text-muted" style="font-size: 0.74rem;">{{ funnel.wishlists }} wishlists &bull; {{ funnel.leads }} WhatsApp</div>
+      </div>
+    </div>
+
+    <div class="col-auto d-none d-lg-flex funnel-arrow">
+      <i class="bi bi-arrow-right"></i>
+    </div>
+
+    <!-- Step 3: Orders Placed -->
+    <div class="col-12 col-md-6 col-lg">
+      <div class="funnel-step">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="funnel-step-icon bg-warning-subtle text-warning-emphasis">
+            <i class="bi bi-bag-check"></i>
+          </div>
+          <span class="badge bg-light text-secondary rounded-pill border small">Step 3</span>
+        </div>
+        <div class="h4 fw-bold text-dark mb-0">{{ funnel.orders }}</div>
+        <div class="fw-semibold text-dark small mt-1">Customer Orders</div>
+        <div class="text-muted" style="font-size: 0.74rem;">Checkout completed</div>
+      </div>
+    </div>
+
+    <div class="col-auto d-none d-lg-flex funnel-arrow">
+      <i class="bi bi-arrow-right"></i>
+    </div>
+
+    <!-- Step 4: Delivered -->
+    <div class="col-12 col-md-6 col-lg">
+      <div class="funnel-step">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="funnel-step-icon bg-success-subtle text-success">
+            <i class="bi bi-check2-circle"></i>
+          </div>
+          <span class="badge bg-light text-secondary rounded-pill border small">Step 4</span>
+        </div>
+        <div class="h4 fw-bold text-dark mb-0">{{ funnel.delivered }}</div>
+        <div class="fw-semibold text-dark small mt-1">Delivered to Buyer</div>
+        <div class="text-muted" style="font-size: 0.74rem;">Payout credited to artisan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section: Revenue Timeline + Order Status Funnel -->
+<div class="row g-4 mb-4">
+  <!-- Revenue & Volume Chart (2/3 width on desktop) -->
+  <div class="col-12 col-lg-8">
+    <div class="chart-container-card">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+          <h3 class="h6 fw-bold text-dark m-0">Traffic, Revenue &amp; Sales Velocity</h3>
+          <span class="text-muted small">Daily comparison of catalog views, revenue earned, and units sold</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="small d-flex align-items-center gap-1 text-muted">
+            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background: #102d59;"></span> Revenue (₹)
+          </span>
+          <span class="small d-flex align-items-center gap-1 text-muted">
+            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background: #0ea5e9;"></span> Views
+          </span>
+          <span class="small d-flex align-items-center gap-1 text-muted">
+            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background: #f2a93b;"></span> Units Sold
+          </span>
+        </div>
+      </div>
+      <div style="position: relative; height: 310px; width: 100%;">
+        <canvas id="salesVelocityChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Status Funnel Donut Chart (1/3 width on desktop) -->
+  <div class="col-12 col-lg-4">
+    <div class="chart-container-card d-flex flex-column justify-content-between">
+      <div>
+        <h3 class="h6 fw-bold text-dark m-0">Order Fulfillment Status</h3>
+        <span class="text-muted small">Current status of ordered items</span>
+        <div style="position: relative; height: 210px; width: 100%; margin-top: 1rem;">
+          <canvas id="orderStatusChart"></canvas>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-top">
+        <div class="row text-center g-2 small">
+          <div class="col-4">
+            <div class="fw-bold text-primary">{{ status_counts.pending }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Pending</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-bold text-info">{{ status_counts.shipped }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Shipped</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-bold text-success">{{ status_counts.delivered }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Delivered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Merchandising Intelligence: Top Sellers & High Demand Wishlist Radar -->
+<div class="row g-4 mb-4">
+  <!-- Top Performing Products -->
+  <div class="col-12 col-lg-7">
+    <div class="chart-container-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h3 class="h6 fw-bold text-dark m-0">Product Performance &amp; Conversion</h3>
+          <span class="text-muted small">Views, orders &amp; conversion efficiency in {{ range_label }}</span>
+        </div>
+        <a href="{% url 'seller:my_products' %}" class="btn btn-sm btn-light rounded-pill px-3">
+          Manage All
+        </a>
+      </div>
+
+      {% if top_products %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-muted">
+            <tr>
+              <th scope="col" style="min-width: 170px;">Product</th>
+              <th scope="col" class="text-center">Views</th>
+              <th scope="col" class="text-center">Units Sold</th>
+              <th scope="col" class="text-center">Conv. Rate</th>
+              <th scope="col" class="text-center">Revenue</th>
+              <th scope="col" class="text-center">Stock</th>
+              <th scope="col" class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in top_products %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if item.product and item.product.main_image %}
+                    <img src="{{ item.product.main_image.url }}" alt="{{ item.name }}" class="product-avatar">
+                  {% else %}
+                    <div class="product-avatar">{{ item.product.emoji|default:"📦" }}</div>
+                  {% endif %}
+                  <div>
+                    <div class="fw-semibold text-dark text-truncate" style="max-width: 150px;">
+                      {{ item.name }}
+                    </div>
+                    {% if item.product %}
+                      <div class="text-muted" style="font-size: 0.75rem;">{{ item.product.category.name }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="text-center text-muted">
+                <i class="bi bi-eye text-info me-1"></i>{{ item.views }}
+              </td>
+              <td class="text-center fw-bold">{{ item.units_sold }}</td>
+              <td class="text-center">
+                {% if item.conversion_rate > 0 %}
+                  <span class="badge bg-success-subtle text-success rounded-pill px-2">{{ item.conversion_rate }}%</span>
+                {% else %}
+                  <span class="text-muted small">&mdash;</span>
+                {% endif %}
+              </td>
+              <td class="text-center text-success fw-bold">₹{{ item.revenue|floatformat:2 }}</td>
+              <td class="text-center">
+                {% if item.product %}
+                  {% if item.product.stock == 0 %}
+                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Out of stock</span>
+                  {% elif item.product.stock <= 5 %}
+                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2">Low: {{ item.product.stock }}</span>
+                  {% else %}
+                    <span class="badge bg-success-subtle text-success rounded-pill px-2">{{ item.product.stock }}</span>
+                  {% endif %}
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2">Archived</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.product %}
+                  <a href="{% url 'seller:edit_product' item.product.pk %}" class="btn btn-sm btn-outline-secondary rounded-circle" title="Edit Product">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-basket3 fs-1 text-secondary opacity-50 mb-2 d-block"></i>
+        <div class="fw-medium">No sales recorded yet for {{ range_label }}</div>
+        <div class="small">Promote your listings or add new artisan items to start generating orders.</div>
+        <a href="{% url 'seller:promotions' %}" class="btn btn-sm btn-success rounded-pill mt-3 px-3">
+          <i class="bi bi-megaphone me-1"></i> Explore Promotions
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Buyer Wishlist Demand Radar -->
+  <div class="col-12 col-lg-5">
+    <div class="chart-container-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h3 class="h6 fw-bold text-dark m-0">Wishlist Demand Radar</h3>
+          <span class="text-muted small">Products buyers are bookmarking most</span>
+        </div>
+        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1">
+          <i class="bi bi-heart-fill me-1"></i> High Intent
+        </span>
+      </div>
+
+      {% if wishlist_leaders %}
+      <div class="list-group list-group-flush">
+        {% for wl in wishlist_leaders %}
+        <div class="list-group-item px-0 py-2 d-flex align-items-center justify-content-between">
+          <div class="me-2 text-truncate" style="max-width: 200px;">
+            <div class="fw-semibold text-dark text-truncate">{{ wl.product__name }}</div>
+            <div class="small text-muted">
+              ₹{{ wl.product__price|floatformat:0 }} &bull; Stock: 
+              {% if wl.product__stock == 0 %}
+                <span class="text-danger fw-medium">0 (Restock!)</span>
+              {% else %}
+                <span class="text-success">{{ wl.product__stock }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger text-white rounded-pill px-2 py-1 small">
+              <i class="bi bi-heart-fill me-1"></i> {{ wl.wishlist_count }}
+            </span>
+            {% if wl.product_id %}
+            <a href="{% url 'seller:edit_product' wl.product_id %}" class="btn btn-sm btn-outline-dark rounded-pill px-2 py-0" style="font-size: 0.75rem;">
+              Offer Sale
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-3 p-3 bg-light rounded-3 small text-muted">
+        <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+        <strong>Tip:</strong> Products in multiple wishlists represent warm leads. A 5–10% seller discount often triggers conversion notifications for interested buyers!
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-heart fs-1 text-secondary opacity-50 mb-2 d-block"></i>
+        <div class="fw-medium">No wishlisted products yet</div>
+        <div class="small">As buyers browse and save your crafts, your top-saved items will display here.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row: Payment Distribution & Ratings Health -->
+<div class="row g-4 mb-4">
+  <!-- Payment Method Mix -->
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="chart-container-card">
+      <h3 class="h6 fw-bold text-dark mb-1">Payment Method Mix</h3>
+      <span class="text-muted small d-block mb-3">Buyer preferences for your items</span>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small fw-medium mb-1">
+          <span><i class="bi bi-qr-code text-primary me-1"></i> UPI / Online Payment</span>
+          <span class="fw-bold">{{ payment_counts.upi }} orders</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: {% if orders_count %}{% widthratio payment_counts.upi orders_count 100 %}{% else %}0{% endif %}%;"></div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between small fw-medium mb-1">
+          <span><i class="bi bi-cash-stack text-success me-1"></i> Cash on Delivery (COD)</span>
+          <span class="fw-bold">{{ payment_counts.cod }} orders</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {% if orders_count %}{% widthratio payment_counts.cod orders_count 100 %}{% else %}0{% endif %}%;"></div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 small text-muted">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <i class="bi bi-shield-check text-success fs-5"></i>
+          <span class="fw-bold text-dark">Payment Security</span>
+        </div>
+        All payouts for delivered orders are credited automatically according to your RuralConnect artisan payout schedule.
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Rating Breakdown -->
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="chart-container-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h3 class="h6 fw-bold text-dark m-0">Customer Ratings</h3>
+          <span class="text-muted small">Quality &amp; trust reputation</span>
+        </div>
+        <div class="text-end">
+          <div class="fs-4 fw-bold text-dark">{{ avg_rating }} <span class="text-warning">★</span></div>
+          <div class="small text-muted">{{ total_reviews }} review{{ total_reviews|pluralize }}</div>
+        </div>
+      </div>
+
+      <!-- Rating Bars -->
+      <div class="d-flex flex-column gap-2 mb-3">
+        {% for star, data in rating_breakdown.items %}
+        <div class="d-flex align-items-center gap-2 small">
+          <span style="width: 25px;" class="fw-medium">{{ star }}★</span>
+          <div class="flex-grow-1 rating-bar-bg">
+            <div class="rating-bar-fill" style="width: {{ data.percent }}%;"></div>
+          </div>
+          <span style="width: 32px;" class="text-end text-muted">{{ data.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="text-center pt-2 border-top">
+        <a href="{% url 'seller:reviews' %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+          Read All Reviews <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory Health Summary -->
+  <div class="col-12 col-lg-4">
+    <div class="chart-container-card d-flex flex-column justify-content-between">
+      <div>
+        <h3 class="h6 fw-bold text-dark mb-1">Inventory Health</h3>
+        <span class="text-muted small d-block mb-3">Current catalog availability overview</span>
+
+        <div class="list-group list-group-flush mb-3">
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-boxes text-secondary me-2"></i>Total Products</span>
+            <span class="fw-bold">{{ total_products_count }}</span>
+          </div>
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-2"></i>Well Stocked (&gt; 5)</span>
+            <span class="fw-bold text-success">{{ total_products_count|add:"-"|add:out_of_stock_count|add:"-"|add:low_stock_count }}</span>
+          </div>
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Low Stock (&le; 5)</span>
+            <span class="fw-bold text-warning-emphasis">{{ low_stock_count }}</span>
+          </div>
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-x-circle-fill text-danger me-2"></i>Out of Stock</span>
+            <span class="fw-bold text-danger">{{ out_of_stock_count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-top d-flex gap-2">
+        <a href="{% url 'seller:add_product' %}" class="btn btn-sm btn-success rounded-pill flex-grow-1">
+          <i class="bi bi-plus-circle me-1"></i> Add Product
+        </a>
+        <a href="{% url 'seller:my_products' %}" class="btn btn-sm btn-outline-dark rounded-pill">
+          Catalog
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 3: Regional Reach & Delivery Locations -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="chart-container-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h3 class="h6 fw-bold text-dark m-0 d-flex align-items-center gap-2">
+            <i class="bi bi-geo-alt-fill text-danger"></i> Regional Market Reach &amp; Customer Destinations
+          </h3>
+          <span class="text-muted small">Where your crafts are traveling across India in {{ range_label }}</span>
+        </div>
+        <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small">
+          {{ regional_reach|length }} Destination State{{ regional_reach|length|pluralize }}
+        </span>
+      </div>
+
+      {% if regional_reach %}
+      <div class="row g-3">
+        {% for reg in regional_reach %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="p-3 bg-light rounded-3 border h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold text-dark">{{ reg.state }}</span>
+              <span class="badge bg-success-subtle text-success rounded-pill">{{ reg.percent }}% of Sales</span>
+            </div>
+            <div class="d-flex justify-content-between small text-muted mb-2">
+              <span>{{ reg.orders }} order{{ reg.orders|pluralize }} &bull; {{ reg.units }} unit{{ reg.units|pluralize }}</span>
+              <span class="fw-semibold text-dark">₹{{ reg.revenue|floatformat:2 }}</span>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: {{ reg.percent }}%;"></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted small">
+        <i class="bi bi-pin-map fs-2 text-secondary opacity-50 mb-1 d-block"></i>
+        No regional delivery records yet for {{ range_label }}. Customer delivery locations will appear here as orders arrive.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const chartLabels = {{ chart_labels_json|safe }};
+  const revenueData = {{ chart_revenue_json|safe }};
+  const unitsData = {{ chart_units_json|safe }};
+  const viewsData = {{ chart_views_json|safe }};
+
+  // 1. Sales, Views & Revenue Velocity Chart
+  const salesCtx = document.getElementById('salesVelocityChart').getContext('2d');
+  
+  // Create gradient for revenue
+  const revenueGradient = salesCtx.createLinearGradient(0, 0, 0, 300);
+  revenueGradient.addColorStop(0, 'rgba(45, 106, 79, 0.28)');
+  revenueGradient.addColorStop(1, 'rgba(45, 106, 79, 0.0)');
+
+  new Chart(salesCtx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: 'Revenue (₹)',
+          data: revenueData,
+          borderColor: '#102d59',
+          backgroundColor: revenueGradient,
+          borderWidth: 2.5,
+          tension: 0.35,
+          fill: true,
+          pointBackgroundColor: '#102d59',
+          pointRadius: chartLabels.length > 30 ? 0 : 3.5,
+          pointHoverRadius: 6,
+          yAxisID: 'yRevenue',
+        },
+        {
+          label: 'Views',
+          data: viewsData,
+          borderColor: '#0ea5e9',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          pointBackgroundColor: '#0ea5e9',
+          pointRadius: chartLabels.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          yAxisID: 'yUnits',
+        },
+        {
+          label: 'Units Sold',
+          data: unitsData,
+          borderColor: '#f2a93b',
+          backgroundColor: '#f2a93b',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          tension: 0.35,
+          fill: false,
+          pointBackgroundColor: '#f2a93b',
+          pointRadius: chartLabels.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          yAxisID: 'yUnits',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(20, 54, 40, 0.95)',
+          titleFont: { size: 12, family: 'Hanken Grotesk' },
+          bodyFont: { size: 12, family: 'Hanken Grotesk' },
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              if (context.dataset.yAxisID === 'yRevenue') {
+                return ' Revenue: ₹' + context.parsed.y.toLocaleString('en-IN');
+              } else if (context.dataset.label === 'Views') {
+                return ' Views: ' + context.parsed.y;
+              }
+              return ' Units Sold: ' + context.parsed.y;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 11, family: 'Hanken Grotesk' },
+            color: '#6c757d',
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 10,
+          }
+        },
+        yRevenue: {
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          grid: { color: 'rgba(0, 0, 0, 0.05)' },
+          ticks: {
+            font: { size: 11, family: 'DM Sans' },
+            color: '#102d59',
+            callback: function(value) {
+              return '₹' + value;
+            }
+          }
+        },
+        yUnits: {
+          type: 'linear',
+          position: 'right',
+          beginAtZero: true,
+          grid: { display: false },
+          ticks: {
+            font: { size: 11, family: 'Hanken Grotesk' },
+            color: '#0ea5e9',
+            precision: 0,
+            stepSize: 1,
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Order Status Funnel Donut Chart
+  const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+  const statusData = [
+    {{ status_counts.pending }},
+    {{ status_counts.confirmed }},
+    {{ status_counts.shipped }},
+    {{ status_counts.delivered }},
+    {{ status_counts.cancelled }}
+  ];
+  const totalStatusItems = statusData.reduce((a, b) => a + b, 0);
+
+  new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
+      datasets: [{
+        data: totalStatusItems > 0 ? statusData : [0, 0, 0, 0, 1],
+        backgroundColor: totalStatusItems > 0 
+          ? ['#0d6efd', '#ffc107', '#0dcaf0', '#198754', '#dc3545']
+          : ['#e9ecef', '#e9ecef', '#e9ecef', '#e9ecef', '#dee2e6'],
+        borderWidth: 2,
+        borderColor: '#ffffff',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 10,
+            padding: 8,
+            font: { size: 11, family: 'Hanken Grotesk' }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (totalStatusItems === 0) return ' No orders recorded';
+              return ' ' + context.label + ': ' + context.parsed + ' items';
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

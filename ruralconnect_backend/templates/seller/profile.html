@@ -1,0 +1,731 @@
+{% extends "base_seller.html" %}
+{% block title %}Seller Profile | RuralConnect{% endblock %}
+{% block page_title %}Seller Profile{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Robust, self-contained styles for Seller Profile */
+.seller-header-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.seller-avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #102d59;
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.stat-chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.6rem 1.1rem;
+  text-align: center;
+  min-width: 95px;
+}
+.stat-chip .val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #102d59;
+  line-height: 1.15;
+}
+.stat-chip .lbl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.form-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+.form-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #102d59;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+.form-card .form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+  margin-bottom: 0.45rem;
+}
+.form-card .form-control,
+.form-card input[type="text"],
+.form-card input[type="email"],
+.form-card textarea {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.form-card .form-control:focus,
+.form-card input:focus,
+.form-card textarea:focus {
+  border-color: #1258a8;
+  box-shadow: 0 0 0 3px rgba(18, 88, 168, 0.15);
+  outline: 0;
+}
+.form-card .form-control:disabled,
+.form-card input:disabled {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* Seamless input-group inside form cards */
+.form-card .input-group {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+
+.form-card .input-group > .form-control,
+.form-card .input-group > input[type="text"],
+.form-card .input-group > input[type="email"],
+.form-card .input-group > input[type="number"],
+.form-card .input-group > .form-select {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  width: 1% !important;
+  min-width: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.form-card .input-group > .input-group-text {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.65rem 0.95rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  white-space: nowrap !important;
+}
+
+.form-card .input-group > :first-child {
+  border-top-left-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right: 0 !important;
+}
+
+.form-card .input-group > :last-child {
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-left: 1px solid #cbd5e1 !important;
+}
+
+.form-card .input-group > :not(:first-child):not(:last-child) {
+  border-radius: 0 !important;
+}
+
+.form-card .input-group > .form-control:focus,
+.form-card .input-group > input:focus {
+  z-index: 3 !important;
+  border-color: #1258a8 !important;
+  box-shadow: 0 0 0 3px rgba(18, 88, 168, 0.15) !important;
+}
+
+.form-card .input-group > .form-control:disabled,
+.form-card .input-group > input:disabled {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.buyer-preview-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Clean, User-Friendly Profile Summary Header -->
+  <div class="seller-header-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <!-- Seller Identity -->
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="seller-avatar-circle shadow-sm">
+          {{ seller.business_name|slice:":2"|upper }}
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <h2 class="h4 fw-bold m-0 text-dark" style="color: #0f172a !important;">{{ seller.business_name }}</h2>
+            {% if seller.is_verified %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small fw-semibold">
+                <i class="bi bi-patch-check-fill me-1"></i>Verified Artisan
+              </span>
+            {% elif seller.verification_status == 'pending' %}
+              <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-semibold">
+                <i class="bi bi-clock-history me-1"></i>KYC Under Review
+              </span>
+            {% elif seller.verification_status == 'rejected' %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small fw-semibold">
+                <i class="bi bi-exclamation-circle me-1"></i>Verification Needed
+              </span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 small fw-semibold">
+                <i class="bi bi-shield me-1"></i>Registered (Unverified)
+              </span>
+            {% endif %}
+          </div>
+          <div class="text-secondary small d-flex align-items-center gap-2 flex-wrap">
+            <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ seller.location|default:"Location not set" }}</span>
+            <span>·</span>
+            <span><i class="bi bi-calendar3 me-1"></i>Partner since {{ seller.created_at|date:"F Y" }}</span>
+            <span>·</span>
+            <span><i class="bi bi-person me-1"></i>{{ request.user.full_name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="d-flex gap-2 flex-wrap">
+        <div class="stat-chip">
+          <div class="val">{{ total_products|default:"0" }}</div>
+          <div class="lbl">Products</div>
+        </div>
+        <div class="stat-chip">
+          <div class="val">{{ approved_products|default:"0" }}</div>
+          <div class="lbl">Live</div>
+        </div>
+        <div class="stat-chip">
+          <div class="val">
+            {% if review_count > 0 %}
+              {{ avg_rating|floatformat:1 }} ★
+            {% else %}
+              New
+            {% endif %}
+          </div>
+          <div class="lbl">Rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Edit Form (Left Column) -->
+    <div class="col-lg-8">
+      <form method="post" novalidate id="profileForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_profile">
+
+        <!-- 1. Shop & Brand Identity Card -->
+        <div class="form-card">
+          <div class="form-card-title">
+            <i class="bi bi-shop text-success fs-5"></i>
+            <span>Shop &amp; Brand Identity</span>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.business_name.id_for_label }}">
+                Business / Seller name <span class="text-danger">*</span>
+              </label>
+              {{ form.business_name }}
+              <div class="form-text small text-muted">Public name displayed to customers on product listings.</div>
+              {% if form.business_name.errors %}
+                <div class="text-danger small mt-1">{{ form.business_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.location.id_for_label }}">
+                Workshop / Origin location <span class="text-danger">*</span>
+              </label>
+              {{ form.location }}
+              <div class="form-text small text-muted">Village, district, and state (e.g., Thiruvananthapuram, Kerala).</div>
+              {% if form.location.errors %}
+                <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="{{ form.bio.id_for_label }}">
+                About your shop &amp; craft heritage
+              </label>
+              {{ form.bio }}
+              <div class="form-text small text-muted">
+                Tell buyers about your craftsmanship, traditional techniques, materials used, and your artisan background. Authentic stories boost sales significantly.
+              </div>
+              {% if form.bio.errors %}
+                <div class="text-danger small mt-1">{{ form.bio.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Personal & Contact Information Card -->
+        <div class="form-card">
+          <div class="form-card-title">
+            <i class="bi bi-person-lines-fill text-success fs-5"></i>
+            <span>Contact &amp; Account Details</span>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.full_name.id_for_label }}">
+                Primary contact name <span class="text-danger">*</span>
+              </label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.phone.id_for_label }}">
+                Contact phone number
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">+91</span>
+                {{ form.phone }}
+              </div>
+              <div class="form-text small text-muted">Used for shipment coordination and customer order alerts.</div>
+              {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Registered account email</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input class="form-control" type="email" value="{{ request.user.email }}" disabled readonly>
+              </div>
+              <div class="form-text small text-muted">Account email is used for signing in. Contact platform support if you need to transfer your email.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-4">
+          <button class="btn btn-rc btn-lg px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" type="submit">
+            <i class="bi bi-check2-circle fs-5"></i> Save Profile Changes
+          </button>
+          <a class="btn btn-outline-secondary btn-lg px-4 py-2" href="{% url 'seller:dashboard' %}">
+            Cancel
+          </a>
+          <a class="btn btn-outline-rc btn-lg px-3 py-2 ms-auto d-inline-flex align-items-center gap-2" href="{% url 'marketplace:products' %}" target="_blank">
+            <i class="bi bi-box-arrow-up-right"></i> View Marketplace
+          </a>
+        </div>
+      </form>
+
+      <!-- 3. Artisan Identity Verification (KYC) Card -->
+      <div class="form-card mb-4" id="kyc" style="border: 1px solid {% if seller.is_verified %}#86efac{% elif seller.verification_status == 'pending' %}#fde047{% elif seller.verification_status == 'rejected' %}#fca5a5{% else %}#e2e8f0{% endif %};">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check {% if seller.is_verified %}text-success{% elif seller.verification_status == 'pending' %}text-warning{% elif seller.verification_status == 'rejected' %}text-danger{% else %}text-primary{% endif %} fs-4"></i>
+            <div>
+              <h3 class="h6 fw-bold mb-0 text-dark">Artisan Trust &amp; Identity Verification</h3>
+              <div class="text-muted small">Unlock the official "Verified Artisan" trust badge on your storefront</div>
+            </div>
+          </div>
+          {% if seller.is_verified %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-semibold">
+              <i class="bi bi-patch-check-fill me-1"></i>Verified Artisan
+            </span>
+          {% elif seller.verification_status == 'pending' %}
+            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1.5 fw-semibold">
+              <i class="bi bi-hourglass-split me-1"></i>Under Review
+            </span>
+          {% elif seller.verification_status == 'rejected' %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-semibold">
+              <i class="bi bi-exclamation-octagon-fill me-1"></i>Needs Resubmission
+            </span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1.5 fw-semibold">
+              <i class="bi bi-shield-x me-1"></i>Not Submitted
+            </span>
+          {% endif %}
+        </div>
+
+        {% if seller.is_verified %}
+          <!-- Verified State Banner -->
+          <div class="p-3.5 rounded-3 bg-success-subtle border border-success-subtle mb-3">
+            <div class="d-flex align-items-start gap-3">
+              <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="bi bi-check-lg fs-5"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-bold text-success mb-1">Your Artisan Identity is Officially Verified</div>
+                <div class="small text-dark text-opacity-75 mb-2">
+                  Congratulations! Your credentials have been authenticated by the RuralConnect curation committee. The "Verified Artisan" badge is prominently displayed to buyers across all your products and studio cards.
+                </div>
+                <div class="d-flex flex-wrap gap-3 small text-secondary">
+                  <div><strong>Document Type:</strong> {{ seller.get_verification_doc_type_display|default:"Government Verified" }}</div>
+                  {% if seller.verification_id_number %}
+                    <div><strong>ID / Certificate No:</strong> <span class="badge bg-white text-dark border">{{ seller.verification_id_number }}</span></div>
+                  {% endif %}
+                  {% if seller.verification_reviewed_at %}
+                    <div><strong>Verified Date:</strong> {{ seller.verification_reviewed_at|date:"M d, Y" }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% if seller.verification_document %}
+            <div class="d-flex align-items-center gap-2">
+              <a href="{% url 'accounts:view_verification_doc' seller.pk %}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                <i class="bi bi-file-earmark-check me-1"></i>View Uploaded Credential Document
+              </a>
+            </div>
+          {% endif %}
+
+        {% elif seller.verification_status == 'pending' %}
+          <!-- Pending Review Banner -->
+          <div class="p-3.5 rounded-3 bg-warning-subtle border border-warning-subtle mb-3">
+            <div class="d-flex align-items-start gap-3">
+              <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="bi bi-clock-history fs-5"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-bold text-dark mb-1">Verification Document Under Review</div>
+                <div class="small text-dark text-opacity-75 mb-2">
+                  We have received your document and our admin team is reviewing your credentials. Turnaround time is usually within <strong>24 to 48 hours</strong>. Once approved, your badge will activate automatically!
+                </div>
+                <div class="d-flex flex-wrap gap-3 small text-secondary">
+                  <div><strong>Document Type:</strong> {{ seller.get_verification_doc_type_display }}</div>
+                  <div><strong>ID No:</strong> {{ seller.verification_id_number }}</div>
+                  {% if seller.verification_submitted_at %}
+                    <div><strong>Submitted:</strong> {{ seller.verification_submitted_at|date:"M d, Y H:i" }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2 border-top">
+            {% if seller.verification_document %}
+              <a href="{% url 'accounts:view_verification_doc' seller.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-eye me-1"></i>View Current Upload
+              </a>
+            {% endif %}
+            <button class="btn btn-sm btn-link text-decoration-none text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#kycUploadForm">
+              <i class="bi bi-pencil me-1"></i>Need to replace or update document?
+            </button>
+          </div>
+
+          <div class="collapse mt-3" id="kycUploadForm">
+            <div class="card card-body bg-light border-0">
+              <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="submit_kyc">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Document Type <span class="text-danger">*</span></label>
+                    {{ kyc_form.verification_doc_type }}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small">ID / Registration Number <span class="text-danger">*</span></label>
+                    {{ kyc_form.verification_id_number }}
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold small">Replace Document (PDF / Image under 5MB)</label>
+                    {{ kyc_form.verification_document }}
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <button type="submit" class="btn btn-rc btn-sm px-3 py-1.5 fw-semibold">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>Re-submit Document
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        {% elif seller.verification_status == 'rejected' %}
+          <!-- Rejected / Action Needed Banner -->
+          <div class="p-3.5 rounded-3 bg-danger-subtle border border-danger-subtle mb-3">
+            <div class="d-flex align-items-start gap-3">
+              <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="bi bi-exclamation-lg fs-5"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-bold text-danger mb-1">Verification Needs Action</div>
+                <div class="small text-dark text-opacity-75 mb-2">
+                  Our curation team reviewed your submission but could not approve it due to the reason below:
+                </div>
+                <div class="alert alert-danger bg-white border border-danger-subtle py-2 px-3 small mb-2">
+                  <i class="bi bi-info-circle-fill text-danger me-1"></i>
+                  <strong>Admin Note:</strong> {{ seller.verification_rejection_reason|default:"The submitted document was either illegible, expired, or did not match the business details." }}
+                </div>
+                <div class="small text-muted">
+                  Please upload a clear, high-resolution copy of your official artisan ID or government certificate below to re-apply.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Re-upload Form -->
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_kyc">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Artisan Document Type <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_doc_type }}
+                {% if kyc_form.verification_doc_type.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_doc_type.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">ID / Registration Number <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_id_number }}
+                {% if kyc_form.verification_id_number.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_id_number.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Upload Clear Document Proof (PDF / Image) <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_document }}
+                {% if kyc_form.verification_document.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_document.errors.0 }}</div>
+                {% endif %}
+                <div class="form-text small text-muted">Accepted formats: PDF, JPG, PNG, WEBP. Maximum file size 5MB.</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button type="submit" class="btn btn-rc px-4 py-2 fw-semibold">
+                <i class="bi bi-arrow-repeat me-1"></i>Re-submit for Verification
+              </button>
+            </div>
+          </form>
+
+        {% else %}
+          <!-- Unsubmitted State (Friendly Explainer & Form) -->
+          <div class="p-3 rounded-3 bg-light border mb-3">
+            <div class="d-flex align-items-center gap-2 fw-bold text-dark mb-1">
+              <i class="bi bi-stars text-warning fs-5"></i>
+              <span>Why get verified on RuralConnect?</span>
+            </div>
+            <div class="small text-secondary mb-3">
+              Buyers on RuralConnect value authenticity. Verified artisans receive an official trust badge, priority placement in search results, and eligibility for featured regional heritage campaigns.
+            </div>
+            <div class="row g-2 small text-muted">
+              <div class="col-sm-6 d-flex align-items-center gap-1.5">
+                <i class="bi bi-check-circle-fill text-success"></i> Pehchan Artisan ID Card
+              </div>
+              <div class="col-sm-6 d-flex align-items-center gap-1.5">
+                <i class="bi bi-check-circle-fill text-success"></i> Handloom / Handicrafts Board Card
+              </div>
+              <div class="col-sm-6 d-flex align-items-center gap-1.5">
+                <i class="bi bi-check-circle-fill text-success"></i> SHG / Co-operative Society Letter
+              </div>
+              <div class="col-sm-6 d-flex align-items-center gap-1.5">
+                <i class="bi bi-check-circle-fill text-success"></i> Udyam MSME / Govt Photo ID
+              </div>
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="submit_kyc">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Artisan Document Type <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_doc_type }}
+                {% if kyc_form.verification_doc_type.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_doc_type.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">ID / Registration Number <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_id_number }}
+                {% if kyc_form.verification_id_number.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_id_number.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Upload Document Proof (PDF or Image) <span class="text-danger">*</span></label>
+                {{ kyc_form.verification_document }}
+                {% if kyc_form.verification_document.errors %}
+                  <div class="text-danger small mt-1">{{ kyc_form.verification_document.errors.0 }}</div>
+                {% endif %}
+                <div class="form-text small text-muted">Supports scanned document or clear photo in PDF, JPG, PNG, WEBP (under 5MB).</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button type="submit" class="btn btn-rc px-4 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-cloud-arrow-up me-1"></i>Submit for Verification
+              </button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column (Live Preview & Artisan Tips) -->
+    <div class="col-lg-4">
+      <!-- Live Customer View Preview Card -->
+      <div class="buyer-preview-card border-success-subtle mb-4 shadow-sm">
+        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+          <span class="fw-bold text-dark small text-uppercase tracking-wider">
+            <i class="bi bi-eye text-success me-1"></i> Buyer Card Preview
+          </span>
+          <span class="badge bg-light text-secondary border">Live</span>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+                 style="width: 48px; height: 48px; background: #102d59; font-size: 1.1rem;" id="badgeAvatar">
+              {{ seller.business_name|slice:":2"|upper }}
+            </div>
+            <div>
+              <div class="fw-bold text-dark" id="previewBusinessName">{{ seller.business_name }}</div>
+              <div class="small text-muted" id="previewLocation">
+                <i class="bi bi-geo-alt text-danger me-1"></i>{{ seller.location|default:"Rural India" }}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 small mb-2 flex-wrap">
+            {% if review_count > 0 %}
+              <div class="text-warning d-flex align-items-center gap-1">
+                <i class="bi bi-star-fill"></i>
+                <span class="text-dark fw-semibold">{{ avg_rating|floatformat:1 }}</span>
+                <span class="text-muted">({{ review_count }} review{{ review_count|pluralize }})</span>
+              </div>
+            {% else %}
+              <div class="text-muted small d-flex align-items-center gap-1">
+                <i class="bi bi-star text-secondary"></i>
+                <span>No customer reviews yet</span>
+              </div>
+            {% endif %}
+
+            {% if seller.is_verified %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                <i class="bi bi-patch-check-fill me-1"></i>Verified Artisan
+              </span>
+            {% endif %}
+          </div>
+
+          <p class="small text-muted mb-0 fst-italic" id="previewBio">
+            "{{ seller.bio|default:'Curating authentic regional brassware, reclaimed wood artifacts and vintage finds.' }}"
+          </p>
+        </div>
+        <div class="text-center text-muted small mt-2">
+          <i class="bi bi-info-circle me-1"></i> This is how your store badge appears on product pages.
+        </div>
+      </div>
+
+      <!-- Seller Guidelines Card -->
+      <div class="buyer-preview-card">
+        <div class="form-card-title text-dark">
+          <i class="bi bi-lightbulb text-warning fs-5"></i>
+          <span>Artisan Tips</span>
+        </div>
+
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-3 small text-muted">
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+            <div>
+              <strong class="text-dark">Detailed Craft Stories:</strong> Buyers love knowing who made their item and how many days it took to craft.
+            </div>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+            <div>
+              <strong class="text-dark">Clear Location:</strong> Highlighting your village or town connects you with customers looking for regional specialties.
+            </div>
+          </li>
+          <li class="d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+            <div>
+              <strong class="text-dark">Promotion Boosts:</strong> Use the Promotions section to feature your products directly on RuralConnect's top deals.
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live interactive preview updater as seller types
+document.addEventListener('DOMContentLoaded', () => {
+  const nameInput = document.getElementById('{{ form.business_name.id_for_label }}');
+  const locInput = document.getElementById('{{ form.location.id_for_label }}');
+  const bioInput = document.getElementById('{{ form.bio.id_for_label }}');
+
+  const previewName = document.getElementById('previewBusinessName');
+  const previewLoc = document.getElementById('previewLocation');
+  const previewBio = document.getElementById('previewBio');
+  const badgeAvatar = document.getElementById('badgeAvatar');
+
+  if (nameInput && previewName) {
+    nameInput.addEventListener('input', () => {
+      const val = nameInput.value.trim() || 'Your Business Name';
+      previewName.textContent = val;
+      if (badgeAvatar) {
+        badgeAvatar.textContent = val.slice(0, 2).toUpperCase();
+      }
+    });
+  }
+
+  if (locInput && previewLoc) {
+    locInput.addEventListener('input', () => {
+      previewLoc.innerHTML = `<i class="bi bi-geo-alt text-danger me-1"></i>${locInput.value.trim() || 'Location not set'}`;
+    });
+  }
+
+  if (bioInput && previewBio) {
+    bioInput.addEventListener('input', () => {
+      previewBio.textContent = `"${bioInput.value.trim() || 'Tell buyers about your heritage craft...'}"`;
+    });
+  }
+});
+</script>
+{% endblock %}

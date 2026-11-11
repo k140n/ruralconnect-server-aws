@@ -1,0 +1,178 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Sign In | RuralConnect Control Center</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.2">
+  <style>
+    body {
+      background: #f4f6fa;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-auth-header {
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+      background: #ffffff;
+    }
+    .brand-logo {
+      font-weight: 800;
+      font-size: 26px;
+      color: #1a1a1a;
+      text-decoration: none;
+      letter-spacing: -1.2px;
+    }
+    .brand-logo span {
+      color: #102d59;
+    }
+    .brand-logo i {
+      color: #f2a93b;
+      font-style: normal;
+    }
+    .admin-card {
+      max-width: 440px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem 2.25rem;
+      box-shadow: 0 10px 30px rgba(16, 45, 89, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .admin-input-group {
+      display: flex !important;
+      position: relative;
+      width: 100%;
+    }
+    .admin-input-group > .form-control {
+      flex: 1 1 auto;
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+      border-right: 0 !important;
+      border-color: #ced4da;
+      padding: 0.65rem 0.95rem;
+      font-size: 0.95rem;
+    }
+    .admin-input-group > .btn-toggle-pw {
+      border: 1px solid #ced4da;
+      border-left: 0;
+      background: #ffffff;
+      color: #64748b;
+      padding: 0 0.95rem;
+      border-top-right-radius: 10px;
+      border-bottom-right-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .admin-input-group > .btn-toggle-pw:hover {
+      color: #102d59;
+      background: #f8fafc;
+    }
+    .admin-input-group:focus-within > .form-control,
+    .admin-input-group:focus-within > .btn-toggle-pw {
+      border-color: #102d59;
+      box-shadow: 0 0 0 3px rgba(16, 45, 89, 0.12);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimal Admin Header -->
+  <header class="admin-auth-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <a class="brand-logo" href="{% url 'marketplace:home' %}" aria-label="RuralConnect">rural<span>connect</span><i>.</i></a>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill small fw-bold">
+        <i class="bi bi-shield-lock me-1"></i>Platform Admin
+      </span>
+    </div>
+    <a href="{% url 'marketplace:home' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i>Back to Marketplace
+    </a>
+  </header>
+
+  <!-- Centered Login Container -->
+  <main class="flex-grow-1 d-flex align-items-center justify-content-center p-3">
+    <div class="admin-card">
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm" style="width: 60px; height: 60px; background: #f0f4f9; color: #102d59;">
+          <i class="bi bi-shield-lock-fill fs-2"></i>
+        </div>
+        <h1 class="h4 fw-bold text-dark mb-1">Platform Admin</h1>
+        <p class="text-muted small mb-0">Authorized administration access only</p>
+      </div>
+
+      {% if error %}
+        <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+          <div>{{ error }}</div>
+        </div>
+      {% endif %}
+
+      <form method="post" class="row g-3" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+
+        <div class="col-12">
+          <label class="form-label fw-semibold text-dark small" for="id_username">Admin Email</label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label fw-semibold text-dark small" for="id_password">Admin Password</label>
+          <div class="admin-input-group">
+            {{ form.password }}
+            <button class="btn-toggle-pw" type="button" id="toggleAdminPw" aria-label="Show or hide password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12 mt-3">
+          <button class="btn btn-lg w-100 py-2.5 fw-bold text-white rounded-pill shadow-sm" type="submit" style="background: #102d59;">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Control Center
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-4 pt-3 border-top text-center">
+        <a href="{% url 'marketplace:home' %}" class="small text-muted text-decoration-none">
+          <i class="bi bi-arrow-left me-1"></i> Return to RuralConnect Marketplace
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center py-3 text-muted small border-top bg-white">
+    RuralConnect Control Center &bull; Authorized Personnel Only
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  const toggleBtn = document.getElementById('toggleAdminPw');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const pwInput = document.querySelector('input[name="password"]');
+      if (!pwInput) return;
+      const isPw = pwInput.type === 'password';
+      pwInput.type = isPw ? 'text' : 'password';
+      const icon = toggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = isPw ? 'bi bi-eye-slash' : 'bi bi-eye';
+      }
+    });
+  }
+  </script>
+</body>
+</html>

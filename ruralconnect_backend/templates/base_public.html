@@ -1,0 +1,899 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}RuralConnect | Antiques, crafts and vintage finds{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.5">
+  <link rel="stylesheet" href="{% static 'css/marketplace.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=2.2">
+  {% block extra_css %}{% endblock %}
+
+</head>
+<body class="has-bottom-nav">
+<a class="visually-hidden-focusable" href="#main">Skip to content</a>
+
+<div class="topline">
+  <div class="container py-1 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3 small text-truncate">
+      <span><i class="bi bi-truck me-1 text-warning"></i> Free delivery across India on orders over ₹999</span>
+      <span class="d-none d-lg-inline opacity-50">|</span>
+      <span class="d-none d-lg-inline"><i class="bi bi-patch-check-fill me-1 text-success"></i> 100% Authentic Handcrafted Heritage Treasures</span>
+    </div>
+    <div class="d-flex align-items-center gap-3 small">
+      {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:register_seller' %}" class="text-white text-decoration-none fw-semibold">
+          <i class="bi bi-shop me-1 text-warning"></i> Sell on RuralConnect
+        </a>
+      {% else %}
+        <span class="d-none d-md-inline text-white-50">
+          <i class="bi bi-shield-lock me-1"></i> Buyer Protection Guaranteed
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="topbar header-wrap">
+    <!-- Brand Logo -->
+    <a class="brand" href="{% url 'marketplace:home' %}" aria-label="RuralConnect home">rural<span>connect</span><i>.</i></a>
+
+    <!-- Modern Search Form with Autocomplete -->
+    <div class="search-wrapper position-relative flex-grow-1" id="headerSearchWrapper" style="max-width: 660px;">
+      <form class="search w-100" action="{% url 'marketplace:products' %}" role="search" id="headerSearchForm" autocomplete="off">
+        <span class="search-icon"><i class="bi bi-search"></i></span>
+        <select name="cat" id="headerSearchCat" aria-label="Category" class="d-none d-lg-block">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if active_category.slug == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+        <input name="q" id="headerSearchInput" type="search" placeholder="Search for any product or craft…" aria-label="Search products" value="{{ request.GET.q|default:'' }}" autocomplete="off" spellcheck="false">
+        <button type="submit" id="headerSearchBtn" aria-label="Search"><i class="bi bi-search"></i></button>
+      </form>
+      <!-- Live Autocomplete Flyout -->
+      <div id="searchSuggestFlyout" class="search-suggest-flyout d-none" role="listbox" aria-label="Search Suggestions"></div>
+    </div>
+
+    <!-- Header Actions (Track Order, Cart, Wishlist, Sign In/Profile) -->
+    <div class="header-actions">
+      <a class="action-link d-none d-lg-flex" href="{% if user.is_authenticated %}{% url 'marketplace:my_orders' %}{% else %}{% url 'accounts:login' %}?next={% url 'marketplace:my_orders' %}{% endif %}">
+        <span class="action-icon"><i class="bi bi-box-seam"></i></span>
+        <span><small>Check status</small><b>Track Order</b></span>
+      </a>
+
+      <!-- Wishlist Action -->
+      <a class="action-link d-none d-sm-flex" href="{% url 'marketplace:wishlist' %}" aria-label="My Wishlist">
+        <span class="action-icon position-relative">
+          <i class="bi bi-heart"></i>
+          <span class="wishlist-pill-badge" data-wishlist-count {% if not wishlist_count %}hidden{% endif %}>{{ wishlist_count|default:"0" }}</span>
+        </span>
+        <span class="d-none d-xl-inline"><small>Saved</small><b>Wishlist</b></span>
+      </a>
+
+      <!-- Cart Action -->
+      <a class="action-link cart-button" href="{% url 'marketplace:cart' %}" aria-label="Shopping cart">
+        <span class="action-icon position-relative">
+          <i class="bi bi-cart3"></i>
+          <span class="cart-pill-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count|default:"0" }}</span>
+        </span>
+        <span class="d-none d-sm-inline"><small>My items</small><b>Cart</b></span>
+      </a>
+
+      <!-- Sign In / User Profile Dropdown -->
+      {% if user.is_authenticated %}
+        <div class="dropdown">
+          <button class="action-link dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="action-icon"><i class="bi bi-person-circle"></i></span>
+            <span class="d-none d-sm-inline"><small>Account</small><b>{{ user.full_name|default:user.email|truncatechars:12 }}</b></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 250px;">
+            <li class="px-3 py-2 border-bottom mb-1">
+              <div class="fw-bold text-dark text-truncate">{{ user.full_name|default:user.email }}</div>
+              <div class="small text-muted text-truncate">{{ user.email }}</div>
+              {% if user.is_seller %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle mt-1 px-2 py-0.5"><i class="bi bi-shop me-1"></i>Seller Portal</span>
+              {% elif user.is_platform_admin %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1 px-2 py-0.5"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+              {% endif %}
+            </li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:profile' %}">
+                <i class="bi bi-person text-primary"></i> My Profile &amp; Addresses
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'marketplace:my_orders' %}">
+                <i class="bi bi-bag-check text-primary"></i> My Orders &amp; Tracking
+              </a>
+            </li>
+            {% if user.is_seller %}
+              <li>
+                <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'seller:dashboard' %}">
+                  <i class="bi bi-speedometer2 text-primary"></i> Seller Hub Dashboard
+                </a>
+              </li>
+            {% elif user.is_platform_admin %}
+              <li>
+                <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'platform_admin:dashboard' %}">
+                  <i class="bi bi-shield-lock text-primary"></i> Admin Dashboard
+                </a>
+              </li>
+            {% endif %}
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+              </a>
+            </li>
+          </ul>
+        </div>
+      {% else %}
+        <a class="action-link sign-in" href="{% url 'accounts:login' %}">
+          <span class="action-icon"><i class="bi bi-person"></i></span>
+          <span class="d-none d-sm-inline"><small>Welcome</small><b>Sign In</b></span>
+        </a>
+      {% endif %}
+
+      <!-- Mobile Offcanvas Menu Toggle -->
+      <button class="menu-toggle" id="menuToggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavDrawer" aria-controls="mobileNavDrawer" aria-label="Open menu">☰</button>
+    </div>
+  </div>
+
+  <!-- Secondary Category & Highlights Navigation Row -->
+  <nav class="nav-row header-wrap" id="mainNav">
+    <div class="nav-categories dropdown">
+      <a href="{% url 'marketplace:products' %}" id="catDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <span>▦</span> All Categories <i class="bi bi-chevron-down ms-1" style="font-size: 0.72rem;"></i>
+      </a>
+      <ul class="dropdown-menu shadow-lg border-0 rounded-4 py-2 mt-2" aria-labelledby="catDropdownToggle" style="min-width: 220px;">
+        <li><a class="dropdown-item py-2 fw-bold" href="{% url 'marketplace:products' %}">View All Items</a></li>
+        <li><hr class="dropdown-divider"></li>
+        {% for cat in categories %}
+          <li><a class="dropdown-item py-2 d-flex align-items-center justify-content-between" href="{% url 'marketplace:products' %}?cat={{ cat.slug }}"><span>{{ cat.name }}</span><i class="bi bi-chevron-right text-muted small"></i></a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="nav-links" id="navCategoriesRow">
+      {% for cat in categories %}
+        <a href="{% url 'marketplace:products' %}?cat={{ cat.slug }}" class="nav-cat-item {% if active_category.slug == cat.slug %}fw-bold text-primary active{% endif %}" data-slug="{{ cat.slug }}">{{ cat.name }}</a>
+      {% endfor %}
+      <div class="dropdown d-none" id="moreCatsDropdownWrapper">
+        <button type="button" class="btn p-0 border-0 bg-transparent text-decoration-none d-inline-flex align-items-center" id="moreCatsDropdown" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" style="color: #424957; font-weight: 500; font-size: 14px;">
+          <span>More</span>
+          <i class="bi bi-chevron-down ms-1" style="font-size: 0.72rem;"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 py-2" id="moreCatsDropdownMenu" aria-labelledby="moreCatsDropdown" style="min-width: 220px; margin-top: 8px;">
+        </ul>
+      </div>
+    </div>
+    <div class="nav-highlights">
+      <a href="{% url 'marketplace:home' %}#deals">♧ Best Deals</a>
+    </div>
+  </nav>
+</header>
+
+{% if messages %}
+<div class="container mt-2">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main id="main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="footer-inner page-wrap">
+    <div class="footer-brand">
+      <a class="brand" href="{% url 'marketplace:home' %}">rural<span>connect</span><i>.</i></a>
+      <p>Bringing everyday essentials, authentic heritage crafts, and great value closer to you.</p>
+    </div>
+    <div class="footer-links">
+      <div>
+        <h4>Shop</h4>
+        {% for cat in categories|slice:":4" %}
+          <a href="{% url 'marketplace:products' %}?cat={{ cat.slug }}">{{ cat.name }}</a>
+        {% endfor %}
+        <a href="{% url 'marketplace:home' %}#deals">Today's Deals</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="{% url 'marketplace:my_orders' %}">Track Order</a>
+        <a href="#">Help &amp; FAQs</a>
+        <a href="#">Shipping &amp; Returns</a>
+        <a href="#">Contact Us</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="#">About RuralConnect</a>
+        <a href="{% url 'accounts:register_seller' %}">Sell with us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom page-wrap">
+    <small>© 2026 RuralConnect. All rights reserved.</small>
+  </div>
+</footer>
+
+<!-- Mobile Navigation Offcanvas Drawer -->
+<div class="offcanvas offcanvas-start mobile-nav-drawer" tabindex="-1" id="mobileNavDrawer" aria-labelledby="mobileNavDrawerLabel">
+  <div class="offcanvas-header border-bottom">
+    <div class="d-flex align-items-center gap-2" id="mobileNavDrawerLabel">
+      <a class="brand" href="{% url 'marketplace:home' %}" style="font-size: 24px;">rural<span>connect</span><i>.</i></a>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0 d-flex flex-column">
+    <!-- User Profile Banner / Quick Sign-In -->
+    <div class="p-3 bg-light border-bottom">
+      {% if user.is_authenticated %}
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px; font-size: 1.15rem; flex-shrink: 0;">
+            {{ user.full_name|make_list|first|upper|default:"U" }}
+          </div>
+          <div class="overflow-hidden">
+            <div class="fw-bold text-dark text-truncate">{{ user.full_name|default:user.email }}</div>
+            <div class="small text-muted text-truncate">{{ user.email }}</div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          {% if user.is_seller %}
+            <a href="{% url 'seller:dashboard' %}" class="btn btn-sm btn-rc flex-fill"><i class="bi bi-speedometer2 me-1"></i> Seller Hub</a>
+          {% elif user.is_platform_admin %}
+            <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-sm btn-dark flex-fill"><i class="bi bi-shield-lock me-1"></i> Admin</a>
+          {% endif %}
+          <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-rc flex-fill"><i class="bi bi-person me-1"></i> Profile</a>
+        </div>
+      {% else %}
+        <div class="d-flex flex-column gap-2">
+          <div class="fw-semibold text-dark">Welcome to RuralConnect</div>
+          <div class="small text-muted mb-1">Discover authentic handmade rural crafts & antiques.</div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'accounts:login' %}" class="btn btn-rc btn-sm flex-fill"><i class="bi bi-person me-1"></i> Sign In</a>
+            <a href="{% url 'accounts:register_buyer' %}" class="btn btn-outline-rc btn-sm flex-fill">Register</a>
+          </div>
+          <a href="{% url 'accounts:register_seller' %}" class="btn btn-sm btn-light border text-success fw-semibold mt-1">
+            <i class="bi bi-shop me-1"></i> Become a Seller
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="list-group list-group-flush py-2">
+      <a href="{% url 'marketplace:home' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 border-0">
+        <i class="bi bi-house-door text-success fs-5"></i>
+        <span class="fw-medium">Home</span>
+      </a>
+      <a href="{% url 'marketplace:products' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 border-0">
+        <i class="bi bi-grid text-success fs-5"></i>
+        <span class="fw-medium">Explore All Products</span>
+      </a>
+      <a href="{% url 'marketplace:wishlist' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3 border-0">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-heart text-danger fs-5"></i>
+          <span class="fw-medium">My Wishlist</span>
+        </div>
+        <span class="badge bg-danger rounded-pill" data-wishlist-count {% if not wishlist_count %}hidden{% endif %}>{{ wishlist_count|default:"0" }}</span>
+      </a>
+      <a href="{% url 'marketplace:cart' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3 border-0">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-cart3 text-success fs-5"></i>
+          <span class="fw-medium">Shopping Cart</span>
+        </div>
+        <span class="badge bg-success rounded-pill" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count|default:"0" }}</span>
+      </a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'marketplace:my_orders' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 border-0">
+          <i class="bi bi-bag-check text-success fs-5"></i>
+          <span class="fw-medium">My Orders</span>
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Categories Section -->
+    <div class="px-3 pt-3 pb-2 border-top">
+      <div class="small fw-bold text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Categories</div>
+      <div class="d-flex flex-column gap-1">
+        {% for cat in categories %}
+          <a href="{% url 'marketplace:products' %}?cat={{ cat.slug }}" class="d-flex align-items-center justify-content-between py-2 text-decoration-none text-dark">
+            <span>{{ cat.emoji }} {{ cat.name }}</span>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="p-3 border-top mt-auto">
+      <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger w-100 btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% block mobile_bottom_bar %}
+<!-- Mobile App Bottom Navigation Bar -->
+<nav class="mobile-bottom-nav d-md-none" aria-label="Mobile Navigation">
+  <a href="{% url 'marketplace:home' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+    <i class="bi bi-house-door"></i>
+    <span>Home</span>
+  </a>
+  <a href="{% url 'marketplace:products' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'products' %}active{% endif %}">
+    <i class="bi bi-grid"></i>
+    <span>Catalog</span>
+  </a>
+  <a href="{% url 'marketplace:cart' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'cart' %}active{% endif %} position-relative">
+    <div class="position-relative d-inline-block">
+      <i class="bi bi-cart3"></i>
+      <span class="bottom-nav-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count|default:"0" }}</span>
+    </div>
+    <span>Cart</span>
+  </a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'marketplace:my_orders' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
+      <i class="bi bi-bag-check"></i>
+      <span>Orders</span>
+    </a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+      <i class="bi bi-person"></i>
+      <span>Sign In</span>
+    </a>
+  {% endif %}
+  <button type="button" class="mobile-bottom-nav-item btn border-0 bg-transparent p-0" data-bs-toggle="offcanvas" data-bs-target="#mobileNavDrawer" aria-controls="mobileNavDrawer" aria-label="Open menu drawer">
+    <i class="bi bi-list"></i>
+    <span>Menu</span>
+  </button>
+</nav>
+{% endblock %}
+
+<!-- Confirm modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="cmT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title h5" id="cmT">Please confirm</h2>
+        <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" data-ok>Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Toast pill for notifications -->
+<div id="toastContainer" class="toast-msg" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Toast notification helper (Test UI Pill Style)
+let toastTimer;
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toastContainer');
+  if (!toast) return;
+  const icon = type === 'success' ? '✓' : (type === 'danger' ? '✕' : 'ℹ');
+  toast.innerHTML = `<span style="font-weight:700;">${icon}</span> <span>${message}</span>`;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2400);
+}
+
+// Helper to get CSRF cookie or hidden input
+function getCsrfToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  if (match) return match[1];
+  const input = document.querySelector('[name=csrfmiddlewaretoken]');
+  return input ? input.value : '';
+}
+
+// Cart badge updater
+function updateCartCount(count) {
+  const n = parseInt(count) || 0;
+  document.querySelectorAll('[data-cart-count]').forEach(e => {
+    e.textContent = n;
+    e.hidden = !n;
+  });
+  return n;
+}
+
+// Wishlist badge updater
+function updateWishlistBadges(count) {
+  const n = parseInt(count) || 0;
+  document.querySelectorAll('[data-wishlist-count]').forEach(e => {
+    e.textContent = n;
+    e.hidden = !n;
+  });
+  document.querySelectorAll('[data-wishlist-page-count]').forEach(e => {
+    e.textContent = n;
+  });
+  return n;
+}
+
+// Global toggleWishlist accessible across all cards and product details
+async function toggleWishlist(productId, btnEl, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  if (!productId) return;
+
+  const isDetail = btnEl.classList.contains('wishlist-detail-btn');
+  const currentlyActive = btnEl.classList.contains('active');
+
+  // Optimistic UI state flip
+  const icon = btnEl.querySelector('i');
+  if (icon) {
+    if (currentlyActive) {
+      icon.className = 'bi bi-heart';
+      btnEl.classList.remove('active', 'is-wishlisted');
+      if (isDetail) {
+        const textSpan = btnEl.querySelector('.wishlist-btn-text');
+        if (textSpan) textSpan.textContent = 'Save to Wishlist';
+      }
+    } else {
+      icon.className = 'bi bi-heart-fill';
+      btnEl.classList.add('active', 'is-wishlisted');
+      if (isDetail) {
+        const textSpan = btnEl.querySelector('.wishlist-btn-text');
+        if (textSpan) textSpan.textContent = 'Saved to Wishlist';
+      }
+    }
+  }
+
+  try {
+    const res = await fetch(`/wishlist/toggle/${productId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+
+    if (res.status === 401) {
+      const data = await res.json();
+      showToast('Please <a href="' + data.login_url + '" class="text-white text-decoration-underline fw-bold">Sign In</a> to save items to your wishlist.', 'info');
+      // Revert optimistic toggle
+      if (icon) {
+        icon.className = 'bi bi-heart';
+        btnEl.classList.remove('active', 'is-wishlisted');
+        if (isDetail) {
+          const textSpan = btnEl.querySelector('.wishlist-btn-text');
+          if (textSpan) textSpan.textContent = 'Save to Wishlist';
+        }
+      }
+      return;
+    }
+
+    const data = await res.json();
+    if (data.success) {
+      updateWishlistBadges(data.wishlist_count);
+
+      // Synchronize all instances of this product's wishlist buttons on the current page
+      document.querySelectorAll(`[data-product-id="${productId}"]`).forEach(el => {
+        if (!el.classList.contains('btn-wishlist-card') && !el.classList.contains('wishlist-detail-btn')) return;
+        const i = el.querySelector('i');
+        const txt = el.querySelector('.wishlist-btn-text');
+        if (data.added) {
+          el.classList.add('active', 'is-wishlisted');
+          if (i) i.className = 'bi bi-heart-fill';
+          if (txt) txt.textContent = 'Saved to Wishlist';
+        } else {
+          el.classList.remove('active', 'is-wishlisted');
+          if (i) i.className = 'bi bi-heart';
+          if (txt) txt.textContent = 'Save to Wishlist';
+        }
+      });
+
+      showToast(data.message, data.added ? 'success' : 'info');
+    } else {
+      showToast(data.error || 'Could not update wishlist', 'danger');
+    }
+  } catch (err) {
+    console.error('Wishlist error:', err);
+    showToast('Failed to update wishlist. Please try again.', 'danger');
+  }
+}
+
+// Global addToCart accessible across all pages
+async function addToCart(id, btn) {
+  try {
+    const pid = parseInt(id);
+    const res = await fetch("{% url 'marketplace:cart_add_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({ product_id: pid, quantity: 1 })
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateCartCount(data.cart_count);
+
+      // Button feedback animation
+      if (btn) {
+        const originalHtml = btn.innerHTML;
+        if (btn.classList.contains('btn-sm')) {
+          btn.innerHTML = '<i class="bi bi-check-lg text-white"></i>';
+        } else {
+          btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Added!';
+        }
+        btn.classList.add('btn-success');
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+          btn.classList.remove('btn-success');
+          btn.disabled = false;
+        }, 1200);
+      }
+
+      showToast('Added to cart! <a href="{% url "marketplace:cart" %}" class="text-white text-decoration-underline fw-bold ms-2">View Cart</a>');
+    } else {
+      showToast(data.error || 'Failed to add item to cart', 'danger');
+    }
+  } catch(e) {
+    console.error('Cart error:', e);
+    showToast('Failed to add to cart. Please try again.', 'danger');
+  }
+}
+
+// Synchronize legacy localStorage cart items or remove stale guest items on logout
+(function initCartSync() {
+  try {
+    const legacy = JSON.parse(localStorage.getItem('rc_cart') || '[]');
+    {% if user.is_authenticated %}
+      if (Array.isArray(legacy) && legacy.length > 0) {
+        fetch("{% url 'marketplace:cart_sync_api' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken(),
+          },
+          body: JSON.stringify({ legacy_items: legacy })
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            updateCartCount(data.cart_count);
+          }
+          localStorage.removeItem('rc_cart');
+        }).catch(() => {});
+      }
+    {% else %}
+      // Signed out: wipe obsolete client-side cart so signed-out user sees an empty cart
+      if (Array.isArray(legacy) && legacy.length > 0) {
+        localStorage.removeItem('rc_cart');
+      }
+    {% endif %}
+  } catch(e) {}
+})();
+
+// Prevent browser back-button from displaying cached authenticated pages after logout
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+    window.location.reload();
+  }
+});
+
+// Live Autocomplete Search Bar
+(function initLiveSearch() {
+  const wrapper = document.getElementById('headerSearchWrapper');
+  const input = document.getElementById('headerSearchInput');
+  const catSelect = document.getElementById('headerSearchCat');
+  const flyout = document.getElementById('searchSuggestFlyout');
+  if (!input || !flyout) return;
+
+  let debounceTimer = null;
+  let abortCtrl = null;
+  let selectedIndex = -1;
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function closeFlyout() {
+    flyout.classList.add('d-none');
+    flyout.innerHTML = '';
+    selectedIndex = -1;
+  }
+
+  function highlightItem(items, index) {
+    items.forEach((item, i) => {
+      if (i === index) {
+        item.classList.add('is-selected');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('is-selected');
+      }
+    });
+  }
+
+  async function fetchSuggestions(query) {
+    if (abortCtrl) {
+      abortCtrl.abort();
+    }
+    abortCtrl = new AbortController();
+
+    const cat = catSelect ? catSelect.value : '';
+    const url = `{% url 'marketplace:search_suggest_api' %}?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(cat)}`;
+
+    try {
+      const res = await fetch(url, { signal: abortCtrl.signal });
+      if (!res.ok) return;
+      const data = await res.json();
+      renderSuggestions(data);
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        console.error('Search autocomplete error:', e);
+      }
+    }
+  }
+
+  function renderSuggestions(data) {
+    const q = data.query || '';
+    const products = data.products || [];
+    const categories = data.categories || [];
+    const artisans = data.artisans || [];
+    const totalMatches = data.total_matches || 0;
+
+    selectedIndex = -1;
+
+    if (products.length === 0 && categories.length === 0 && artisans.length === 0) {
+      flyout.innerHTML = `
+        <div class="search-suggest-empty">
+          <i class="bi bi-search text-muted fs-4 d-block mb-1"></i>
+          <div>No crafts or artisans found matching "<strong>${escapeHtml(q)}</strong>"</div>
+        </div>
+      `;
+      flyout.classList.remove('d-none');
+      return;
+    }
+
+    let html = '';
+
+    // 1. Categories
+    if (categories.length > 0) {
+      html += `<div class="search-suggest-section-title"><i class="bi bi-tags me-1"></i> Categories</div>`;
+      categories.forEach(c => {
+        html += `
+          <a href="${c.url}" class="search-suggest-item" role="option">
+            <span class="fs-5">${c.emoji || '📁'}</span>
+            <div class="flex-grow-1 fw-semibold">${escapeHtml(c.name)}</div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+        `;
+      });
+    }
+
+    // 2. Artisans
+    if (artisans.length > 0) {
+      html += `<div class="search-suggest-section-title"><i class="bi bi-person-badge me-1"></i> Artisans &amp; Studios</div>`;
+      artisans.forEach(a => {
+        html += `
+          <a href="${a.url}" class="search-suggest-item" role="option">
+            <div class="search-suggest-avatar">${escapeHtml(a.avatar_letter)}</div>
+            <div class="flex-grow-1">
+              <div class="fw-bold text-dark d-flex align-items-center gap-1">
+                ${escapeHtml(a.business_name)}
+                <span class="search-suggest-badge"><i class="bi bi-patch-check-fill text-warning me-1"></i>Artisan</span>
+              </div>
+              <div class="small text-muted"><i class="bi bi-geo-alt-fill text-warning me-1"></i>${escapeHtml(a.location)}</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted small"></i>
+          </a>
+        `;
+      });
+    }
+
+    // 3. Products
+    if (products.length > 0) {
+      html += `<div class="search-suggest-section-title"><i class="bi bi-box-seam me-1"></i> Crafts &amp; Products</div>`;
+      products.forEach(p => {
+        const thumbHtml = p.image_url
+          ? `<img src="${p.image_url}" alt="${escapeHtml(p.name)}">`
+          : `<span>${p.emoji || '📦'}</span>`;
+
+        const priceHtml = p.has_discount
+          ? `<strong class="text-success">₹${Math.round(p.price)}</strong> <s class="text-muted small ms-1">₹${Math.round(p.original_price)}</s>`
+          : `<strong class="text-success">₹${Math.round(p.price)}</strong>`;
+
+        html += `
+          <a href="${p.url}" class="search-suggest-item" role="option">
+            <div class="search-suggest-thumb">${thumbHtml}</div>
+            <div class="flex-grow-1 text-truncate pe-2">
+              <div class="fw-bold text-dark text-truncate">${escapeHtml(p.name)}</div>
+              <div class="small text-muted text-truncate">by ${escapeHtml(p.seller_name || p.category_name)}</div>
+            </div>
+            <div class="text-end flex-shrink-0">
+              <div class="fw-bold">${priceHtml}</div>
+            </div>
+          </a>
+        `;
+      });
+    }
+
+    // 4. Footer link to full results
+    const fullSearchUrl = `{% url 'marketplace:products' %}?q=${encodeURIComponent(q)}${catSelect && catSelect.value ? '&cat=' + encodeURIComponent(catSelect.value) : ''}`;
+    html += `
+      <div class="search-suggest-footer">
+        <a href="${fullSearchUrl}">
+          <span>See all ${totalMatches} result${totalMatches === 1 ? '' : 's'} for "<strong>${escapeHtml(q)}</strong>"</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    `;
+
+    flyout.innerHTML = html;
+    flyout.classList.remove('d-none');
+  }
+
+  // Input event with debounce
+  input.addEventListener('input', function () {
+    const query = this.value.trim();
+    clearTimeout(debounceTimer);
+    if (query.length < 2) {
+      closeFlyout();
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      fetchSuggestions(query);
+    }, 220);
+  });
+
+  // Reopen flyout on focus if input has value
+  input.addEventListener('focus', function () {
+    const query = this.value.trim();
+    if (query.length >= 2 && flyout.innerHTML.trim().length > 0) {
+      flyout.classList.remove('d-none');
+    }
+  });
+
+  // Keyboard navigation: ArrowUp, ArrowDown, Enter, Escape
+  input.addEventListener('keydown', function (e) {
+    if (flyout.classList.contains('d-none')) return;
+
+    const items = Array.from(flyout.querySelectorAll('.search-suggest-item'));
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex + 1) % items.length;
+      highlightItem(items, selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+      highlightItem(items, selectedIndex);
+    } else if (e.key === 'Enter') {
+      if (selectedIndex >= 0 && selectedIndex < items.length) {
+        e.preventDefault();
+        window.location.href = items[selectedIndex].href;
+      }
+    } else if (e.key === 'Escape') {
+      closeFlyout();
+    }
+  });
+
+  // Click outside to dismiss
+  document.addEventListener('click', function (e) {
+    if (!wrapper.contains(e.target)) {
+      closeFlyout();
+    }
+  });
+
+  // Category select change re-triggers search if input active
+  if (catSelect) {
+    catSelect.addEventListener('change', function () {
+      const query = input.value.trim();
+      if (query.length >= 2) {
+        fetchSuggestions(query);
+      }
+    });
+  }
+})();
+
+// Auto-Overflow for Category Navigation Bar
+(function initNavCategoriesOverflow() {
+  const container = document.getElementById('navCategoriesRow');
+  const moreWrapper = document.getElementById('moreCatsDropdownWrapper');
+  const moreMenu = document.getElementById('moreCatsDropdownMenu');
+  const moreBtn = document.getElementById('moreCatsDropdown');
+  if (!container || !moreWrapper || !moreMenu || !moreBtn) return;
+
+  function updateOverflow() {
+    // Desktop viewports only (>= 992px)
+    if (window.innerWidth < 992) {
+      moreWrapper.classList.add('d-none');
+      container.querySelectorAll('.nav-cat-item').forEach(el => el.classList.remove('d-none'));
+      return;
+    }
+
+    const items = Array.from(container.querySelectorAll('.nav-cat-item'));
+    if (items.length === 0) return;
+
+    // Reset items to natural layout to measure unconstrained widths
+    items.forEach(el => el.classList.remove('d-none'));
+    moreWrapper.classList.add('d-none');
+    moreMenu.innerHTML = '';
+
+    const containerWidth = container.clientWidth;
+    const gap = 20; // 20px gap from .nav-links
+    const moreBtnWidth = 72; // Reserve width for "More v"
+
+    let accumulatedWidth = 0;
+    let overflowIndex = -1;
+
+    for (let i = 0; i < items.length; i++) {
+      const itemW = items[i].offsetWidth;
+      const isLast = (i === items.length - 1);
+      const needed = isLast ? (accumulatedWidth + itemW) : (accumulatedWidth + itemW + gap + moreBtnWidth);
+
+      if (needed > containerWidth) {
+        overflowIndex = i;
+        break;
+      }
+      accumulatedWidth += itemW + gap;
+    }
+
+    if (overflowIndex !== -1) {
+      moreWrapper.classList.remove('d-none');
+      let hasActiveItem = false;
+
+      for (let i = overflowIndex; i < items.length; i++) {
+        const item = items[i];
+        item.classList.add('d-none');
+        const isActive = item.classList.contains('active');
+        if (isActive) hasActiveItem = true;
+
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = `dropdown-item py-2 px-3 d-flex align-items-center justify-content-between ${isActive ? 'active' : ''}`;
+        a.href = item.href;
+        a.innerHTML = `
+          <span>${item.textContent.trim()}</span>
+          <i class="bi ${isActive ? 'bi-check-lg text-primary' : 'bi-chevron-right text-muted small'}"></i>
+        `;
+        li.appendChild(a);
+        moreMenu.appendChild(li);
+      }
+
+      if (hasActiveItem) {
+        moreBtn.style.color = 'var(--blue, #2563eb)';
+        moreBtn.style.fontWeight = '700';
+      } else {
+        moreBtn.style.color = '#424957';
+        moreBtn.style.fontWeight = '500';
+      }
+    }
+  }
+
+  // Trigger on load, after webfonts load, and on window resize
+  updateOverflow();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(updateOverflow);
+  }
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(updateOverflow);
+  });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,212 @@
+{% extends 'base_public.html' %}
+{% load static %}
+
+{% block title %}My Wishlist | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small text-muted mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}" class="text-muted text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">My Wishlist</li>
+    </ol>
+  </nav>
+
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pb-3 mb-4 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold text-dark m-0 d-flex align-items-center gap-2">
+        <i class="bi bi-heart-fill text-danger"></i> My Wishlist
+      </h1>
+      <p class="text-muted small m-0 mt-1">Saved rural crafts, heritage items, and everyday essentials.</p>
+    </div>
+    {% if wishlist_items %}
+      <div class="badge bg-light text-dark border px-3 py-2 rounded-pill fs-6 fw-semibold">
+        <span data-wishlist-page-count>{{ total_items }}</span> item{{ total_items|pluralize }} saved
+      </div>
+    {% endif %}
+  </div>
+
+  {% if wishlist_items %}
+    <div class="row g-3 g-md-4" id="wishlistGrid">
+      {% for item in wishlist_items %}
+        {% with p=item.product %}
+        <div class="col-6 col-md-4 col-lg-3 d-flex align-items-stretch" id="wishlist-col-{{ p.pk }}">
+          <div class="product-card w-100 d-flex flex-column position-relative">
+            <!-- Product Image / Thumbnail -->
+            <div class="position-relative">
+              <a href="{% url 'marketplace:product_detail' p.pk %}" class="product-image">
+                {% if p.main_image %}
+                  <img src="{{ p.main_image.url }}" alt="{{ p.name }}" loading="lazy">
+                {% else %}
+                  <div class="emoji-placeholder" style="background:hsl({{ p.hue }},45%,92%); font-size:4rem; width:100%; height:100%; display:flex; align-items:center; justify-content:center;" aria-hidden="true">{{ p.emoji }}</div>
+                {% endif %}
+                
+                {% if p.active_campaign_discount > 0 %}
+                  <span class="badge-off" style="position:absolute; top:10px; left:10px; z-index:2; font-size:11px; padding:3px 8px; border-radius:999px; background:#b33939; color:#fff; font-weight:700;">{{ p.active_campaign_discount }}% Fest Off</span>
+                {% elif p.effective_discount > 0 %}
+                  <span class="badge-off" style="position:absolute; top:10px; left:10px; z-index:2; font-size:11px; padding:3px 8px; border-radius:999px; background:#102d59; color:#fff; font-weight:700;">{{ p.effective_discount }}% off</span>
+                {% endif %}
+              </a>
+
+              <!-- Remove from Wishlist Button -->
+              <button type="button" class="wish selected active" 
+                onclick="removeFromWishlistPage({{ p.pk }}, this)" 
+                title="Remove from wishlist" aria-label="Remove {{ p.name }} from wishlist">
+                <i class="bi bi-trash3-fill text-danger" style="font-size: 15px;"></i>
+              </button>
+            </div>
+
+            <!-- Card Body -->
+            <div class="d-flex flex-column flex-grow-1">
+              <a class="product-name" href="{% url 'marketplace:product_detail' p.pk %}" title="{{ p.name }}">
+                {{ p.name }}
+              </a>
+
+              <div class="small text-muted text-truncate mb-2" style="font-size: 0.78rem;">
+                <i class="bi bi-shop me-1 text-primary"></i>{{ p.seller.business_name }} · {{ p.location }}
+              </div>
+
+              <!-- Price & Stock Status -->
+              <div class="mt-auto pt-2 border-top">
+                <div class="d-flex align-items-baseline justify-content-between mb-2">
+                  <div class="price m-0">
+                    ₹{{ p.final_price|floatformat:0 }}
+                    {% if p.effective_discount > 0 %}
+                      <del>₹{{ p.price|floatformat:0 }}</del>
+                    {% endif %}
+                  </div>
+                  {% if p.stock > 0 %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.7rem;">In stock</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill" style="font-size: 0.7rem;">Out of stock</span>
+                  {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="product-actions">
+                  {% if p.stock > 0 %}
+                    <button type="button" class="add-button w-100" onclick="moveWishlistToCart({{ p.pk }}, this)">
+                      <i class="bi bi-cart-plus"></i> Move to Cart
+                    </button>
+                  {% else %}
+                    <button type="button" class="btn btn-secondary btn-sm w-100 rounded-pill" disabled>
+                      Out of Stock
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty Wishlist State -->
+    <div class="text-center py-5 my-4 bg-light rounded-4 border p-4">
+      <div class="mb-3">
+        <i class="bi bi-heart text-muted" style="font-size: 3.5rem; opacity: 0.35;"></i>
+      </div>
+      <h2 class="h4 fw-bold text-dark mb-2">Your wishlist is currently empty</h2>
+      <p class="text-muted mb-4" style="max-width: 440px; margin-inline: auto;">Explore thousands of unique artisan creations, heritage crafts, and daily essentials, and save your favorites for later.</p>
+      <a href="{% url 'marketplace:products' %}" class="btn btn-rc px-4 py-2.5">
+        <i class="bi bi-grid me-1.5"></i> Discover Products
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Specialized wishlist page removal that removes card with animation
+async function removeFromWishlistPage(productId, btnEl) {
+  if (!productId) return;
+  const colEl = document.getElementById(`wishlist-col-${productId}`);
+  
+  if (colEl) {
+    colEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    colEl.style.opacity = '0.4';
+    colEl.style.transform = 'scale(0.95)';
+  }
+
+  try {
+    const res = await fetch(`/wishlist/toggle/${productId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+
+    const data = await res.json();
+    if (data.success && !data.added) {
+      updateWishlistBadges(data.wishlist_count);
+      showToast('Item removed from wishlist');
+      
+      if (colEl) {
+        colEl.style.opacity = '0';
+        colEl.style.transform = 'scale(0.85)';
+        setTimeout(() => {
+          colEl.remove();
+          const grid = document.getElementById('wishlistGrid');
+          if (grid && grid.children.length === 0) {
+            window.location.reload();
+          }
+        }, 250);
+      }
+    } else {
+      if (colEl) {
+        colEl.style.opacity = '1';
+        colEl.style.transform = 'scale(1)';
+      }
+      showToast('Could not remove item', 'danger');
+    }
+  } catch (err) {
+    if (colEl) {
+      colEl.style.opacity = '1';
+      colEl.style.transform = 'scale(1)';
+    }
+    showToast('Failed to update wishlist', 'danger');
+  }
+}
+
+// Move item directly to cart and remove from wishlist
+async function moveWishlistToCart(productId, btnEl) {
+  if (!productId || !btnEl) return;
+  const originalHtml = btnEl.innerHTML;
+  btnEl.disabled = true;
+  btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Moving…';
+
+  try {
+    const res = await fetch("{% url 'marketplace:cart_add_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({ product_id: parseInt(productId), quantity: 1 })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      updateCartCount(data.total_items);
+      showToast('Item moved to cart! Removing from wishlist…');
+      
+      // Auto-remove from wishlist
+      removeFromWishlistPage(productId, btnEl);
+    } else {
+      btnEl.disabled = false;
+      btnEl.innerHTML = originalHtml;
+      showToast(data.error || 'Failed to add to cart', 'danger');
+    }
+  } catch (err) {
+    btnEl.disabled = false;
+    btnEl.innerHTML = originalHtml;
+    showToast('Network error while adding to cart', 'danger');
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base_public.html" %}
+{% block title %}Verify Your Email | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="border: 1px solid var(--line) !important;">
+        <!-- Top Accent Bar -->
+        <div style="height: 5px; background: linear-gradient(90deg, #102d59 0%, #1258a8 50%, #1c70c9 100%);"></div>
+
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Header Icon & Title -->
+          <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm" style="width: 72px; height: 72px; background: #f2f4f7; color: #102d59;">
+              <i class="bi bi-envelope-check-fill fs-2"></i>
+            </div>
+            <h1 class="h3 fw-bold text-dark mb-2">Check your email</h1>
+            <p class="text-muted small mb-3">
+              We sent a 6-digit verification code to
+            </p>
+            <div class="d-inline-flex align-items-center gap-2 bg-light border rounded-pill px-3 py-1.5 text-dark fw-semibold small">
+              <i class="bi bi-envelope text-primary"></i>
+              <span>{{ email }}</span>
+            </div>
+            <div class="mt-2">
+              <a href="{% url 'accounts:cancel_verification' %}" class="text-decoration-none text-muted small hover-underline">
+                <i class="bi bi-pencil-square me-1"></i> Wrong email? Change it
+              </a>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          {% if error %}
+          <div class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 small rounded-3 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 fs-5"></i>
+            <div>{{ error }}</div>
+          </div>
+          {% endif %}
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags|default:'info' }} d-flex align-items-center gap-2 py-2 px-3 small rounded-3 mb-4" role="alert">
+                <i class="bi bi-info-circle-fill flex-shrink-0 fs-5"></i>
+                <div>{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <!-- OTP Form -->
+          <form method="post" action="{% url 'accounts:verify_otp' %}" id="otpForm" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-4 text-center">
+              <label for="otpInput" class="form-label fw-semibold text-dark small text-uppercase letter-spacing-1 mb-2">
+                Enter 6-Digit Code
+              </label>
+
+              <!-- Stylized 6-digit input -->
+              <div class="position-relative d-inline-block w-100" style="max-width: 320px;">
+                <input
+                  type="text"
+                  name="otp"
+                  id="otpInput"
+                  class="form-control form-control-lg text-center fw-bold fs-2 font-monospace border-2 shadow-sm"
+                  maxlength="6"
+                  pattern="[0-9]*"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  placeholder="&bull;&bull;&bull;&bull;&bull;&bull;"
+                  style="letter-spacing: 12px; height: 64px; border-radius: 14px;"
+                  autofocus
+                  required
+                >
+              </div>
+              <div class="form-text small mt-2 text-muted">
+                <i class="bi bi-clock-history me-1"></i> Code expires in 10 minutes
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn" class="btn btn-lg w-100 py-3 fw-bold text-white rounded-pill shadow-sm mb-3" style="background: #102d59;">
+              <i class="bi bi-shield-check me-2"></i> Verify Email &amp; Continue
+            </button>
+          </form>
+
+          <!-- Resend Section -->
+          <div class="p-3 bg-light rounded-3 border text-center" style="border-color: var(--line) !important;">
+            <div id="cooldownNotice" class="small text-muted {% if cooldown_seconds <= 0 %}d-none{% endif %}">
+              <i class="bi bi-hourglass-split text-warning me-1"></i>
+              Resend code in <span id="countdownTimer" class="fw-bold text-dark">{{ cooldown_seconds }}</span>s
+            </div>
+
+            <form method="post" action="{% url 'accounts:resend_otp' %}" id="resendForm" class="{% if cooldown_seconds > 0 %}d-none{% endif %}">
+              {% csrf_token %}
+              <div class="small text-muted mb-2">Didn't receive the email? Check your spam folder or</div>
+              <button type="submit" id="resendBtn" class="btn btn-outline-secondary btn-sm px-3 fw-semibold rounded-pill">
+                <i class="bi bi-arrow-repeat me-1"></i> Resend Verification Code
+              </button>
+            </form>
+          </div>
+
+          <!-- Helpful Tips -->
+          <div class="mt-4 pt-3 border-top text-center">
+            <p class="text-muted small mb-0">
+              <i class="bi bi-shield-lock text-primary me-1"></i>
+              Your security is our priority. RuralConnect verifies emails to ensure a trusted marketplace for artisans and buyers.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const otpInput = document.getElementById('otpInput');
+  const cooldownNotice = document.getElementById('cooldownNotice');
+  const resendForm = document.getElementById('resendForm');
+  const countdownTimer = document.getElementById('countdownTimer');
+  let seconds = parseInt("{{ cooldown_seconds|default:0 }}", 10);
+
+  // Auto-format: allow only digits
+  if (otpInput) {
+    otpInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+      if (this.value.length === 6) {
+        document.getElementById('submitBtn').classList.add('pulse');
+      }
+    });
+
+    otpInput.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+      const cleanDigits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+      this.value = cleanDigits;
+    });
+  }
+
+  // Cooldown countdown timer
+  if (seconds > 0) {
+    const timerInterval = setInterval(function() {
+      seconds--;
+      if (countdownTimer) countdownTimer.textContent = seconds;
+
+      if (seconds <= 0) {
+        clearInterval(timerInterval);
+        if (cooldownNotice) cooldownNotice.classList.add('d-none');
+        if (resendForm) resendForm.classList.remove('d-none');
+      }
+    }, 1000);
+  }
+});
+</script>
+
+<style>
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+#otpInput:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 0.25rem rgba(18, 88, 168, 0.2) !important;
+}
+.pulse {
+  animation: pulse-glow 1.5s infinite;
+}
+@keyframes pulse-glow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+</style>
+{% endblock %}

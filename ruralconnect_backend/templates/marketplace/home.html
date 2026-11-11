@@ -1,0 +1,1260 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}RuralConnect | Antiques, crafts and vintage finds{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Horizontal Product Carousel Track */
+.rc-carousel-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  padding: 0 4px !important;
+}
+.rc-carousel-track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: smooth !important;
+  gap: 1.15rem !important;
+  padding: 0.75rem 0.25rem 1.25rem 0.25rem !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.rc-carousel-track::-webkit-scrollbar {
+  display: none !important;
+}
+.rc-carousel-item {
+  flex: 0 0 275px !important;
+  width: 275px !important;
+  max-width: 275px !important;
+  min-width: 275px !important;
+  display: flex !important;
+}
+@media (max-width: 767.98px) {
+  .rc-carousel-item {
+    flex: 0 0 235px !important;
+    width: 235px !important;
+    max-width: 235px !important;
+    min-width: 235px !important;
+  }
+}
+.rc-carousel-arrow {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  color: #1e4d3b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.25rem !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  user-select: none !important;
+}
+.rc-carousel-arrow:hover:not(:disabled) {
+  background: #1e4d3b !important;
+  color: #ffffff !important;
+  transform: translateY(-50%) scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(30, 77, 59, 0.35) !important;
+}
+.rc-carousel-arrow:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95) !important;
+}
+.rc-carousel-arrow.prev {
+  left: -16px !important;
+}
+.rc-carousel-arrow.next {
+  right: -16px !important;
+}
+.rc-carousel-arrow:disabled,
+.rc-carousel-arrow.is-disabled {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+.rc-carousel-arrow.arrow-light {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1e4d3b !important;
+}
+.rc-carousel-arrow.arrow-light:hover:not(:disabled) {
+  background: #f2a93b !important;
+  color: #1a1a1a !important;
+}
+
+/* Modern Hero Layout: 404px Left Carousel + 2 Stacked Right Banners (195px each) */
+.hero-grid {
+  display: grid !important;
+  grid-template-columns: 2.15fr 1fr !important;
+  grid-template-rows: 404px !important;
+  height: 404px !important;
+  gap: 14px !important;
+  margin-top: 14px !important;
+  margin-bottom: 6px !important;
+  align-items: stretch !important;
+}
+
+#heroCarousel.hero-main,
+.hero-main {
+  height: 404px !important;
+  min-height: 404px !important;
+  max-height: 404px !important;
+  border-radius: 16px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.hero-main .carousel-inner,
+.hero-main .carousel-item {
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+}
+
+.hero-main .carousel-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-copy {
+  position: absolute !important;
+  z-index: 2 !important;
+  left: 6.5% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 52% !important;
+}
+
+/* Full-bleed right image with smooth horizontal gradient mask */
+.hero-art-backdrop {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 52%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, rgba(0,0,0,0.85) 38%, black 65%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 12%, rgba(0,0,0,0.85) 38%, black 65%);
+}
+
+.hero-art-backdrop img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  transform: scale(1.02);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.hero-main:hover .carousel-item.active .hero-art-backdrop img {
+  transform: scale(1.07);
+}
+
+.hero-caption {
+  position: absolute !important;
+  bottom: 14px !important;
+  left: 6.5% !important;
+  font-size: 11px !important;
+  letter-spacing: 1.2px !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-weight: 600 !important;
+  z-index: 2 !important;
+}
+
+/* Right Side Stack: 2 vertically stacked cards matching exact 404px height */
+.hero-side-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  height: 100% !important;
+  max-height: 404px !important;
+}
+
+.hero-side-card {
+  flex: 1 1 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-radius: 16px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 18px 20px !important;
+  text-decoration: none !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.hero-side-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16) !important;
+}
+
+.hero-side-card.card-top {
+  background: linear-gradient(135deg, #661022 0%, #3e0915 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.hero-side-card.card-bottom {
+  background: linear-gradient(135deg, #102d59 0%, #081a2e 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.hero-side-card .side-art-backdrop {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 70%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.85) 60%, black 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.85) 60%, black 100%);
+}
+
+.hero-side-card .side-art-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center right;
+  opacity: 0.75;
+  transition: transform 0.5s ease;
+}
+
+.hero-side-card:hover .side-art-backdrop img {
+  transform: scale(1.05);
+}
+
+.hero-dots {
+  margin: 12px 0 20px !important;
+}
+
+/* Product Card Badges - ensure clean pill tags without stretching */
+.product-image .badge-spons {
+  position: absolute !important;
+  bottom: 10px !important;
+  left: 10px !important;
+  top: auto !important;
+  right: auto !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: fit-content !important;
+  max-height: fit-content !important;
+  display: inline-block !important;
+  background: rgba(17, 25, 77, 0.88) !important;
+  color: #ffffff !important;
+  font-size: 10px !important;
+  border-radius: 999px !important;
+  padding: 3px 8px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  z-index: 2 !important;
+}
+
+.product-image .badge-off {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  bottom: auto !important;
+  right: auto !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: fit-content !important;
+  max-height: fit-content !important;
+  display: inline-block !important;
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  z-index: 2 !important;
+}
+
+@media (max-width: 768px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    gap: 12px !important;
+  }
+  #heroCarousel.hero-main,
+  .hero-main {
+    height: 250px !important;
+    min-height: 250px !important;
+    max-height: 250px !important;
+  }
+  .hero-side-stack {
+    height: auto !important;
+    max-height: none !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .hero-side-card {
+    height: 155px !important;
+    min-height: 155px !important;
+    padding: 14px 14px !important;
+  }
+  .hero-copy {
+    width: 65% !important;
+    left: 5% !important;
+  }
+  .hero-art-backdrop {
+    width: 45% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-side-stack {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Category Promo Cards Full-Bleed Editorial Layout */
+.promo-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 22px !important;
+  margin: 38px 0 28px !important;
+}
+
+.promo.promo-editorial {
+  height: 340px !important;
+  min-height: 340px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  background: #0f172a;
+}
+
+.promo.promo-editorial:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22) !important;
+}
+
+.promo-editorial .promo-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important;
+  overflow: hidden !important;
+}
+
+.promo-editorial .promo-bg img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.promo.promo-editorial:hover .promo-bg img {
+  transform: scale(1.08) !important;
+}
+
+.promo-editorial .promo-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+/* Palette Overlays with rich dark contrast */
+.promo.b3 .promo-overlay,
+.promo.promo-vegetables .promo-overlay {
+  background: linear-gradient(180deg, rgba(169, 19, 84, 0.2) 0%, rgba(100, 10, 50, 0.62) 42%, rgba(15, 23, 42, 0.95) 100%) !important;
+}
+
+.promo.b6 .promo-overlay,
+.promo.promo-phone .promo-overlay {
+  background: linear-gradient(180deg, rgba(21, 89, 166, 0.2) 0%, rgba(14, 52, 98, 0.65) 42%, rgba(10, 20, 36, 0.96) 100%) !important;
+}
+
+.promo.b5 .promo-overlay,
+.promo.promo-grocery .promo-overlay {
+  background: linear-gradient(180deg, rgba(218, 0, 10, 0.2) 0%, rgba(130, 0, 8, 0.65) 42%, rgba(18, 10, 12, 0.96) 100%) !important;
+}
+
+.promo.b1 .promo-overlay,
+.promo.promo-slate .promo-overlay {
+  background: linear-gradient(180deg, rgba(16, 45, 89, 0.2) 0%, rgba(10, 30, 60, 0.65) 42%, rgba(6, 15, 30, 0.96) 100%) !important;
+}
+
+.promo.b2 .promo-overlay,
+.promo.promo-terracotta .promo-overlay {
+  background: linear-gradient(180deg, rgba(122, 75, 31, 0.2) 0%, rgba(85, 48, 15, 0.65) 42%, rgba(24, 15, 8, 0.96) 100%) !important;
+}
+
+.promo.b4 .promo-overlay,
+.promo.promo-forest .promo-overlay {
+  background: linear-gradient(180deg, rgba(12, 41, 24, 0.2) 0%, rgba(8, 30, 18, 0.65) 42%, rgba(4, 16, 9, 0.96) 100%) !important;
+}
+
+.promo-editorial .promo-content {
+  position: relative !important;
+  z-index: 3 !important;
+  padding: 24px 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  height: 100% !important;
+}
+
+.promo-editorial .promo-kicker {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.4px !important;
+  text-transform: uppercase !important;
+  color: #f2a93b !important;
+  margin-bottom: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.promo-editorial .promo-title {
+  font-size: clamp(20px, 1.8vw, 24px) !important;
+  font-weight: 800 !important;
+  line-height: 1.22 !important;
+  color: #ffffff !important;
+  margin: 0 0 6px 0 !important;
+  letter-spacing: -0.4px !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}
+
+.promo-editorial .promo-desc {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  margin: 0 0 16px 0 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.promo-editorial .promo-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  align-self: flex-start !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  padding: 8px 18px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.promo.promo-editorial:hover .promo-cta {
+  background: #f2a93b !important;
+  color: #111827 !important;
+  transform: translateX(3px) !important;
+}
+
+@media (max-width: 900px) {
+  .promo-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .promo.promo-editorial {
+    height: 280px !important;
+    min-height: 280px !important;
+  }
+}
+
+/* ==========================================================
+   Luxury Festive Campaign Showcase
+   ========================================================== */
+.festive-campaign-section {
+  position: relative !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  padding: 34px 30px 38px !important;
+  background: radial-gradient(circle at 10% 20%, rgba(242, 169, 59, 0.18) 0%, transparent 45%),
+              radial-gradient(circle at 90% 80%, rgba(184, 41, 66, 0.22) 0%, transparent 50%),
+              linear-gradient(135deg, #170712 0%, #2b0b1a 45%, #12040d 100%) !important;
+  border: 1px solid rgba(242, 169, 59, 0.28) !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.festive-campaign-section::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image: radial-gradient(rgba(242, 169, 59, 0.1) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.festive-campaign-inner {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.festive-eyebrow-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 5px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(242, 169, 59, 0.14) !important;
+  border: 1px solid rgba(242, 169, 59, 0.4) !important;
+  color: #f2a93b !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.4px !important;
+  text-transform: uppercase !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+.festive-date-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 5px 12px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.festive-campaign-title {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: clamp(24px, 2.6vw, 36px) !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.6px !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+}
+
+.festive-campaign-subtitle {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  max-width: 620px !important;
+}
+
+.festive-view-all-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #f2a93b 0%, #e09322 100%) !important;
+  color: #12050c !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  padding: 10px 22px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 4px 18px rgba(242, 169, 59, 0.35) !important;
+  transition: all 0.25s ease !important;
+  text-decoration: none !important;
+  flex-shrink: 0 !important;
+}
+
+.festive-view-all-btn:hover {
+  background: linear-gradient(135deg, #ffb648 0%, #f2a93b 100%) !important;
+  color: #000 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 22px rgba(242, 169, 59, 0.5) !important;
+}
+
+/* Frosted glass carousel buttons */
+.rc-carousel-arrow.arrow-frosted {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.rc-carousel-arrow.arrow-frosted:hover:not(.is-disabled) {
+  background: #f2a93b !important;
+  border-color: #f2a93b !important;
+  color: #12050c !important;
+  transform: scale(1.08) !important;
+}
+
+/* Premium Product Card Polish */
+.product-card {
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid #eef2f6 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+  padding: 12px !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.product-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12) !important;
+}
+
+.product-image {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: #f8fafc !important;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.06) !important;
+}
+
+.product-actions .add-button {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.product-actions .add-button:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.product-actions .buy-now-button {
+  background: #102d59 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  border-radius: 10px !important;
+  padding: 8px 14px !important;
+  box-shadow: 0 3px 10px rgba(16, 45, 89, 0.25) !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.product-actions .buy-now-button:hover {
+  background: #1a4278 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 14px rgba(16, 45, 89, 0.35) !important;
+  color: #fff !important;
+}
+
+/* Category Carousel Rail (Single row, edge-to-edge distribution with scroll fallback) */
+.category-carousel-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  padding: 0 4px !important;
+}
+
+.category-list.rc-carousel-track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: smooth !important;
+  padding: 8px 6px 14px 6px !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+
+.category-list.rc-carousel-track.justify-content-between {
+  justify-content: space-between !important;
+}
+
+.category-list.rc-carousel-track.justify-content-start {
+  justify-content: flex-start !important;
+  gap: 22px !important;
+}
+
+.category-list.rc-carousel-track::-webkit-scrollbar {
+  display: none !important;
+}
+
+.category.rc-category-item {
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  max-width: 120px !important;
+  min-width: 120px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-decoration: none !important;
+  color: var(--ink) !important;
+}
+
+.category.rc-category-item > span {
+  width: 110px !important;
+  height: 110px !important;
+  max-width: 110px !important;
+  aspect-ratio: 1 !important;
+  border-radius: 50% !important;
+  background: #f3f5f7 !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.category.rc-category-item:hover > span {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.category.rc-category-item img {
+  width: 88% !important;
+  height: 88% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+}
+
+.category.rc-category-item b {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: var(--ink) !important;
+}
+
+.category-carousel-wrapper .rc-carousel-arrow {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 1.05rem !important;
+  top: 42% !important;
+}
+
+.category-carousel-wrapper .rc-carousel-arrow.prev {
+  left: -12px !important;
+}
+
+.category-carousel-wrapper .rc-carousel-arrow.next {
+  right: -12px !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-wrap">
+  <!-- Asymmetric Hero Grid: 404px Left Carousel + 2 Stacked Right Banners (195px each) -->
+  <section class="hero-grid" aria-label="Featured offers">
+    <!-- Main Hero Slider (Admin Managed) -->
+    <article id="heroCarousel" class="carousel carousel-fade hero-main" data-bs-ride="carousel" data-bs-interval="6000">
+      <div class="carousel-inner h-100">
+        {% if hero_slides %}
+          {% for slide in hero_slides %}
+            <div class="carousel-item h-100 {% if forloop.first %}active{% endif %}" style="background: radial-gradient(circle at 12% 25%, rgba(255,255,255,0.06), transparent 50%), linear-gradient(125deg, {{ slide.bg_color|default:'#0c2918' }} 0%, #0d1e16 100%);">
+              <div class="hero-copy">
+                <div class="mb-2">
+                  <span class="badge bg-white bg-opacity-10 text-warning px-2.5 py-1 text-uppercase fw-bold" style="font-size: 0.68rem; letter-spacing: 1.2px; border: 1px solid rgba(255,255,255,0.14);">
+                    <i class="bi bi-patch-check-fill me-1 text-warning"></i>
+                    {% if 'electronics' in slide.title|lower or 'vintage' in slide.title|lower %}Heritage Tech &amp; Vintage
+                    {% elif 'craft' in slide.title|lower %}Handmade Village Crafts
+                    {% elif 'seller' in slide.title|lower or 'heirloom' in slide.title|lower %}Artisan Community
+                    {% else %}Curated Collection{% endif %}
+                  </span>
+                </div>
+                <h1 style="font-size: clamp(22px, 2.4vw, 32px); line-height: 1.15; margin: 0 0 10px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">
+                  {% if slide.accent_text %}
+                    <span style="color: #f2a93b; font-style: italic; display: block; font-size: clamp(17px, 1.9vw, 24px); margin-bottom: 2px;">{{ slide.accent_text }}</span>
+                  {% endif %}
+                  {{ slide.title }}
+                </h1>
+                {% if slide.subtitle %}
+                  <p style="font-size: 13px; line-height: 1.45; max-width: 330px; color: rgba(255,255,255,0.8); margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    {{ slide.subtitle }}
+                  </p>
+                {% endif %}
+                <a class="dark-btn" href="{{ slide.button_link|default:'/products/' }}" style="background: #f2a93b; color: #111827; font-weight: 700; border-radius: 20px; padding: 9px 24px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(242, 169, 59, 0.35); text-decoration: none;">
+                  {{ slide.button_text|default:'Shop Now' }} <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+              <div class="hero-art-backdrop">
+                {% if slide.image %}
+                  <img src="{{ slide.image.url }}" alt="{{ slide.title }}">
+                {% elif 'electronics' in slide.title|lower or 'vintage' in slide.title|lower or 'radio' in slide.subtitle|lower %}
+                  <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900&q=85" alt="{{ slide.title }}">
+                {% elif 'craft' in slide.title|lower or 'brass' in slide.subtitle|lower %}
+                  <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=85" alt="{{ slide.title }}">
+                {% elif 'seller' in slide.title|lower or 'heirloom' in slide.title|lower %}
+                  <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=85" alt="{{ slide.title }}">
+                {% else %}
+                  <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=900&q=85" alt="{{ slide.title }}">
+                {% endif %}
+              </div>
+              <span class="hero-caption"><i class="bi bi-shield-check me-1 text-warning"></i> 100% Authentic Handcrafted Heritage</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="carousel-item h-100 active" style="background: radial-gradient(circle at 12% 25%, rgba(255,255,255,0.06), transparent 50%), linear-gradient(125deg, #0c2918 0%, #0d1e16 100%);">
+            <div class="hero-copy">
+              <span class="eyebrow" style="color: #f2a93b; font-size: 11px; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;">NEW ARRIVALS</span>
+              <h1 style="font-size: clamp(22px, 2.4vw, 32px); line-height: 1.15; margin: 6px 0 10px; font-weight: 800; color: #fff;">Big savings.<br>Better living.</h1>
+              <p style="font-size: 13px; line-height: 1.45; max-width: 320px; color: #e0e7ff; margin-bottom: 16px;">Discover products you'll love at prices you'll love even more.</p>
+              <a class="dark-btn" href="#deals" style="background: #f2a93b; color: #111827; font-weight: 700; border-radius: 20px; padding: 9px 24px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(242, 169, 59, 0.35); text-decoration: none;">Shop Now <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            <div class="hero-art-backdrop">
+              <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900&q=85" alt="Featured collection">
+            </div>
+            <span class="hero-caption"><i class="bi bi-shield-check me-1 text-warning"></i> 100% Authentic Handcrafted Heritage</span>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <!-- 2 Vertically Stacked Right Banners (Edge-aligned with Main Slider) -->
+    <div class="hero-side-stack">
+      <!-- Side Banner 1: Festive Campaign / Special Deals -->
+      <a class="hero-side-card card-top" href="{% if active_campaigns %}{% url 'marketplace:products' %}?campaign={{ active_campaigns.0.id }}{% else %}#deals{% endif %}" aria-label="Festive sale offers">
+        <div class="side-art-backdrop">
+          <img src="https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?w=700&q=85" alt="Diwali Festive Offer">
+        </div>
+        <div style="position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <span class="badge bg-warning text-dark fw-bold px-2 py-1 mb-1 text-uppercase d-inline-block" style="font-size: 0.65rem; letter-spacing: 0.8px;">
+              <i class="bi bi-fire me-1"></i> {% if active_campaigns %}{{ active_campaigns.0.name }}{% else %}Diwali Heritage Fest{% endif %}
+            </span>
+            <div class="d-flex align-items-baseline gap-1 mt-1">
+              <span class="text-white-50 fw-bold" style="font-size: 12px;">UP TO</span>
+              <strong class="text-white fw-bolder" style="font-size: clamp(30px, 3.2vw, 42px); line-height: 1; letter-spacing: -1.5px;">
+                {% if active_campaigns %}{{ active_campaigns.0.discount_percent }}{% else %}20{% endif %}<small style="font-size: 18px; color: #f2a93b;">%</small>
+              </strong>
+              <span class="text-warning fw-bold ms-1" style="font-size: 13px;">OFF</span>
+            </div>
+            <p class="text-white-50 small mb-0 mt-1" style="font-size: 11.5px; max-width: 140px; line-height: 1.3;">
+              Limited festive handcrafted deals
+            </p>
+          </div>
+          <div>
+            <span class="d-inline-flex align-items-center gap-1 text-warning fw-bold" style="font-size: 12px;">
+              Explore deals <i class="bi bi-arrow-right"></i>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Side Banner 2: Category Promo / Direct Rural Artisans -->
+      <a class="hero-side-card card-bottom" href="{% if banners %}{{ banners.0.link_url|default:'/products/?cat=textiles' }}{% else %}{% url 'marketplace:products' %}{% endif %}" aria-label="Artisan heritage crafts">
+        <div class="side-art-backdrop">
+          <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=700&q=85" alt="Handcrafted Heritage">
+        </div>
+        <div style="position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <span class="badge fw-bold px-2 py-1 mb-1 text-uppercase d-inline-block text-white" style="font-size: 0.65rem; letter-spacing: 0.8px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);">
+              <i class="bi bi-gem me-1 text-warning"></i> {% if banners %}{{ banners.0.title|truncatechars:22 }}{% else %}Artisan Handlooms{% endif %}
+            </span>
+            <div class="mt-1">
+              <strong class="text-white fw-bold d-block" style="font-size: clamp(15px, 1.6vw, 19px); line-height: 1.15; letter-spacing: -0.3px;">
+                Direct Rural Crafts
+              </strong>
+            </div>
+            <p class="text-white-50 small mb-0 mt-1" style="font-size: 11.5px; max-width: 145px; line-height: 1.3;">
+              100% authentic heritage &amp; zero middlemen
+            </p>
+          </div>
+          <div>
+            <span class="d-inline-flex align-items-center gap-1 text-warning fw-bold" style="font-size: 12px;">
+              Shop collection <i class="bi bi-arrow-right"></i>
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Hero Dots Navigation -->
+  {% if hero_slides and hero_slides|length > 1 %}
+  <div class="hero-dots" id="heroDots" aria-label="Hero slide selector">
+    {% for slide in hero_slides %}
+      <button type="button" class="{% if forloop.first %}active{% endif %}" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" aria-label="Slide {{ forloop.counter }}"></button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Popular Categories Circular Rail from Test UI -->
+  <section class="section category-section mt-4 pt-2" id="categories">
+    <div class="section-heading">
+      <h2>Explore Popular Categories</h2>
+      <a href="{% url 'marketplace:products' %}">View All ›</a>
+    </div>
+    <div class="rc-carousel-wrapper category-carousel-wrapper">
+      <button class="rc-carousel-arrow prev arrow-frosted" aria-label="Scroll categories left" type="button"><i class="bi bi-chevron-left"></i></button>
+      <div class="rc-carousel-track category-list">
+        {% for cat in categories %}
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}?cat={{ cat.slug }}">
+            <span>
+              {% if cat.slug == 'vintage-electronics' %}
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'textiles' or cat.slug == 'handloom' %}
+                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'antiques' %}
+                <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'furniture' %}
+                <img src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'brass-copper' %}
+                <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'handicrafts' %}
+                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=250&q=80" alt="{{ cat.name }}">
+              {% elif cat.slug == 'collectibles' %}
+                <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=250&q=80" alt="{{ cat.name }}">
+              {% else %}
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=250&q=80" alt="{{ cat.name }}">
+              {% endif %}
+            </span>
+            <b>{{ cat.name }}</b>
+          </a>
+        {% empty %}
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=250&q=80" alt=""></span><b>Electronics</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=250&q=80" alt=""></span><b>Handloom</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=250&q=80" alt=""></span><b>Antiques</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?w=250&q=80" alt=""></span><b>Furniture</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=250&q=80" alt=""></span><b>Brass &amp; Copper</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=250&q=80" alt=""></span><b>Handicrafts</b></a>
+          <a class="category rc-category-item" href="{% url 'marketplace:products' %}"><span><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=250&q=80" alt=""></span><b>Collectibles</b></a>
+        {% endfor %}
+      </div>
+      <button class="rc-carousel-arrow next arrow-frosted" aria-label="Scroll categories right" type="button"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </section>
+
+  <!-- Sponsored Spotlight -->
+  {% if sponsored %}
+  <section class="section product-section" id="sponsored-spotlight">
+    <div class="section-heading">
+      <div class="d-flex align-items-center gap-2">
+        <h2>Sponsored Spotlight</h2>
+        <span class="badge bg-warning text-dark fw-bold">Promoted</span>
+      </div>
+      <span class="small text-muted">Featured by verified artisans</span>
+    </div>
+    
+    <div class="rc-carousel-wrapper" data-carousel-id="sponsored-spotlight">
+      <button class="rc-carousel-arrow prev" aria-label="Scroll left" type="button"><i class="bi bi-chevron-left"></i></button>
+      <div class="rc-carousel-track">
+        {% for p in sponsored %}
+          {% with is_carousel=True %}
+            {% include "marketplace/_product_card.html" %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+      <button class="rc-carousel-arrow next" aria-label="Scroll right" type="button"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Today's Best Deals -->
+  {% if deals %}
+  <section class="section product-section" id="deals">
+    <div class="section-heading">
+      <h2>Today's Best Deals For You!</h2>
+      <a href="{% url 'marketplace:products' %}">View All ›</a>
+    </div>
+    <div class="rc-carousel-wrapper" data-carousel-id="todays-deals">
+      <button class="rc-carousel-arrow prev" aria-label="Scroll left" type="button"><i class="bi bi-chevron-left"></i></button>
+      <div class="rc-carousel-track">
+        {% for p in deals %}
+          {% with is_carousel=True %}
+            {% include "marketplace/_product_card.html" %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+      <button class="rc-carousel-arrow next" aria-label="Scroll right" type="button"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 3-Item Promo Grid from Test UI (Dynamic from Admin Panel Banners) -->
+  <section class="promo-grid" aria-label="Special promotions">
+    {% if banners %}
+      {% for b in banners|slice:":3" %}
+        <a class="promo promo-editorial {{ b.css_class|default:'b1' }}" href="{{ b.link_url|default:'/products/' }}">
+          <div class="promo-bg">
+            {% if b.image %}
+              <img src="{{ b.image.url }}" alt="{{ b.title }}">
+            {% elif forloop.counter == 1 %}
+              <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=85" alt="{{ b.title }}">
+            {% elif forloop.counter == 2 %}
+              <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900&q=85" alt="{{ b.title }}">
+            {% else %}
+              <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=85" alt="{{ b.title }}">
+            {% endif %}
+          </div>
+          <div class="promo-overlay"></div>
+          <div class="promo-content">
+            <span class="promo-kicker">
+              {% if b.icon %}<i class="bi {{ b.icon }} me-1"></i>{% endif %}FEATURED HIGHLIGHT
+            </span>
+            <h3 class="promo-title">{{ b.title }}</h3>
+            {% if b.subtitle %}<p class="promo-desc">{{ b.subtitle }}</p>{% endif %}
+            <span class="promo-cta">Shop now <i class="bi bi-arrow-right"></i></span>
+          </div>
+        </a>
+      {% endfor %}
+    {% else %}
+      <a class="promo promo-editorial b3" href="{% url 'marketplace:products' %}">
+        <div class="promo-bg">
+          <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=900&q=85" alt="Village Harvest">
+        </div>
+        <div class="promo-overlay"></div>
+        <div class="promo-content">
+          <span class="promo-kicker"><i class="bi bi-flower1 me-1"></i>FRESH &amp; ORGANIC</span>
+          <h3 class="promo-title">Village Harvest</h3>
+          <p class="promo-desc">Direct farm fresh &amp; organic produce from rural farming cooperatives.</p>
+          <span class="promo-cta">Shop now <i class="bi bi-arrow-right"></i></span>
+        </div>
+      </a>
+      <a class="promo promo-editorial b6" href="{% url 'marketplace:products' %}?cat=vintage-electronics">
+        <div class="promo-bg">
+          <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=900&q=85" alt="Vintage Electronics">
+        </div>
+        <div class="promo-overlay"></div>
+        <div class="promo-content">
+          <span class="promo-kicker"><i class="bi bi-clock-history me-1"></i>HERITAGE TECH</span>
+          <h3 class="promo-title">Vintage Radios &amp; TVs</h3>
+          <p class="promo-desc">Restored valve radios, gramophones, clocks and working audio tech.</p>
+          <span class="promo-cta">Shop now <i class="bi bi-arrow-right"></i></span>
+        </div>
+      </a>
+      <a class="promo promo-editorial b5" href="{% url 'marketplace:products' %}">
+        <div class="promo-bg">
+          <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=85" alt="Handcrafted Heritage">
+        </div>
+        <div class="promo-overlay"></div>
+        <div class="promo-content">
+          <span class="promo-kicker"><i class="bi bi-gem me-1"></i>RURALCONNECT SPECIAL</span>
+          <h3 class="promo-title">Support Rural Makers</h3>
+          <p class="promo-desc">Authentic handmade brassware, textiles and heritage handicrafts.</p>
+          <span class="promo-cta">Shop now <i class="bi bi-arrow-right"></i></span>
+        </div>
+      </a>
+    {% endif %}
+  </section>
+
+  <!-- Active Campaigns (if any) -->
+  {% for camp in active_campaigns %}
+    {% if camp.shuffled_products %}
+    <section class="section festive-campaign-section my-5 position-relative" id="campaign-{{ camp.id }}">
+      <div class="festive-campaign-inner">
+        <div class="d-flex justify-content-between align-items-md-center align-items-start mb-4 flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="festive-eyebrow-pill">
+                <i class="bi bi-stars text-warning me-1"></i> FESTIVE CURATION · FLAT {{ camp.discount_percent }}% OFF
+              </span>
+              <span class="festive-date-pill d-none d-sm-inline-flex">
+                <i class="bi bi-clock-history me-1"></i> Ends {{ camp.end_date|date:"d M Y" }}
+              </span>
+            </div>
+            <h2 class="festive-campaign-title mb-1">
+              {{ camp.name }}
+            </h2>
+            <p class="festive-campaign-subtitle mb-0">
+              {{ camp.description }}
+            </p>
+          </div>
+          <a href="{% url 'marketplace:products' %}?campaign={{ camp.id }}" class="btn festive-view-all-btn">
+            <span>Explore Collection ({{ camp.shuffled_products|length }})</span> <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+
+        <div class="rc-carousel-wrapper" data-carousel-id="campaign-{{ camp.id }}">
+          <button class="rc-carousel-arrow prev arrow-frosted" aria-label="Scroll left" type="button"><i class="bi bi-chevron-left"></i></button>
+          <div class="rc-carousel-track">
+            {% for cp in camp.shuffled_products %}
+              {% with p=cp.product is_carousel=True in_festive_campaign=True %}
+                {% include "marketplace/_product_card.html" %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+          <button class="rc-carousel-arrow next arrow-frosted" aria-label="Scroll right" type="button"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Featured Products -->
+  {% if featured %}
+  <section class="section product-section">
+    <div class="section-heading">
+      <h2>Featured Products</h2>
+      <a href="{% url 'marketplace:products' %}?sort=rating">View All ›</a>
+    </div>
+    <div class="row g-3">
+      {% for p in featured %}
+        {% include "marketplace/_product_card.html" %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Newly Added Products -->
+  {% if new_products %}
+  <section class="section product-section">
+    <div class="section-heading">
+      <h2>Newly Added</h2>
+      <a href="{% url 'marketplace:products' %}?sort=newest">View All ›</a>
+    </div>
+    <div class="row g-3">
+      {% for p in new_products %}
+        {% include "marketplace/_product_card.html" %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Seller CTA Section (Dynamic from Admin Panel) -->
+  <section class="section mt-5">
+    {% if not user.is_authenticated or not user.is_seller %}
+      {% if seller_cta and seller_cta.is_active %}
+      <div class="p-4 p-md-5 rounded-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4" style="background: linear-gradient(135deg, #102d59 0%, #1e4d8c 100%);">
+        <div>
+          {% if seller_cta.badge_text %}
+            <span class="badge bg-warning text-dark fw-bold mb-2 px-3 py-1 text-uppercase" style="letter-spacing:1px; font-size:0.75rem;">{{ seller_cta.badge_text }}</span>
+          {% endif %}
+          <h2 class="text-white mb-2" style="font-size: clamp(1.8rem, 2.5vw, 2.4rem);">{{ seller_cta.title|default:"Turn what you make or restore into a business" }}</h2>
+          <p class="text-white-50 mb-0" style="max-width: 550px;">{{ seller_cta.subtitle|default:"Set your own discounts, connect directly with buyers and get discovered. Listings go live after a quick authenticity review." }}</p>
+        </div>
+        <div class="flex-shrink-0">
+          <a class="btn btn-gold btn-lg px-4 py-3" href="{{ seller_cta.button_link|default:'/register/' }}">{{ seller_cta.button_text|default:'Register as a seller' }}</a>
+        </div>
+      </div>
+      {% endif %}
+    {% else %}
+    <div class="p-4 p-md-5 rounded-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4" style="background: linear-gradient(135deg, #102d59 0%, #1e4d8c 100%);">
+      <div>
+        <h2 class="text-white mb-2">Artisan &amp; Seller Partner Hub</h2>
+        <p class="text-white-50 mb-0">Manage your catalog, boost products to the homepage spotlight, and read customer feedback.</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-gold btn-lg" href="{% url 'seller:dashboard' %}"><i class="bi bi-speedometer2 me-1"></i> Seller Dashboard</a>
+        <a class="btn btn-outline-light btn-lg" href="{% url 'seller:add_product' %}"><i class="bi bi-plus-lg me-1"></i> Add Product</a>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Sync Hero dots with Carousel slide event
+  const heroCarousel = document.getElementById('heroCarousel');
+  const heroDots = document.querySelectorAll('#heroDots button');
+  if (heroCarousel && heroDots.length > 0) {
+    heroCarousel.addEventListener('slide.bs.carousel', function (event) {
+      heroDots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === event.to);
+      });
+    });
+  }
+  const wrappers = document.querySelectorAll('.rc-carousel-wrapper');
+
+  wrappers.forEach(wrapper => {
+    const track = wrapper.querySelector('.rc-carousel-track');
+    const prevBtn = wrapper.querySelector('.rc-carousel-arrow.prev');
+    const nextBtn = wrapper.querySelector('.rc-carousel-arrow.next');
+
+    if (!track) return;
+
+    function updateArrowState() {
+      if (!prevBtn || !nextBtn) return;
+      const scrollLeft = Math.ceil(track.scrollLeft);
+      const maxScrollLeft = track.scrollWidth - track.clientWidth - 4;
+
+      if (track.scrollWidth <= track.clientWidth + 4) {
+        prevBtn.classList.add('is-disabled');
+        nextBtn.classList.add('is-disabled');
+        if (track.classList.contains('category-list')) {
+          track.classList.add('justify-content-between');
+          track.classList.remove('justify-content-start');
+        }
+        return;
+      }
+
+      if (track.classList.contains('category-list')) {
+        track.classList.remove('justify-content-between');
+        track.classList.add('justify-content-start');
+      }
+
+      if (scrollLeft <= 5) {
+        prevBtn.classList.add('is-disabled');
+      } else {
+        prevBtn.classList.remove('is-disabled');
+      }
+
+      if (scrollLeft >= maxScrollLeft) {
+        nextBtn.classList.add('is-disabled');
+      } else {
+        nextBtn.classList.remove('is-disabled');
+      }
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        const itemWidth = track.firstElementChild ? track.firstElementChild.offsetWidth + 18 : 290;
+        track.scrollBy({ left: -(itemWidth * 2), behavior: 'smooth' });
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        const itemWidth = track.firstElementChild ? track.firstElementChild.offsetWidth + 18 : 290;
+        track.scrollBy({ left: (itemWidth * 2), behavior: 'smooth' });
+      });
+    }
+
+    track.addEventListener('scroll', updateArrowState, { passive: true });
+    window.addEventListener('resize', updateArrowState);
+
+    // Initial boundary check
+    setTimeout(updateArrowState, 150);
+  });
+});
+</script>
+{% endblock %}
+

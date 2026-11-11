@@ -1,0 +1,1366 @@
+{% extends "base_admin.html" %}
+{% block title %}Banners | RuralConnect Admin{% endblock %}
+{% block page_title %}Homepage Banners &amp; Hero Carousel{% endblock %}
+{% block nav_banners %}active{% endblock %}
+
+{% block top_actions %}
+<div class="d-none d-md-flex align-items-center gap-2">
+  <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-secondary d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-arrow-left me-2 text-secondary"></i><span>Overview</span>
+  </a>
+  <a href="{% url 'marketplace:home' %}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-shop text-primary me-2"></i><span>Storefront</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Modernized Pill Tab Navigation -->
+<div class="d-flex align-items-center justify-content-start flex-wrap gap-3 mb-4">
+  <ul class="nav nav-pills gap-2 rounded-pill bg-white shadow-sm border" id="bannerTabs" role="tablist" style="padding: 4px 6px;">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2" id="hero-tab" data-bs-toggle="pill" data-bs-target="#hero-pane" type="button" role="tab" aria-controls="hero-pane" aria-selected="true" style="font-size:0.85rem;">
+        <i class="bi bi-card-heading"></i>
+        <span>Hero Carousel Slides</span>
+        <span class="badge rounded-pill bg-white text-dark ms-1 shadow-2xs" style="font-size:0.72rem;">{{ hero_slides|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2" id="promo-tab" data-bs-toggle="pill" data-bs-target="#promo-pane" type="button" role="tab" aria-controls="promo-pane" aria-selected="false" style="font-size:0.85rem;">
+        <i class="bi bi-grid-fill"></i>
+        <span>Category Promo Cards</span>
+        <span class="badge rounded-pill bg-light text-secondary border ms-1" style="font-size:0.72rem;">{{ banners|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2" id="seller-cta-tab" data-bs-toggle="pill" data-bs-target="#seller-cta-pane" type="button" role="tab" aria-controls="seller-cta-pane" aria-selected="false" style="font-size:0.85rem;">
+        <i class="bi bi-megaphone-fill"></i>
+        <span>Seller Recruitment Ad Band</span>
+        {% if seller_cta.is_active %}
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1" style="font-size:0.68rem;">Live</span>
+        {% else %}
+          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill ms-1" style="font-size:0.68rem;">Paused</span>
+        {% endif %}
+      </button>
+    </li>
+  </ul>
+</div>
+
+<style>
+/* Active nav pill style matching platform admin */
+#bannerTabs .nav-link.active {
+  background: #102d59 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(16, 45, 89, 0.2);
+}
+#bannerTabs .nav-link.active .badge {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+#bannerTabs .nav-link:not(.active) {
+  color: #64748b;
+}
+#bannerTabs .nav-link:not(.active):hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+/* Color swatches with clean, non-colliding active ring */
+.color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+  transition: box-shadow 0.15s ease-in-out;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.color-swatch:hover {
+  box-shadow: 0 0 0 2px rgba(16, 45, 89, 0.4);
+}
+.color-swatch.active-swatch {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3.5px #102d59 !important;
+}
+
+/* Icon chips with active highlight (squircle shape distinct from color circles) */
+.icon-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px !important;
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-chip:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1 !important;
+}
+.icon-chip.active-icon-chip {
+  background: #102d59 !important;
+  color: #ffffff !important;
+  border-color: #102d59 !important;
+  box-shadow: 0 1px 4px rgba(16, 45, 89, 0.25);
+}
+
+/* Crisp form input styling for sidebar */
+.admin-sidebar-form .form-control,
+.admin-sidebar-form .form-select {
+  border-color: #e2e8f0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-sidebar-form .form-control:focus,
+.admin-sidebar-form .form-select:focus {
+  border-color: #102d59;
+  box-shadow: 0 0 0 3px rgba(16, 45, 89, 0.1);
+  background-color: #ffffff !important;
+}
+</style>
+
+<div class="tab-content" id="bannerTabsContent">
+  <!-- ========================================== -->
+  <!-- TAB 1: TOP HERO CAROUSEL SLIDES            -->
+  <!-- ========================================== -->
+  <div class="tab-pane fade show active" id="hero-pane" role="tabpanel" aria-labelledby="hero-tab">
+    <!-- Live Preview Card for Hero Slides -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h2 class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-eye-fill text-primary"></i>
+            <span>Top Hero Carousel Live Storefront Preview</span>
+          </h2>
+          <span class="text-muted small">Real-time appearance of active carousel slides displayed atop the homepage</span>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-semibold small">
+          <i class="bi bi-broadcast me-1"></i>Live Homepage Sync
+        </span>
+      </div>
+
+      <div class="row g-3">
+        {% for s in hero_slides %}
+          {% if s.is_active %}
+            <div class="col-md-6 col-lg-4">
+              <div class="p-4 rounded-4 text-white position-relative shadow-sm d-flex flex-column justify-content-between h-100"
+                   style="min-height: 190px; background: {{ s.bg_color|default:'#1f3d2f' }}; overflow: hidden; border: 1px solid rgba(255,255,255,0.12);">
+                <div>
+                  <span class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-1 mb-2 shadow-2xs" style="font-size:0.7rem;">
+                    Order #{{ s.order }}
+                  </span>
+                  <h3 class="h5 mb-1" style="font-family:'DM Sans',sans-serif; font-weight:700; line-height: 1.25;">
+                    {% if s.accent_text %}<em style="font-style:italic; opacity:0.9;">{{ s.accent_text }}</em> {% endif %}
+                    {{ s.title }}
+                  </h3>
+                  <p class="small opacity-75 mt-2 mb-0" style="max-height: 3.6em; overflow: hidden; font-size: 0.8rem;">
+                    {{ s.subtitle|truncatechars:95 }}
+                  </p>
+                </div>
+                <div class="d-flex justify-content-between align-items-end mt-3 pt-2 border-top border-white border-opacity-10">
+                  <span class="btn btn-warning btn-sm fw-bold rounded-pill px-3 py-1 shadow-2xs" style="font-size:0.75rem;">
+                    {{ s.button_text|default:'Explore crafts' }}
+                  </span>
+                  {% if s.image %}
+                    <img src="{{ s.image.url }}" alt="{{ s.title }}" style="width:48px; height:48px; object-fit:contain; border-radius:10px; background:#fff; padding:3px;" class="shadow-2xs">
+                  {% elif s.icon %}
+                    <i class="bi {{ s.icon }}" style="font-size: 2.2rem; line-height: 1; opacity: 0.85;"></i>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% empty %}
+          <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-card-image fs-1 d-block mb-2 text-secondary opacity-50"></i>
+            No active hero slides. Activate or add slides below to display them on the homepage.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Hero Slides Table -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+          <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="h6 mb-0 fw-bold text-dark">Active &amp; Configured Top Hero Slides</h3>
+              <span class="small text-muted">Order sequence dictates carousel slide rotations</span>
+            </div>
+            <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-semibold small">
+              {{ hero_slides|length }} Slides
+            </span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr class="small text-secondary">
+                  <th class="ps-4" style="width: 54px;">Color</th>
+                  <th style="width: 38%;">Heading &amp; Description</th>
+                  <th style="width: 22%;">Button / Target</th>
+                  <th style="width: 10%;">Order</th>
+                  <th style="width: 14%;">Status</th>
+                  <th class="text-end pe-4" style="width: 12%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in hero_slides %}
+                <tr>
+                  <!-- Theme Color Squircle -->
+                  <td class="ps-4">
+                    <span class="rounded-3 d-inline-flex align-items-center justify-content-center text-white shadow-2xs"
+                          style="width:40px; height:40px; background:{{ s.bg_color|default:'#2b2b2b' }}; font-size:1.1rem; border:1px solid rgba(0,0,0,0.1);">
+                      {% if s.icon %}<i class="bi {{ s.icon }}"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                    </span>
+                  </td>
+
+                  <!-- Heading & Subtitle -->
+                  <td>
+                    <div class="fw-bold text-dark" style="font-size:0.9rem;">
+                      {% if s.accent_text %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 me-1" style="font-size:0.68rem;">{{ s.accent_text }}</span>
+                      {% endif %}
+                      {{ s.title }}
+                    </div>
+                    <div class="text-muted small mt-1 text-truncate" style="max-width:380px; font-size:0.75rem;" title="{{ s.subtitle }}">{{ s.subtitle|truncatechars:115 }}</div>
+                  </td>
+
+                  <!-- Button / Target -->
+                  <td>
+                    <span class="badge bg-light text-dark border px-2 py-1" style="font-size:0.73rem;">{{ s.button_text }}</span>
+                    <div class="small text-muted text-truncate mt-1 font-monospace" style="max-width:240px; font-size:0.72rem;" title="{{ s.button_link }}">{{ s.button_link }}</div>
+                  </td>
+
+                  <!-- Order -->
+                  <td>
+                    <span class="badge bg-light text-secondary border fw-bold px-2 py-1" style="font-size:0.75rem;">#{{ s.order }}</span>
+                  </td>
+
+                  <!-- Status Toggle Pill -->
+                  <td>
+                    <form method="post" class="d-inline m-0">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="toggle_hero_slide">
+                      <input type="hidden" name="slide_id" value="{{ s.pk }}">
+                      {% if s.is_active %}
+                        <button type="submit" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 shadow-2xs" style="cursor: pointer; font-size:0.75rem;" title="Click to pause slide">
+                          <i class="bi bi-check-circle-fill"></i>
+                          <span>Active</span>
+                        </button>
+                      {% else %}
+                        <button type="submit" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 shadow-2xs" style="cursor: pointer; font-size:0.75rem;" title="Click to activate slide">
+                          <i class="bi bi-pause-circle-fill"></i>
+                          <span>Paused</span>
+                        </button>
+                      {% endif %}
+                    </form>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end align-items-center gap-2">
+                      <button type="button" 
+                              class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-primary shadow-2xs" 
+                              style="width: 32px; height: 32px;" 
+                              onclick="openEditHeroModal('{{ s.pk }}', '{{ s.title|escapejs }}', '{{ s.accent_text|escapejs }}', '{{ s.subtitle|escapejs }}', '{{ s.button_text|escapejs }}', '{{ s.button_link|escapejs }}', '{{ s.bg_color|escapejs }}', '{{ s.icon|escapejs }}', '{{ s.order }}', '{% if s.image %}{{ s.image.url }}{% endif %}')" 
+                              title="Edit slide">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" 
+                              class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-danger shadow-2xs" 
+                              style="width: 32px; height: 32px;" 
+                              onclick="openDeleteHeroModal('{{ s.pk }}', '{{ s.title|escapejs }}')" 
+                              title="Delete slide">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-5">No hero carousel slides configured yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create New Hero Slide Form with Real-Time Live Preview -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white sticky-top admin-sidebar-form" style="top: 20px;">
+          <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 32px; height: 32px; background: #eff6ff;">
+              <i class="bi bi-plus-lg"></i>
+            </div>
+            <div>
+              <h3 class="h6 fw-bold text-dark mb-0" style="font-size:0.92rem;">Add Top Hero Slide</h3>
+              <span class="text-muted" style="font-size:0.75rem;">Design a showcase carousel panel</span>
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" class="row g-2" id="addHeroSlideForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_hero_slide">
+
+            <!-- Heading Title -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Heading Title <span class="text-danger">*</span></label>
+              <input class="form-control rounded-pill px-3 bg-white" name="title" id="addHeroTitle" placeholder="e.g. Authentic Hand-Carved Rosewood" required style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <!-- Accent Callout & Sort Order -->
+            <div class="col-8">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Accent Callout</label>
+              <input class="form-control rounded-pill px-3 bg-white" name="accent_text" id="addHeroAccent" placeholder="e.g. Festival Special" style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <div class="col-4">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Sort Order</label>
+              <input class="form-control rounded-pill px-3 bg-white text-center" type="number" name="order" id="addHeroOrder" value="{{ hero_slides|length|add:'1' }}" style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <!-- Description / Subtitle -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Description / Subtitle</label>
+              <textarea class="form-control rounded-3 p-2 bg-white" name="subtitle" id="addHeroSubtitle" rows="2" placeholder="e.g. Traditional artisans crafting heritage furniture." style="font-size: 0.8rem; resize: none;"></textarea>
+            </div>
+
+            <!-- Button Text & Link Destination with Integrated Category Picker -->
+            <div class="col-5">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Button Text</label>
+              <input class="form-control rounded-pill px-3 bg-white" name="button_text" id="addHeroBtnText" value="Explore crafts" style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <div class="col-7">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.78rem;">Link Destination</label>
+                {% if categories %}
+                <div class="dropdown">
+                  <button class="btn btn-link btn-sm p-0 text-primary fw-semibold text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.72rem;">
+                    Categories
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow border py-1" style="font-size:0.78rem; max-height:220px; overflow-y:auto; z-index:1050;">
+                    {% for c in categories %}
+                      <li>
+                        <button type="button" class="dropdown-item py-1 px-3 d-flex align-items-center gap-2" onclick="setHeroLink('/products/?category={{ c.slug }}')">
+                          <span>{{ c.emoji }}</span>
+                          <span>{{ c.name }}</span>
+                        </button>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+              </div>
+              <input class="form-control rounded-pill px-3 bg-white font-monospace" name="button_link" id="addHeroBtnLink" value="/products/" style="font-size: 0.8rem; height: 34px;">
+            </div>
+
+            <!-- Theme Color Selector (Left) & Icon Selector (Right) with Distinct Separation -->
+            <div class="col-6">
+              <div class="p-2 rounded-3 border bg-light bg-opacity-40 h-100 d-flex flex-column justify-content-between" style="border-color: #e2e8f0 !important;">
+                <div>
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.75rem;">Theme Color</label>
+                    <span class="badge bg-white text-secondary border rounded-pill fw-semibold" style="font-size:0.62rem; padding: 2px 6px;">Palette</span>
+                  </div>
+                  <div class="input-group input-group-sm mb-2" style="height: 30px;">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-2 pe-1" style="border-color: #e2e8f0;">
+                      <input type="color" class="form-control form-control-color border-0 rounded-circle p-0" id="addHeroBgColorPicker" value="#1f3d2f" style="width: 18px; height: 18px; cursor: pointer;" onchange="setHeroBgColor(this.value)">
+                    </span>
+                    <input type="text" class="form-control border-start-0 rounded-end-pill pe-2 font-monospace bg-white" name="bg_color" id="addHeroBgColor" value="#1f3d2f" style="font-size: 0.75rem; height: 30px; border-color: #e2e8f0;">
+                  </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between pt-1 px-1" id="heroColorSwatches">
+                  <button type="button" class="btn p-0 color-swatch active-swatch shadow-2xs" data-color="#1f3d2f" style="background:#1f3d2f;" onclick="setHeroBgColor('#1f3d2f')" title="Forest Green"></button>
+                  <button type="button" class="btn p-0 color-swatch shadow-2xs" data-color="#2b2b2b" style="background:#2b2b2b;" onclick="setHeroBgColor('#2b2b2b')" title="Charcoal"></button>
+                  <button type="button" class="btn p-0 color-swatch shadow-2xs" data-color="#102d59" style="background:#102d59;" onclick="setHeroBgColor('#102d59')" title="Navy"></button>
+                  <button type="button" class="btn p-0 color-swatch shadow-2xs" data-color="#7e22ce" style="background:#7e22ce;" onclick="setHeroBgColor('#7e22ce')" title="Purple"></button>
+                  <button type="button" class="btn p-0 color-swatch shadow-2xs" data-color="#7a4b1f" style="background:#7a4b1f;" onclick="setHeroBgColor('#7a4b1f')" title="Warm Rust"></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="p-2 rounded-3 border bg-light bg-opacity-40 h-100 d-flex flex-column justify-content-between" style="border-color: #e2e8f0 !important;">
+                <div>
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.75rem;">Icon Class</label>
+                    <span class="badge bg-white text-secondary border rounded-pill fw-semibold" style="font-size:0.62rem; padding: 2px 6px;">Glyphs</span>
+                  </div>
+                  <input class="form-control rounded-pill px-3 bg-white font-monospace mb-2 border" name="icon" id="addHeroIcon" value="bi-lamp" style="font-size: 0.75rem; height: 30px; border-color: #e2e8f0;">
+                </div>
+                <div class="d-flex align-items-center justify-content-between pt-1 px-1" id="heroIconChips">
+                  <button type="button" class="btn btn-sm icon-chip active-icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-lamp" style="width:20px; height:20px;" onclick="setHeroIcon('bi-lamp')" title="Lamp"><i class="bi bi-lamp" style="font-size:0.68rem;"></i></button>
+                  <button type="button" class="btn btn-sm icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-tv" style="width:20px; height:20px;" onclick="setHeroIcon('bi-tv')" title="TV"><i class="bi bi-tv" style="font-size:0.68rem;"></i></button>
+                  <button type="button" class="btn btn-sm icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-clock-history" style="width:20px; height:20px;" onclick="setHeroIcon('bi-clock-history')" title="Clock"><i class="bi bi-clock-history" style="font-size:0.68rem;"></i></button>
+                  <button type="button" class="btn btn-sm icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-palette" style="width:20px; height:20px;" onclick="setHeroIcon('bi-palette')" title="Palette"><i class="bi bi-palette" style="font-size:0.68rem;"></i></button>
+                  <button type="button" class="btn btn-sm icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-gem" style="width:20px; height:20px;" onclick="setHeroIcon('bi-gem')" title="Gem"><i class="bi bi-gem" style="font-size:0.68rem;"></i></button>
+                  <button type="button" class="btn btn-sm icon-chip p-0 border d-inline-flex align-items-center justify-content-center" data-icon="bi-tag" style="width:20px; height:20px;" onclick="setHeroIcon('bi-tag')" title="Tag"><i class="bi bi-tag" style="font-size:0.68rem;"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Styled Artwork Image Uploader -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Artwork Image (Optional)</label>
+              <div class="position-relative">
+                <input type="file" class="d-none" name="image" id="addHeroImageInput" accept="image/*" onchange="handleHeroImageSelected(this)">
+                <label for="addHeroImageInput" class="btn btn-sm w-100 rounded-pill px-3 py-1 d-flex align-items-center justify-content-between border" style="cursor:pointer; height:34px; background:#f8fafc; border-color:#e2e8f0;">
+                  <span class="d-inline-flex align-items-center gap-2 text-secondary text-truncate" id="addHeroImageFileName" style="font-size:0.78rem;">
+                    <i class="bi bi-cloud-arrow-up text-primary fs-6"></i>
+                    <span>Upload thumbnail image...</span>
+                  </span>
+                  <span class="badge bg-white text-dark border rounded-pill px-2 py-1 fw-semibold" style="font-size:0.68rem;">Browse</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Real-Time Slide Mockup Preview -->
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.78rem;">Live Preview</label>
+                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size:0.65rem;">Real-time sync</span>
+              </div>
+              <div class="p-3 rounded-4 text-white position-relative shadow-sm d-flex flex-column justify-content-between"
+                   id="addHeroLivePreview"
+                   style="min-height: 110px; background: #1f3d2f; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); transition: background 0.25s ease;">
+                <div>
+                  <span class="badge bg-warning text-dark fw-bold rounded-pill px-2 py-1 mb-1 shadow-2xs" id="addPreviewOrderBadge" style="font-size:0.62rem;">
+                    Order #{{ hero_slides|length|add:'1' }}
+                  </span>
+                  <div class="fw-bold text-white lh-sm" id="addPreviewTitle" style="font-size:0.88rem;">
+                    Authentic Hand-Carved Rosewood
+                  </div>
+                  <div class="small opacity-75 text-truncate mt-1" id="addPreviewSub" style="font-size:0.72rem;">
+                    Traditional artisans from Kerala crafting heritage furniture.
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-end mt-2 pt-1 border-top border-white border-opacity-10">
+                  <span class="btn btn-warning btn-sm fw-bold rounded-pill px-2 py-0 shadow-2xs" id="addPreviewBtnLabel" style="font-size:0.65rem; line-height: 18px;">
+                    Explore crafts
+                  </span>
+                  <div id="addPreviewMedia">
+                    <i class="bi bi-lamp" id="addPreviewIcon" style="font-size: 1.4rem; line-height: 1; opacity: 0.85;"></i>
+                    <img src="" id="addPreviewImage" alt="Artwork" class="d-none shadow-2xs" style="width:34px; height:34px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button with clean me-2 spacing -->
+            <div class="col-12 mt-2">
+              <button class="btn btn-primary rounded-pill w-100 py-2 fw-semibold text-white shadow-sm d-inline-flex align-items-center justify-content-center" type="submit" style="background: #102d59; border-color: #102d59; height: 38px; font-size: 0.85rem;">
+                <i class="bi bi-plus-circle me-2"></i><span>Add to Hero Carousel</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 2: PROMOTIONAL CATEGORY CARDS          -->
+  <!-- ========================================== -->
+  <div class="tab-pane fade" id="promo-pane" role="tabpanel" aria-labelledby="promo-tab">
+    <!-- Live Storefront Preview for Cards -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h2 class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-grid-fill text-primary"></i>
+            <span>Category Promo Cards Live Storefront Preview</span>
+          </h2>
+          <span class="text-muted small">Promotional cards featured on the homepage below the hero carousel</span>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-semibold small">
+          <i class="bi bi-broadcast me-1"></i>Storefront Collections
+        </span>
+      </div>
+
+      <div class="row g-3">
+        {% for b in banners %}
+          {% if b.is_active %}
+            <div class="col-md-6 col-lg-4">
+              <div class="rounded-4 text-white position-relative shadow-sm d-flex flex-column justify-content-end p-3"
+                   style="height:190px; overflow:hidden; position:relative; border: 1px solid rgba(0,0,0,0.06);">
+                <!-- Full bleed background -->
+                <div style="position:absolute; inset:0; z-index:1;">
+                  {% if b.image %}
+                    <img src="{{ b.image.url }}" alt="{{ b.title }}" style="width:100%; height:100%; object-fit:cover;">
+                  {% elif forloop.counter == 1 %}
+                    <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=700&q=80" alt="{{ b.title }}" style="width:100%; height:100%; object-fit:cover;">
+                  {% elif forloop.counter == 2 %}
+                    <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=700&q=80" alt="{{ b.title }}" style="width:100%; height:100%; object-fit:cover;">
+                  {% else %}
+                    <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=700&q=80" alt="{{ b.title }}" style="width:100%; height:100%; object-fit:cover;">
+                  {% endif %}
+                </div>
+                <!-- Gradient overlay -->
+                <div style="position:absolute; inset:0; z-index:2;
+                  {% if b.css_class == 'b1' %}background:linear-gradient(180deg, rgba(16,45,89,0.2) 0%, rgba(10,30,60,0.65) 42%, rgba(6,15,30,0.96) 100%);
+                  {% elif b.css_class == 'b2' %}background:linear-gradient(180deg, rgba(122,75,31,0.2) 0%, rgba(85,48,15,0.65) 42%, rgba(24,15,8,0.96) 100%);
+                  {% elif b.css_class == 'b3' %}background:linear-gradient(180deg, rgba(169,19,84,0.2) 0%, rgba(100,10,50,0.62) 42%, rgba(15,23,42,0.95) 100%);
+                  {% elif b.css_class == 'b4' %}background:linear-gradient(180deg, rgba(12,41,24,0.2) 0%, rgba(8,30,18,0.65) 42%, rgba(4,16,9,0.96) 100%);
+                  {% elif b.css_class == 'b5' %}background:linear-gradient(180deg, rgba(218,0,10,0.2) 0%, rgba(130,0,8,0.65) 42%, rgba(18,10,12,0.96) 100%);
+                  {% elif b.css_class == 'b6' %}background:linear-gradient(180deg, rgba(21,89,166,0.2) 0%, rgba(14,52,98,0.65) 42%, rgba(10,20,36,0.96) 100%);
+                  {% else %}background:linear-gradient(180deg, rgba(169,19,84,0.2) 0%, rgba(100,10,50,0.62) 42%, rgba(15,23,42,0.95) 100%);{% endif %}">
+                </div>
+                <!-- Content -->
+                <div style="position:relative; z-index:3;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-warning text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">
+                      {% if b.icon %}<i class="bi {{ b.icon }} me-1"></i>{% endif %}Featured
+                    </span>
+                    <span class="badge bg-white text-dark py-1 px-2 rounded-pill shadow-2xs" style="font-size:0.65rem;">Order: {{ b.order }}</span>
+                  </div>
+                  <strong class="d-block text-white" style="font-size:0.95rem; line-height:1.25; text-shadow:0 1px 4px rgba(0,0,0,0.6);">{{ b.title }}</strong>
+                  <span class="small d-block text-white-50 mt-1 text-truncate" style="font-size:0.75rem;">{{ b.subtitle }}</span>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% empty %}
+          <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-grid fs-1 d-block mb-2 text-secondary opacity-50"></i>
+            No active promotional cards. Create or activate promo cards below.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Promo Cards Table -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+          <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="h6 mb-0 fw-bold text-dark">All Configured Promo Cards</h3>
+              <span class="small text-muted">Order numbers control left-to-right showcase placement</span>
+            </div>
+            <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-semibold small">
+              {{ banners|length }} Cards
+            </span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr class="small text-secondary">
+                  <th class="ps-4" style="width: 50px;">Color</th>
+                  <th style="width: 38%;">Card Details</th>
+                  <th style="width: 22%;">Link Target</th>
+                  <th style="width: 10%;">Order</th>
+                  <th style="width: 14%;">Status</th>
+                  <th class="text-end pe-4" style="width: 12%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for b in banners %}
+                <tr>
+                  <td class="ps-4">
+                    <span class="rounded-3 d-inline-flex align-items-center justify-content-center text-white shadow-2xs"
+                          style="width:38px; height:38px; font-size:1.1rem;
+                          {% if b.css_class == 'b1' %}background:#102d59;
+                          {% elif b.css_class == 'b2' %}background:#7a4b1f;
+                          {% elif b.css_class == 'b3' %}background:#a91354;
+                          {% elif b.css_class == 'b4' %}background:#0c2918;
+                          {% elif b.css_class == 'b5' %}background:#fa090e;
+                          {% elif b.css_class == 'b6' %}background:#a5cfff; color:#101b2a!important;
+                          {% else %}background:#a91354;{% endif %}" title="Class {{ b.css_class }}">
+                      {% if b.icon %}<i class="bi {{ b.icon }}"></i>{% else %}<i class="bi bi-tag"></i>{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <strong class="text-dark d-block" style="font-size:0.9rem;">{{ b.title }}</strong>
+                    <span class="text-muted small text-truncate d-block" style="max-width:380px; font-size:0.75rem;" title="{{ b.subtitle }}">{{ b.subtitle|truncatechars:110 }}</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-secondary border text-truncate d-inline-block font-monospace" style="max-width:240px; font-size:0.73rem;" title="{{ b.link_url }}">
+                      {{ b.link_url }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-secondary border fw-bold px-2 py-1" style="font-size:0.75rem;">#{{ b.order }}</span>
+                  </td>
+                  <td>
+                    <form method="post" class="d-inline m-0">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="toggle">
+                      <input type="hidden" name="banner_id" value="{{ b.pk }}">
+                      {% if b.is_active %}
+                        <button type="submit" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 shadow-2xs" style="cursor: pointer; font-size:0.75rem;" title="Click to pause card">
+                          <i class="bi bi-check-circle-fill"></i>
+                          <span>Active</span>
+                        </button>
+                      {% else %}
+                        <button type="submit" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 shadow-2xs" style="cursor: pointer; font-size:0.75rem;" title="Click to activate card">
+                          <i class="bi bi-pause-circle-fill"></i>
+                          <span>Paused</span>
+                        </button>
+                      {% endif %}
+                    </form>
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="d-flex justify-content-end align-items-center gap-2">
+                      <button type="button" 
+                              class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-primary shadow-2xs" 
+                              style="width: 32px; height: 32px;" 
+                              onclick="openEditPromoModal('{{ b.pk }}', '{{ b.title|escapejs }}', '{{ b.subtitle|escapejs }}', '{{ b.link_url|escapejs }}', '{{ b.css_class|escapejs }}', '{{ b.icon|escapejs }}', '{{ b.order }}', '{% if b.image %}{{ b.image.url }}{% endif %}')" 
+                              title="Edit card">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" 
+                              class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-danger shadow-2xs" 
+                              style="width: 32px; height: 32px;" 
+                              onclick="openDeletePromoModal('{{ b.pk }}', '{{ b.title|escapejs }}')" 
+                              title="Delete card">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-5">No promo cards configured yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Category Promo Card Form -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white sticky-top admin-sidebar-form" style="top: 20px;">
+          <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 32px; height: 32px; background: #eff6ff;">
+              <i class="bi bi-plus-lg"></i>
+            </div>
+            <div>
+              <h3 class="h6 fw-bold text-dark mb-0" style="font-size:0.92rem;">Add Category Promo Card</h3>
+              <span class="text-muted" style="font-size:0.75rem;">Spotlight seasonal collections</span>
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" class="row g-2" id="addPromoCardForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add">
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Card Title <span class="text-danger">*</span></label>
+              <input class="form-control rounded-pill px-3 bg-white" name="title" id="addPromoTitle" placeholder="e.g. Traditional Brass Diya Sets" required style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Subtitle / Callout Text</label>
+              <input class="form-control rounded-pill px-3 bg-white" name="subtitle" id="addPromoSub" placeholder="e.g. Handcrafted festive decor &middot; Up to 20% off" style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <div class="col-7">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.78rem;">Destination Link <span class="text-danger">*</span></label>
+                {% if categories %}
+                <div class="dropdown">
+                  <button class="btn btn-link btn-sm p-0 text-primary fw-semibold text-decoration-none dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.72rem;">
+                    Categories
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow border py-1" style="font-size:0.78rem; max-height:220px; overflow-y:auto; z-index:1050;">
+                    {% for c in categories %}
+                      <li>
+                        <button type="button" class="dropdown-item py-1 px-3 d-flex align-items-center gap-2" onclick="setPromoLink('/products/?category={{ c.slug }}')">
+                          <span>{{ c.emoji }}</span>
+                          <span>{{ c.name }}</span>
+                        </button>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+              </div>
+              <input class="form-control rounded-pill px-3 bg-white font-monospace" name="link_url" id="newPromoLinkInput" required placeholder="/products/?category=brass-copper" value="/products/" style="font-size: 0.8rem; height: 34px;">
+            </div>
+
+            <div class="col-5">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Sort Order</label>
+              <input class="form-control rounded-pill px-3 bg-white text-center" type="number" name="order" id="addPromoOrder" value="{{ banners|length|add:'1' }}" style="font-size: 0.82rem; height: 34px;">
+            </div>
+
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Color Theme</label>
+              <select class="form-select form-select-sm rounded-pill px-3 bg-white" name="css_class" id="addPromoCss" style="height:34px; font-size:0.8rem;">
+                <option value="b1">Deep Blue (b1)</option>
+                <option value="b2">Warm Terracotta (b2)</option>
+                <option value="b3">Berry Red (b3)</option>
+                <option value="b4">Forest Green (b4)</option>
+                <option value="b5">Ruby Crimson (b5)</option>
+                <option value="b6">Soft Sky (b6)</option>
+              </select>
+            </div>
+
+            <div class="col-6">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Bootstrap Icon</label>
+              <input class="form-control rounded-pill px-3 bg-white font-monospace" name="icon" id="addPromoIcon" value="bi-stars" placeholder="bi-stars" style="font-size:0.8rem; height:34px;">
+            </div>
+
+            <!-- Styled Photo Uploader -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary mb-1" style="font-size:0.78rem;">Card Background Photo (Optional)</label>
+              <div class="position-relative">
+                <input type="file" class="d-none" name="image" id="addPromoImageInput" accept="image/*" onchange="handlePromoImageSelected(this)">
+                <label for="addPromoImageInput" class="btn btn-sm w-100 rounded-pill px-3 py-1 d-flex align-items-center justify-content-between border" style="cursor:pointer; height:34px; background:#f8fafc; border-color:#e2e8f0;">
+                  <span class="d-inline-flex align-items-center gap-2 text-secondary text-truncate" id="addPromoImageFileName" style="font-size:0.78rem;">
+                    <i class="bi bi-cloud-arrow-up text-primary fs-6"></i>
+                    <span>Upload card photo...</span>
+                  </span>
+                  <span class="badge bg-white text-dark border rounded-pill px-2 py-1 fw-semibold" style="font-size:0.68rem;">Browse</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Real-Time Promo Card Preview -->
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-secondary mb-0" style="font-size:0.78rem;">Live Card Preview</label>
+                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1" style="font-size:0.65rem;">Real-time sync</span>
+              </div>
+              <div class="rounded-4 text-white position-relative shadow-sm d-flex flex-column justify-content-end p-3"
+                   id="addPromoLivePreview"
+                   style="height:110px; overflow:hidden; position:relative; background:linear-gradient(180deg, rgba(16,45,89,0.3) 0%, rgba(10,30,60,0.7) 42%, rgba(6,15,30,0.96) 100%), #102d59; border: 1px solid rgba(0,0,0,0.06); transition: all 0.25s ease;">
+                <div style="position:relative; z-index:3;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-warning text-uppercase fw-bold" style="font-size:0.62rem; letter-spacing:1px;">
+                      <i class="bi bi-stars me-1" id="addPromoPreviewIcon"></i>Featured
+                    </span>
+                    <span class="badge bg-white text-dark py-1 px-2 rounded-pill shadow-2xs" id="addPromoPreviewOrder" style="font-size:0.62rem;">Order: {{ banners|length|add:'1' }}</span>
+                  </div>
+                  <strong class="d-block text-white" id="addPromoPreviewTitle" style="font-size:0.85rem; line-height:1.2; text-shadow:0 1px 3px rgba(0,0,0,0.6);">Traditional Brass Diya Sets</strong>
+                  <span class="small d-block text-white-50 mt-1 text-truncate" id="addPromoPreviewSub" style="font-size:0.7rem;">Handcrafted festive decor &middot; Up to 20% off</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 mt-2">
+              <button class="btn btn-primary rounded-pill w-100 py-2 fw-semibold text-white shadow-sm d-inline-flex align-items-center justify-content-center" type="submit" style="background: #102d59; border-color: #102d59; height: 38px; font-size: 0.85rem;">
+                <i class="bi bi-plus-circle me-2"></i><span>Add Promo Card</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 3: SELLER RECRUITMENT BANNER (AD BAND) -->
+  <!-- ========================================== -->
+  <div class="tab-pane fade" id="seller-cta-pane" role="tabpanel" aria-labelledby="seller-cta-tab">
+    <div class="row g-4">
+      <!-- Left: Form to Edit Banner -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h2 class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-pencil-square text-primary"></i>
+                <span>Edit Seller Recruitment Ad Banner</span>
+              </h2>
+              <span class="text-muted small">Headline callout featured across the storefront to attract rural artisans</span>
+            </div>
+            {% if seller_cta.is_active %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold">
+                <i class="bi bi-check-circle-fill me-1"></i> Live on Site
+              </span>
+            {% else %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 fw-semibold">
+                <i class="bi bi-pause-circle-fill me-1"></i> Paused / Hidden
+              </span>
+            {% endif %}
+          </div>
+
+          <form method="post" class="row g-3" id="sellerCtaForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_seller_cta">
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold text-secondary">Corner Tag Badge</label>
+              <input class="form-control rounded-pill px-3 bg-light border-0" name="badge_text" id="ctaBadgeInput" value="{{ seller_cta.badge_text|default:'Sponsored' }}" placeholder="Sponsored" style="font-size:0.88rem;">
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold text-secondary">Headline Title <span class="text-danger">*</span></label>
+              <input class="form-control rounded-pill px-3 bg-light border-0" name="title" id="ctaTitleInput" required value="{{ seller_cta.title|default:'Got an old radio, clock or craft at home?' }}" placeholder="Headline" style="font-size:0.88rem;">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-secondary">Paragraph Subtitle / Description <span class="text-danger">*</span></label>
+              <textarea class="form-control rounded-3 p-3 bg-light border-0" name="subtitle" id="ctaSubInput" rows="3" required placeholder="Subtext" style="font-size:0.85rem;">{{ seller_cta.subtitle|default:'List it on RuralConnect. Free to join, publish and sell directly in minutes.' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Button Label</label>
+              <input class="form-control rounded-pill px-3 bg-light border-0" name="button_text" id="ctaBtnTextInput" value="{{ seller_cta.button_text|default:'Start selling' }}" placeholder="Start selling" style="font-size:0.88rem;">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-secondary">Button Destination Link</label>
+              <input class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="button_link" value="{{ seller_cta.button_link|default:'/register/' }}" placeholder="/register/" style="font-size:0.85rem;">
+            </div>
+
+            <div class="col-12">
+              <div class="form-check form-switch p-0 d-flex align-items-center gap-3 mt-2">
+                <input class="form-check-input ms-0" type="checkbox" name="is_active" value="1" id="ctaIsActive" {% if seller_cta.is_active %}checked{% endif %} style="width: 44px; height: 24px; cursor: pointer;">
+                <label class="form-check-label fw-semibold text-dark mb-0" for="ctaIsActive" style="cursor: pointer;">
+                  Active &amp; Visible on Live Storefront
+                </label>
+              </div>
+            </div>
+
+            <div class="col-12 mt-4 pt-3 border-top">
+              <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold text-white shadow-sm d-inline-flex align-items-center justify-content-center" style="background: #102d59; border-color: #102d59;">
+                <i class="bi bi-check2-circle me-2"></i><span>Save Banner Changes</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: Real-Time Live Preview -->
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h2 class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-eye-fill text-primary"></i>
+                <span>Real-Time Storefront Ad Band Preview</span>
+              </h2>
+              <span class="text-muted small">Preview updates dynamically as you edit the fields on the left</span>
+            </div>
+          </div>
+
+          <!-- Mock Desktop Container -->
+          <div class="p-3 bg-light rounded-4 border mb-3">
+            <div class="ad-band shadow-sm" style="background:#1a1a1a; color:#fff; border-radius:18px; padding:2rem 2.2rem; position:relative; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; text-decoration:none;">
+              <small id="previewBadge" style="position:absolute; top:0.9rem; right:1.2rem; opacity:0.8; font-size:0.75rem; color:#fff;" class="badge bg-white bg-opacity-10 rounded-pill px-3 py-1">
+                {{ seller_cta.badge_text|default:'Sponsored' }}
+              </small>
+              <div style="max-width:68%;">
+                <h3 id="previewTitle" style="color:#fff; font-family:'DM Sans',sans-serif; font-size:1.35rem; font-weight:700; margin-bottom:0.4rem; line-height:1.25;">
+                  {{ seller_cta.title|default:'Got an old radio, clock or craft at home?' }}
+                </h3>
+                <p id="previewSubtitle" style="color:rgba(255,255,255,0.85); font-size:0.88rem; margin-bottom:0; line-height:1.4;">
+                  {{ seller_cta.subtitle|default:'List it on RuralConnect. Free to join, publish and sell directly in minutes.' }}
+                </p>
+              </div>
+              <div>
+                <span id="previewButton" class="btn fw-semibold px-3 py-2 shadow-sm" style="background:#f2a93b; color:#1a1a1a; border-radius:30px; font-weight:700; font-size:0.88rem; white-space:nowrap;">
+                  {{ seller_cta.button_text|default:'Start selling' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="small p-3 rounded-3 bg-light border text-muted">
+            <i class="bi bi-info-circle me-1 text-primary"></i>
+            This banner acts as a prominent on-site call to action directing visitors to vendor onboarding (<code>/register/</code>).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- REUSABLE MODALS FOR EDITING & DELETING     -->
+<!-- ========================================== -->
+
+<!-- 1. Edit Hero Slide Modal -->
+<div class="modal fade" id="editHeroSlideModal" tabindex="-1" aria-labelledby="editHeroSlideModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom bg-white px-4 py-3">
+        <h5 class="modal-title h6 fw-bold text-dark mb-0" id="editHeroSlideModalLabel">
+          <i class="bi bi-pencil-square me-2 text-primary"></i>Edit Hero Slide
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" id="editHeroSlideForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_hero_slide">
+        <input type="hidden" name="slide_id" id="editHeroId" value="">
+
+        <div class="modal-body p-4 row g-3">
+          <div class="col-md-8">
+            <label class="form-label small fw-semibold text-secondary">Heading Title <span class="text-danger">*</span></label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" name="title" id="editHeroTitle" required style="font-size:0.88rem;">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Accent Text</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" name="accent_text" id="editHeroAccent" placeholder="e.g. Up to 20% off" style="font-size:0.88rem;">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary">Description / Subtitle</label>
+            <textarea class="form-control rounded-3 p-3 bg-light border-0" name="subtitle" id="editHeroSubtitle" rows="2" style="font-size:0.85rem;"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-secondary">Button Label</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" name="button_text" id="editHeroBtnText" style="font-size:0.85rem;">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-secondary">Button Link URL</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="button_link" id="editHeroBtnLink" style="font-size:0.82rem;">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Theme Background Color</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color" class="form-control form-control-color border-0 rounded-circle p-0" id="editHeroBgColorPicker" style="width:34px; height:34px; cursor:pointer;" onchange="document.getElementById('editHeroBgColor').value = this.value;">
+              <input type="text" class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="bg_color" id="editHeroBgColor" style="font-size:0.85rem;">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Bootstrap Icon</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="icon" id="editHeroIcon" style="font-size:0.85rem;">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Sort Order</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" type="number" name="order" id="editHeroOrder" style="font-size:0.85rem;">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary">Artwork Image (Optional)</label>
+            <div id="editHeroExistingImgContainer" class="d-none align-items-center gap-2 mb-2 p-2 bg-light rounded-3 border">
+              <img id="editHeroImgPreview" src="" alt="Thumbnail" style="width:40px; height:40px; object-fit:cover; border-radius:6px;">
+              <span class="small text-muted" id="editHeroImgName">Existing photo</span>
+              <div class="form-check ms-auto">
+                <input class="form-check-input" type="checkbox" name="clear_image" value="1" id="clearHeroImg">
+                <label class="form-check-label small text-danger" for="clearHeroImg">Remove image</label>
+              </div>
+            </div>
+            <input type="file" class="form-control rounded-pill bg-light border-0" name="image" accept="image/*" style="font-size:0.82rem;">
+          </div>
+        </div>
+
+        <div class="modal-footer border-top bg-light px-4 py-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold shadow-sm" style="background:#102d59; border-color:#102d59;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Delete Hero Slide Modal -->
+<div class="modal fade" id="deleteHeroSlideModal" tabindex="-1" aria-labelledby="deleteHeroSlideModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom bg-danger-subtle px-4 py-3">
+        <h5 class="modal-title h6 fw-bold text-danger mb-0" id="deleteHeroSlideModalLabel">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Hero Slide
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="deleteHeroSlideForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_hero_slide">
+        <input type="hidden" name="slide_id" id="deleteHeroSlideId" value="">
+        <div class="modal-body p-4">
+          <p class="mb-2 text-dark">Are you sure you want to permanently delete this hero slide?</p>
+          <div class="p-3 bg-light rounded-3 border">
+            <strong class="d-block text-dark mb-1" id="deleteHeroSlideTitle"></strong>
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light px-4 py-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-semibold shadow-sm">Delete Slide</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Edit Promo Card Modal -->
+<div class="modal fade" id="editPromoModal" tabindex="-1" aria-labelledby="editPromoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom bg-white px-4 py-3">
+        <h5 class="modal-title h6 fw-bold text-dark mb-0" id="editPromoModalLabel">
+          <i class="bi bi-pencil-square me-2 text-primary"></i>Edit Promo Card
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" enctype="multipart/form-data" id="editPromoForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        <input type="hidden" name="banner_id" id="editPromoId" value="">
+        <div class="modal-body p-4 row g-3">
+          <div class="col-md-8">
+            <label class="form-label small fw-semibold text-secondary">Card Title <span class="text-danger">*</span></label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" name="title" id="editPromoTitle" required style="font-size:0.88rem;">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold text-secondary">Sort Order</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" type="number" name="order" id="editPromoOrder" style="font-size:0.85rem;">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary">Subtitle / Callout Text</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0" name="subtitle" id="editPromoSubtitle" style="font-size:0.88rem;">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-secondary">Link Target URL <span class="text-danger">*</span></label>
+            <input class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="link_url" id="editPromoLink" required style="font-size:0.82rem;">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Color Theme</label>
+            <select class="form-select form-select-sm rounded-pill border bg-light" name="css_class" id="editPromoCssClass" style="height:36px; font-size:0.82rem;">
+              <option value="b1">Deep Blue (b1)</option>
+              <option value="b2">Warm Terracotta (b2)</option>
+              <option value="b3">Berry Red (b3)</option>
+              <option value="b4">Forest Green (b4)</option>
+              <option value="b5">Ruby Crimson (b5)</option>
+              <option value="b6">Soft Sky (b6)</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold text-secondary">Bootstrap Icon</label>
+            <input class="form-control rounded-pill px-3 bg-light border-0 font-monospace" name="icon" id="editPromoIcon" style="font-size:0.85rem;">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary">Card Background Image (Optional)</label>
+            <div id="editPromoExistingImgContainer" class="d-none align-items-center gap-2 mb-2 p-2 bg-light rounded-3 border">
+              <img id="editPromoImgPreview" src="" alt="Thumbnail" style="width:40px; height:40px; object-fit:cover; border-radius:6px;">
+              <span class="small text-muted" id="editPromoImgName">Current card image</span>
+              <div class="form-check ms-auto">
+                <input class="form-check-input" type="checkbox" name="clear_image" value="1" id="clearPromoImg">
+                <label class="form-check-label small text-danger" for="clearPromoImg">Remove image</label>
+              </div>
+            </div>
+            <input type="file" class="form-control rounded-pill bg-light border-0" name="image" accept="image/*" style="font-size:0.82rem;">
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light px-4 py-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold shadow-sm" style="background:#102d59; border-color:#102d59;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Delete Promo Card Modal -->
+<div class="modal fade" id="deletePromoModal" tabindex="-1" aria-labelledby="deletePromoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom bg-danger-subtle px-4 py-3">
+        <h5 class="modal-title h6 fw-bold text-danger mb-0" id="deletePromoModalLabel">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Promo Card
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="deletePromoForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="banner_id" id="deletePromoId" value="">
+        <div class="modal-body p-4">
+          <p class="mb-2 text-dark">Are you sure you want to permanently delete this promo card?</p>
+          <div class="p-3 bg-light rounded-3 border">
+            <strong class="d-block text-dark mb-1" id="deletePromoTitle"></strong>
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light px-4 py-2 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-semibold shadow-sm">Delete Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// ----------------- TAB 1: ADD HERO LIVE PREVIEW LOGIC -----------------
+const addHeroTitle = document.getElementById('addHeroTitle');
+const addHeroAccent = document.getElementById('addHeroAccent');
+const addHeroSubtitle = document.getElementById('addHeroSubtitle');
+const addHeroBtnText = document.getElementById('addHeroBtnText');
+const addHeroOrder = document.getElementById('addHeroOrder');
+const addHeroBgColor = document.getElementById('addHeroBgColor');
+const addHeroBgColorPicker = document.getElementById('addHeroBgColorPicker');
+const addHeroIcon = document.getElementById('addHeroIcon');
+
+const addPreviewBox = document.getElementById('addHeroLivePreview');
+const addPreviewTitle = document.getElementById('addPreviewTitle');
+const addPreviewSub = document.getElementById('addPreviewSub');
+const addPreviewBtnLabel = document.getElementById('addPreviewBtnLabel');
+const addPreviewOrderBadge = document.getElementById('addPreviewOrderBadge');
+const addPreviewIcon = document.getElementById('addPreviewIcon');
+
+function updateHeroAddPreview() {
+  const title = (addHeroTitle && addHeroTitle.value.trim()) || 'Authentic Hand-Carved Rosewood';
+  const accent = addHeroAccent ? addHeroAccent.value.trim() : '';
+  const sub = (addHeroSubtitle && addHeroSubtitle.value.trim()) || 'Traditional artisans from Kerala crafting heritage furniture.';
+  const btn = (addHeroBtnText && addHeroBtnText.value.trim()) || 'Explore crafts';
+  const order = (addHeroOrder && addHeroOrder.value.trim()) || '1';
+  const color = (addHeroBgColor && addHeroBgColor.value.trim()) || '#1f3d2f';
+  const icon = (addHeroIcon && addHeroIcon.value.trim()) || 'bi-lamp';
+
+  if (addPreviewTitle) addPreviewTitle.innerHTML = (accent ? `<em style="font-style:italic; opacity:0.9;">${accent}</em> ` : '') + title;
+  if (addPreviewSub) addPreviewSub.textContent = sub;
+  if (addPreviewBtnLabel) addPreviewBtnLabel.textContent = btn;
+  if (addPreviewOrderBadge) addPreviewOrderBadge.textContent = `Order #${order}`;
+  if (addPreviewBox) addPreviewBox.style.background = color;
+  if (addPreviewIcon) addPreviewIcon.className = `bi ${icon}`;
+}
+
+if (addHeroTitle) addHeroTitle.addEventListener('input', updateHeroAddPreview);
+if (addHeroAccent) addHeroAccent.addEventListener('input', updateHeroAddPreview);
+if (addHeroSubtitle) addHeroSubtitle.addEventListener('input', updateHeroAddPreview);
+if (addHeroBtnText) addHeroBtnText.addEventListener('input', updateHeroAddPreview);
+if (addHeroOrder) addHeroOrder.addEventListener('input', updateHeroAddPreview);
+if (addHeroIcon) addHeroIcon.addEventListener('input', updateHeroAddPreview);
+
+function setHeroLink(url) {
+  const linkInput = document.getElementById('addHeroBtnLink');
+  if (linkInput) {
+    linkInput.value = url;
+    linkInput.dispatchEvent(new Event('input'));
+  }
+}
+
+function setHeroBgColor(color) {
+  if (addHeroBgColor) addHeroBgColor.value = color;
+  if (addHeroBgColorPicker) addHeroBgColorPicker.value = color;
+  
+  // Highlight active swatch
+  document.querySelectorAll('#heroColorSwatches .color-swatch').forEach(btn => {
+    if (btn.getAttribute('data-color') === color) {
+      btn.classList.add('active-swatch');
+    } else {
+      btn.classList.remove('active-swatch');
+    }
+  });
+
+  updateHeroAddPreview();
+}
+
+function setHeroIcon(icon) {
+  if (addHeroIcon) addHeroIcon.value = icon;
+  
+  // Highlight active icon chip
+  document.querySelectorAll('#heroIconChips .icon-chip').forEach(btn => {
+    if (btn.getAttribute('data-icon') === icon) {
+      btn.classList.add('active-icon-chip');
+    } else {
+      btn.classList.remove('active-icon-chip');
+    }
+  });
+
+  updateHeroAddPreview();
+}
+
+function handleHeroImageSelected(input) {
+  const fileNameSpan = document.getElementById('addHeroImageFileName');
+  const previewImg = document.getElementById('addPreviewImage');
+  const previewIcon = document.getElementById('addPreviewIcon');
+
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    if (fileNameSpan) {
+      fileNameSpan.innerHTML = `<i class="bi bi-check-circle-fill text-success fs-6"></i><span class="text-dark fw-semibold">${file.name}</span>`;
+    }
+    if (previewImg && previewIcon) {
+      previewImg.src = URL.createObjectURL(file);
+      previewImg.classList.remove('d-none');
+      previewIcon.classList.add('d-none');
+    }
+  } else {
+    if (fileNameSpan) {
+      fileNameSpan.innerHTML = `<i class="bi bi-cloud-arrow-up text-primary fs-6"></i><span>Upload thumbnail image...</span>`;
+    }
+    if (previewImg && previewIcon) {
+      previewImg.src = '';
+      previewImg.classList.add('d-none');
+      previewIcon.classList.remove('d-none');
+    }
+  }
+}
+
+// ----------------- TAB 2: ADD PROMO CARD LIVE PREVIEW LOGIC -----------------
+const addPromoTitle = document.getElementById('addPromoTitle');
+const addPromoSub = document.getElementById('addPromoSub');
+const addPromoOrder = document.getElementById('addPromoOrder');
+const addPromoCss = document.getElementById('addPromoCss');
+const addPromoIcon = document.getElementById('addPromoIcon');
+
+const addPromoLivePreview = document.getElementById('addPromoLivePreview');
+const addPromoPreviewTitle = document.getElementById('addPromoPreviewTitle');
+const addPromoPreviewSub = document.getElementById('addPromoPreviewSub');
+const addPromoPreviewOrder = document.getElementById('addPromoPreviewOrder');
+const addPromoPreviewIcon = document.getElementById('addPromoPreviewIcon');
+
+const promoGradients = {
+  b1: 'linear-gradient(180deg, rgba(16,45,89,0.3) 0%, rgba(10,30,60,0.7) 42%, rgba(6,15,30,0.96) 100%), #102d59',
+  b2: 'linear-gradient(180deg, rgba(122,75,31,0.3) 0%, rgba(85,48,15,0.7) 42%, rgba(24,15,8,0.96) 100%), #7a4b1f',
+  b3: 'linear-gradient(180deg, rgba(169,19,84,0.3) 0%, rgba(100,10,50,0.7) 42%, rgba(15,23,42,0.96) 100%), #a91354',
+  b4: 'linear-gradient(180deg, rgba(12,41,24,0.3) 0%, rgba(8,30,18,0.7) 42%, rgba(4,16,9,0.96) 100%), #0c2918',
+  b5: 'linear-gradient(180deg, rgba(218,0,10,0.3) 0%, rgba(130,0,8,0.7) 42%, rgba(18,10,12,0.96) 100%), #fa090e',
+  b6: 'linear-gradient(180deg, rgba(21,89,166,0.3) 0%, rgba(14,52,98,0.7) 42%, rgba(10,20,36,0.96) 100%), #a5cfff'
+};
+
+function updatePromoAddPreview() {
+  if (!addPromoLivePreview) return;
+  const title = (addPromoTitle && addPromoTitle.value.trim()) || 'Traditional Brass Diya Sets';
+  const sub = (addPromoSub && addPromoSub.value.trim()) || 'Handcrafted festive decor \u00b7 Up to 20% off';
+  const order = (addPromoOrder && addPromoOrder.value.trim()) || '1';
+  const css = (addPromoCss && addPromoCss.value) || 'b1';
+  const icon = (addPromoIcon && addPromoIcon.value.trim()) || 'bi-stars';
+
+  if (addPromoPreviewTitle) addPromoPreviewTitle.textContent = title;
+  if (addPromoPreviewSub) addPromoPreviewSub.textContent = sub;
+  if (addPromoPreviewOrder) addPromoPreviewOrder.textContent = `Order: ${order}`;
+  if (addPromoPreviewIcon) addPromoPreviewIcon.className = `bi ${icon} me-1`;
+  addPromoLivePreview.style.background = promoGradients[css] || promoGradients.b1;
+}
+
+function setPromoLink(url) {
+  const linkInput = document.getElementById('newPromoLinkInput');
+  if (linkInput) {
+    linkInput.value = url;
+    linkInput.dispatchEvent(new Event('input'));
+  }
+}
+
+function handlePromoImageSelected(input) {
+  const fileNameSpan = document.getElementById('addPromoImageFileName');
+  const promoPreview = document.getElementById('addPromoLivePreview');
+
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    if (fileNameSpan) {
+      fileNameSpan.innerHTML = `<i class="bi bi-check-circle-fill text-success fs-6"></i><span class="text-dark fw-semibold">${file.name}</span>`;
+    }
+    if (promoPreview) {
+      const url = URL.createObjectURL(file);
+      const css = (addPromoCss && addPromoCss.value) || 'b1';
+      const gradient = promoGradients[css] || promoGradients.b1;
+      promoPreview.style.backgroundImage = `${gradient}, url('${url}')`;
+      promoPreview.style.backgroundSize = 'cover';
+      promoPreview.style.backgroundPosition = 'center';
+    }
+  } else {
+    if (fileNameSpan) {
+      fileNameSpan.innerHTML = `<i class="bi bi-cloud-arrow-up text-primary fs-6"></i><span>Upload card photo...</span>`;
+    }
+    updatePromoAddPreview();
+  }
+}
+
+if (addPromoTitle) addPromoTitle.addEventListener('input', updatePromoAddPreview);
+if (addPromoSub) addPromoSub.addEventListener('input', updatePromoAddPreview);
+if (addPromoOrder) addPromoOrder.addEventListener('input', updatePromoAddPreview);
+if (addPromoCss) addPromoCss.addEventListener('change', updatePromoAddPreview);
+if (addPromoIcon) addPromoIcon.addEventListener('input', updatePromoAddPreview);
+
+// ----------------- MODAL DISPATCHERS -----------------
+function openEditHeroModal(pk, title, accent, subtitle, btnText, btnLink, bgColor, icon, order, imgUrl) {
+  document.getElementById('editHeroId').value = pk;
+  document.getElementById('editHeroTitle').value = title;
+  document.getElementById('editHeroAccent').value = accent;
+  document.getElementById('editHeroSubtitle').value = subtitle;
+  document.getElementById('editHeroBtnText').value = btnText;
+  document.getElementById('editHeroBtnLink').value = btnLink;
+  document.getElementById('editHeroBgColor').value = bgColor;
+  document.getElementById('editHeroBgColorPicker').value = bgColor;
+  document.getElementById('editHeroIcon').value = icon;
+  document.getElementById('editHeroOrder').value = order;
+
+  const imgContainer = document.getElementById('editHeroExistingImgContainer');
+  const imgPreview = document.getElementById('editHeroImgPreview');
+  const clearCheckbox = document.getElementById('clearHeroImg');
+  if (clearCheckbox) clearCheckbox.checked = false;
+
+  if (imgUrl) {
+    imgContainer.classList.remove('d-none');
+    imgContainer.classList.add('d-flex');
+    imgPreview.src = imgUrl;
+  } else {
+    imgContainer.classList.remove('d-flex');
+    imgContainer.classList.add('d-none');
+  }
+
+  new bootstrap.Modal(document.getElementById('editHeroSlideModal')).show();
+}
+
+function openDeleteHeroModal(pk, title) {
+  document.getElementById('deleteHeroSlideId').value = pk;
+  document.getElementById('deleteHeroSlideTitle').textContent = title;
+  new bootstrap.Modal(document.getElementById('deleteHeroSlideModal')).show();
+}
+
+function openEditPromoModal(pk, title, subtitle, link, cssClass, icon, order, imgUrl) {
+  document.getElementById('editPromoId').value = pk;
+  document.getElementById('editPromoTitle').value = title;
+  document.getElementById('editPromoSubtitle').value = subtitle;
+  document.getElementById('editPromoLink').value = link;
+  document.getElementById('editPromoCssClass').value = cssClass;
+  document.getElementById('editPromoIcon').value = icon;
+  document.getElementById('editPromoOrder').value = order;
+
+  const imgContainer = document.getElementById('editPromoExistingImgContainer');
+  const imgPreview = document.getElementById('editPromoImgPreview');
+  const clearCheckbox = document.getElementById('clearPromoImg');
+  if (clearCheckbox) clearCheckbox.checked = false;
+
+  if (imgUrl) {
+    imgContainer.classList.remove('d-none');
+    imgContainer.classList.add('d-flex');
+    imgPreview.src = imgUrl;
+  } else {
+    imgContainer.classList.remove('d-flex');
+    imgContainer.classList.add('d-none');
+  }
+
+  new bootstrap.Modal(document.getElementById('editPromoModal')).show();
+}
+
+function openDeletePromoModal(pk, title) {
+  document.getElementById('deletePromoId').value = pk;
+  document.getElementById('deletePromoTitle').textContent = title;
+  new bootstrap.Modal(document.getElementById('deletePromoModal')).show();
+}
+
+// ----------------- TAB 3: SELLER CTA LIVE PREVIEW -----------------
+const ctaTitleInput = document.getElementById('ctaTitleInput');
+const ctaSubInput = document.getElementById('ctaSubInput');
+const ctaBtnTextInput = document.getElementById('ctaBtnTextInput');
+const ctaBadgeInput = document.getElementById('ctaBadgeInput');
+
+const previewTitle = document.getElementById('previewTitle');
+const previewSubtitle = document.getElementById('previewSubtitle');
+const previewButton = document.getElementById('previewButton');
+const previewBadge = document.getElementById('previewBadge');
+
+if (ctaTitleInput && previewTitle) {
+  ctaTitleInput.addEventListener('input', () => { previewTitle.textContent = ctaTitleInput.value.trim() || 'Headline'; });
+}
+if (ctaSubInput && previewSubtitle) {
+  ctaSubInput.addEventListener('input', () => { previewSubtitle.textContent = ctaSubInput.value.trim() || 'Subtext'; });
+}
+if (ctaBtnTextInput && previewButton) {
+  ctaBtnTextInput.addEventListener('input', () => { previewButton.textContent = ctaBtnTextInput.value.trim() || 'Button'; });
+}
+if (ctaBadgeInput && previewBadge) {
+  ctaBadgeInput.addEventListener('input', () => { previewBadge.textContent = ctaBadgeInput.value.trim() || 'Sponsored'; });
+}
+</script>
+{% endblock %}

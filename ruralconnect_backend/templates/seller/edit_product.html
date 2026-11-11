@@ -1,0 +1,518 @@
+{% extends "base_seller.html" %}
+{% block title %}Edit {{ product.name }} | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Edit Product Details{% endblock %}
+{% block nav_myproducts %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.form-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #102d59;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 0.75rem;
+}
+.live-preview-sticky {
+  position: sticky;
+  top: 1.5rem;
+}
+.preview-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.preview-img-box {
+  height: 200px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.preview-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.preview-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item"><a href="{% url 'seller:dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'seller:my_products' %}" class="text-decoration-none">My Products</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit Product</li>
+    </ol>
+  </nav>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="h5 fw-bold text-dark mb-0">Edit: {{ product.name }}</h2>
+      <span class="text-muted small">Update product details, pricing, inventory or imagery</span>
+    </div>
+    {% if product.status == 'approved' %}
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i class="bi bi-broadcast me-1"></i> Status: Active &amp; Live</span>
+    {% elif product.status == 'paused' %}
+      <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2"><i class="bi bi-pause-circle me-1"></i> Status: Paused (Hidden)</span>
+    {% elif product.status == 'suspended' %}
+      <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2"><i class="bi bi-slash-circle me-1"></i> Status: Suspended</span>
+    {% else %}
+      <span class="badge bg-light text-dark border px-3 py-2">Status: {{ product.get_status_display }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate id="editProductForm">
+  {% csrf_token %}
+
+  <div class="row g-4">
+    <!-- Left Column: Form Fields -->
+    <div class="col-lg-8">
+      
+      <!-- 1. Basic Details Card -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <i class="bi bi-tag-fill"></i> 1. Product Identity &amp; Category
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small" for="id_name">
+              Product Title <span class="text-danger">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="id_category">
+              Category <span class="text-danger">*</span>
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.category.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small" for="id_description">
+              Artisan Story &amp; Description <span class="text-danger">*</span>
+            </label>
+            {{ form.description }}
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              {% if form.description.errors %}
+                <div class="text-danger small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.description.errors.0 }}</div>
+              {% else %}
+                <div class="text-muted small">Min 20 characters.</div>
+              {% endif %}
+              <div class="text-muted small" id="charCount">{{ product.description|length }} characters</div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small" for="id_location">
+              Artisan Origin / Location <span class="text-danger">*</span>
+            </label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.location.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Pricing & Inventory Card -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <i class="bi bi-currency-rupee"></i> 2. Pricing &amp; Inventory
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="price">
+              Base Price (₹) <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light fw-bold text-dark">₹</span>
+              {{ form.price }}
+            </div>
+            {% if form.price.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.price.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="discount">
+              Seller Discount (%)
+            </label>
+            <div class="input-group">
+              {{ form.seller_discount }}
+              <span class="input-group-text bg-light text-dark">% off</span>
+            </div>
+            {% if form.seller_discount.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.seller_discount.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="id_stock">
+              Quantity in Stock <span class="text-danger">*</span>
+            </label>
+            {{ form.stock }}
+            {% if form.stock.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.stock.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <span class="text-muted small d-block">Calculated Customer Price:</span>
+                <span class="fs-4 fw-bold text-success" id="calcPriceDisplay">₹{{ product.final_price|floatformat:0 }}</span>
+                <span class="text-muted small ms-2 text-decoration-line-through {% if product.seller_discount == 0 %}d-none{% endif %}" id="calcOriginalPrice">₹{{ product.price|floatformat:0 }}</span>
+              </div>
+              <div class="text-end text-muted small">
+                <i class="bi bi-shield-check text-rc me-1"></i> Updates in real time
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Imagery Card -->
+      <div class="form-card">
+        <div class="form-card-title d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-images text-success me-1"></i> 3. Product Imagery &amp; Gallery</span>
+          <span class="badge bg-light text-dark border small fw-normal">
+            {% if product.main_image %}1 Cover{% else %}No Cover{% endif %} · {{ product.images.count }} Gallery
+          </span>
+        </div>
+
+        <div class="row g-4">
+          <!-- Primary Cover Photo -->
+          <div class="col-12">
+            <label class="form-label fw-semibold small" for="id_main_image">
+              Primary Cover Photo <span class="text-muted">(Main thumbnail for storefront &amp; listings)</span>
+            </label>
+            {% if product.main_image %}
+              <div class="d-flex align-items-center justify-content-between gap-3 mb-2 p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center gap-3">
+                  <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:70px;height:70px;object-fit:cover;border-radius:10px;border:1px solid #cbd5e1;">
+                  <div>
+                    <span class="fw-bold d-block text-dark">Current Cover Photo</span>
+                    <span class="text-muted small">Displayed on product cards &amp; catalog listings.</span>
+                  </div>
+                </div>
+                <button type="submit" form="deleteCoverForm" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" title="Delete current cover image" onclick="return confirm('Are you sure you want to remove the cover photo?');">
+                  <i class="bi bi-trash"></i> Remove Cover
+                </button>
+              </div>
+            {% endif %}
+            <div class="mt-2">
+              <label class="form-label small text-muted mb-1">{% if product.main_image %}Replace Cover Photo (optional):{% else %}Upload Cover Photo:{% endif %}</label>
+              {{ form.main_image }}
+            </div>
+            {% if form.main_image.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.main_image.errors.0 }}</div>
+            {% endif %}
+            <div id="mainImagePreview" class="mt-2"></div>
+          </div>
+
+          <hr class="my-1 text-muted opacity-25">
+
+          <!-- Additional Gallery Photos -->
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold small mb-0">
+                Additional Gallery Photos <span class="badge bg-secondary-subtle text-dark ms-1">{{ product.images.count }}</span>
+              </label>
+              <span class="small text-muted">Showcase craftsmanship close-ups, angles, or packaging</span>
+            </div>
+
+            <!-- Existing Gallery Photos Grid -->
+            {% if product.images.all %}
+              <div class="row g-2 mb-3">
+                {% for img in product.images.all %}
+                  <div class="col-6 col-sm-4 col-md-3">
+                    <div class="position-relative rounded-3 overflow-hidden border shadow-sm bg-light" style="aspect-ratio: 1/1;">
+                      <img src="{{ img.image.url }}" alt="Gallery photo {{ forloop.counter }}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                      <button type="submit" form="deleteImgForm{{ img.pk }}" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 p-1 rounded-circle lh-1 shadow" title="Delete this photo" onclick="return confirm('Delete this gallery photo?');" style="width:28px; height:28px; display:flex; align-items:center; justify-content:center;">
+                        <i class="bi bi-trash-fill" style="font-size:0.75rem;"></i>
+                      </button>
+                      <span class="badge bg-dark bg-opacity-75 text-white position-absolute bottom-0 start-0 m-1 px-1 py-0" style="font-size:0.65rem;">
+                        #{{ forloop.counter }}
+                      </span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="p-3 bg-light rounded-3 text-center text-muted small mb-3 border">
+                <i class="bi bi-images fs-4 d-block mb-1 text-secondary opacity-50"></i>
+                No extra gallery pictures yet. Add alternate angles or detail shots below.
+              </div>
+            {% endif %}
+
+            <!-- Upload More Photos Input -->
+            <label class="form-label small fw-semibold text-dark mb-1" for="extra_images">
+              <i class="bi bi-cloud-arrow-up text-rc me-1"></i> Add More Gallery Pictures
+            </label>
+            <input class="form-control" id="extra_images" name="extra_images" type="file" accept="image/*" multiple>
+            <div class="form-text small">Select one or multiple images (PNG, JPG, WEBP). They will be added to your gallery upon saving.</div>
+            <div id="extraImagesPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mb-4">
+        <button class="btn btn-rc px-4 py-2 fw-semibold" type="submit">
+          <i class="bi bi-check2-circle me-1"></i> Save Changes
+        </button>
+        <a class="btn btn-outline-secondary px-4 py-2" href="{% url 'seller:my_products' %}">
+          Cancel
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Live Preview & Tips -->
+    <div class="col-lg-4">
+      <div class="live-preview-sticky">
+        
+        <!-- Live Card Preview -->
+        <div class="preview-card mb-3">
+          <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <span class="small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">Live Storefront Preview</span>
+            <span class="badge {% if product.status == 'approved' %}bg-success{% elif product.status == 'pending' %}bg-warning text-dark{% else %}bg-danger{% endif %} small">
+              {{ product.get_status_display }}
+            </span>
+          </div>
+
+          <div class="preview-img-box" id="cardPreviewImgBox">
+            {% if product.main_image %}
+              <img id="cardPreviewImg" src="{{ product.main_image.url }}" alt="Preview">
+              <div id="cardPreviewPlaceholder" class="text-center p-3 text-muted d-none"></div>
+            {% else %}
+              <img id="cardPreviewImg" src="" alt="Preview" class="d-none">
+              <div id="cardPreviewPlaceholder" class="text-center p-3 text-muted" style="background:hsl({{ product.hue }},45%,90%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;">
+                {{ product.emoji }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Thumbnails switcher in Live Preview -->
+          {% if product.main_image or product.images.all %}
+            <div class="p-2 border-top bg-light d-flex gap-2 overflow-auto" id="cardPreviewThumbs">
+              {% if product.main_image %}
+                <img src="{{ product.main_image.url }}" alt="Cover" class="rounded border" style="width:42px; height:42px; object-fit:cover; cursor:pointer;" onclick="document.getElementById('cardPreviewImg').src=this.src;" title="Cover photo">
+              {% endif %}
+              {% for img in product.images.all %}
+                <img src="{{ img.image.url }}" alt="Gallery {{ forloop.counter }}" class="rounded border" style="width:42px; height:42px; object-fit:cover; cursor:pointer;" onclick="document.getElementById('cardPreviewImg').src=this.src;" title="Gallery photo #{{ forloop.counter }}">
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="p-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="badge bg-light text-dark border small" id="cardPreviewCategory">{{ product.category.name }}</span>
+              <span class="badge {% if product.stock > 0 %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} small" id="cardPreviewStock">
+                {{ product.stock }} in stock
+              </span>
+            </div>
+            
+            <h5 class="fw-bold text-dark mb-1 text-truncate" id="cardPreviewTitle">{{ product.name }}</h5>
+            <div class="small text-muted mb-2"><i class="bi bi-geo-alt"></i> <span id="cardPreviewLocation">{{ product.location }}</span></div>
+
+            <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-baseline">
+              <div>
+                <span class="fs-4 fw-bold text-rc" id="cardPreviewPrice">₹{{ product.final_price|floatformat:0 }}</span>
+                <span class="text-muted small text-decoration-line-through ms-1 {% if product.seller_discount == 0 %}d-none{% endif %}" id="cardPreviewStrikePrice">₹{{ product.price|floatformat:0 }}</span>
+              </div>
+              <span class="badge bg-success {% if product.seller_discount == 0 %}d-none{% endif %}" id="cardPreviewDiscountBadge">
+                {{ product.seller_discount }}% off
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Independent delete forms outside the main edit form to prevent invalid nested forms -->
+<form id="deleteCoverForm" method="post" action="{% url 'seller:delete_cover_image' product.pk %}">
+  {% csrf_token %}
+</form>
+
+{% for img in product.images.all %}
+  <form id="deleteImgForm{{ img.pk }}" method="post" action="{% url 'seller:delete_product_image' product.pk img.pk %}">
+    {% csrf_token %}
+  </form>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nameInput = document.getElementById('id_name');
+  const catInput = document.getElementById('id_category');
+  const descInput = document.getElementById('id_description');
+  const priceInput = document.getElementById('price');
+  const discInput = document.getElementById('discount');
+  const stockInput = document.getElementById('id_stock');
+  const locInput = document.getElementById('id_location');
+  const mainImgInput = document.getElementById('id_main_image');
+
+  const prevTitle = document.getElementById('cardPreviewTitle');
+  const prevCat = document.getElementById('cardPreviewCategory');
+  const prevPrice = document.getElementById('cardPreviewPrice');
+  const prevStrikePrice = document.getElementById('cardPreviewStrikePrice');
+  const prevDiscBadge = document.getElementById('cardPreviewDiscountBadge');
+  const prevStock = document.getElementById('cardPreviewStock');
+  const prevLoc = document.getElementById('cardPreviewLocation');
+  const prevImg = document.getElementById('cardPreviewImg');
+  const calcPriceDisplay = document.getElementById('calcPriceDisplay');
+  const calcOriginalPrice = document.getElementById('calcOriginalPrice');
+  const charCount = document.getElementById('charCount');
+
+  if (nameInput) {
+    nameInput.addEventListener('input', () => {
+      prevTitle.textContent = nameInput.value.trim() || 'Product Title';
+    });
+  }
+
+  if (locInput) {
+    locInput.addEventListener('input', () => {
+      prevLoc.textContent = locInput.value.trim() || 'Origin Location';
+    });
+  }
+
+  if (catInput) {
+    catInput.addEventListener('change', () => {
+      const selected = catInput.options[catInput.selectedIndex];
+      prevCat.textContent = (selected && selected.value) ? selected.text : 'Category';
+    });
+  }
+
+  if (descInput) {
+    descInput.addEventListener('input', () => {
+      const len = descInput.value.length;
+      charCount.textContent = `${len} character${len === 1 ? '' : 's'}`;
+      charCount.className = (len < 20) ? 'text-danger small fw-semibold' : 'text-success small';
+    });
+  }
+
+  function updatePricing() {
+    const base = parseFloat(priceInput ? priceInput.value : 0) || 0;
+    const disc = parseFloat(discInput ? discInput.value : 0) || 0;
+
+    if (base > 0) {
+      const finalPrice = Math.round(base * (1 - (disc / 100)));
+      calcPriceDisplay.textContent = '₹' + finalPrice.toLocaleString('en-IN');
+      prevPrice.textContent = '₹' + finalPrice.toLocaleString('en-IN');
+
+      if (disc > 0) {
+        calcOriginalPrice.textContent = '₹' + base.toLocaleString('en-IN');
+        calcOriginalPrice.classList.remove('d-none');
+        prevStrikePrice.textContent = '₹' + base.toLocaleString('en-IN');
+        prevStrikePrice.classList.remove('d-none');
+        prevDiscBadge.textContent = disc + '% off';
+        prevDiscBadge.classList.remove('d-none');
+      } else {
+        calcOriginalPrice.classList.add('d-none');
+        prevStrikePrice.classList.add('d-none');
+        prevDiscBadge.classList.add('d-none');
+      }
+    } else {
+      calcPriceDisplay.textContent = '₹0';
+      prevPrice.textContent = '₹0';
+      calcOriginalPrice.classList.add('d-none');
+      prevStrikePrice.classList.add('d-none');
+      prevDiscBadge.classList.add('d-none');
+    }
+  }
+
+  if (priceInput) priceInput.addEventListener('input', updatePricing);
+  if (discInput) discInput.addEventListener('input', updatePricing);
+
+  if (stockInput) {
+    stockInput.addEventListener('input', () => {
+      const qty = parseInt(stockInput.value, 10) || 0;
+      if (qty > 0) {
+        prevStock.textContent = `${qty} in stock`;
+        prevStock.className = 'badge bg-success-subtle text-success small';
+      } else {
+        prevStock.textContent = 'Out of Stock';
+        prevStock.className = 'badge bg-danger-subtle text-danger small';
+      }
+    });
+  }
+
+  if (mainImgInput) {
+    mainImgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      const previewBox = document.getElementById('mainImagePreview');
+      previewBox.innerHTML = '';
+
+      if (file) {
+        const url = URL.createObjectURL(file);
+        prevImg.src = url;
+        prevImg.classList.remove('d-none');
+
+        const thumb = document.createElement('img');
+        thumb.src = url;
+        thumb.className = 'preview-thumb';
+        previewBox.appendChild(thumb);
+      }
+    });
+  }
+
+  const extraImagesInput = document.getElementById('extra_images');
+  const extraPreviewBox = document.getElementById('extraImagesPreview');
+
+  if (extraImagesInput && extraPreviewBox) {
+    extraImagesInput.addEventListener('change', function() {
+      extraPreviewBox.innerHTML = '';
+      if (this.files && this.files.length > 0) {
+        Array.from(this.files).forEach((file) => {
+          const thumbWrap = document.createElement('div');
+          thumbWrap.className = 'position-relative';
+          thumbWrap.style.cssText = 'width:64px; height:64px; border-radius:8px; overflow:hidden; border:2px solid #102d59; background:#f8fafc;';
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          img.style.cssText = 'width:100%; height:100%; object-fit:cover; display:block;';
+          thumbWrap.appendChild(img);
+          extraPreviewBox.appendChild(thumbWrap);
+        });
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

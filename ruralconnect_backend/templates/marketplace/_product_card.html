@@ -1,0 +1,89 @@
+{% if is_carousel %}
+<div class="rc-carousel-item d-flex align-items-stretch">
+{% else %}
+<div class="col-6 col-lg-3 d-flex align-items-stretch">
+{% endif %}
+  <article class="product-card w-100 d-flex flex-column position-relative">
+
+    <!-- Wishlist Floating Button -->
+    <button type="button" 
+      class="wish {% if p.id in wishlist_product_ids %}selected is-wishlisted active{% endif %}" 
+      onclick="toggleWishlist({{ p.pk }}, this, event)"
+      aria-label="{% if p.id in wishlist_product_ids %}Remove from wishlist{% else %}Save to wishlist{% endif %}"
+      data-product-id="{{ p.pk }}">
+      <i class="bi {% if p.id in wishlist_product_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+    </button>
+
+    <!-- Product Image Frame -->
+    <a href="{% url 'marketplace:product_detail' p.pk %}" class="product-image">
+      {% if p.main_image %}
+        <img src="{{ p.main_image.url }}" alt="{{ p.name }}" loading="lazy">
+      {% else %}
+        <div class="emoji-placeholder" style="background:hsl({{ p.hue }},45%,92%); font-size:4rem; width:100%; height:100%; display:flex; align-items:center; justify-content:center;" aria-hidden="true">{{ p.emoji }}</div>
+      {% endif %}
+      {% if p.active_campaign_discount > 0 %}
+        <span class="badge-off" style="position:absolute; top:10px; left:10px; z-index:2; font-size:10.5px; padding:4px 10px; border-radius:999px; background:linear-gradient(135deg, #8a1325 0%, #560a16 100%); color:#fff; font-weight:700; border:1px solid rgba(242,169,59,0.45); box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+          <i class="bi bi-tag-fill me-1" style="font-size:9px; color:#f2a93b;"></i>{{ p.active_campaign_discount }}% Fest Off
+        </span>
+      {% elif p.effective_discount > 0 %}
+        <span class="badge-off" style="position:absolute; top:10px; left:10px; z-index:2; font-size:10.5px; padding:4px 10px; border-radius:999px; background:linear-gradient(135deg, #102d59 0%, #1e4d8c 100%); color:#fff; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+          {{ p.effective_discount }}% off
+        </span>
+      {% endif %}
+      {% if p.promoted %}
+        <span class="badge-spons" style="position:absolute; bottom:10px; left:10px; z-index:2; font-size:9.5px; padding:3px 9px; border-radius:999px; background:rgba(17,24,39,0.88); color:#f2a93b; border:1px solid rgba(242,169,59,0.4); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">
+          <i class="bi bi-star-fill me-1" style="font-size:8px;"></i>Sponsored
+        </span>
+      {% endif %}
+      {% if p.is_new %}
+        <span class="badge-new" style="position:absolute; bottom:10px; right:10px; z-index:2; font-size:9.5px; padding:3px 8px; border-radius:999px; background:linear-gradient(135deg, #059669 0%, #047857 100%); color:#fff; font-weight:700; letter-spacing:0.4px; box-shadow:0 2px 6px rgba(0,0,0,0.2); text-transform:uppercase;">
+          <i class="bi bi-sparkles me-1" style="font-size:8px;"></i>New
+        </span>
+      {% endif %}
+    </a>
+
+    <!-- Product Name -->
+    <a class="product-name" href="{% url 'marketplace:product_detail' p.pk %}" title="{{ p.name }}">
+      {{ p.name }}
+    </a>
+
+    <!-- Origin & Seller Info -->
+    <div class="small text-muted text-truncate mb-1 d-flex align-items-center justify-content-between gap-1" style="font-size: 0.76rem;">
+      <a href="{% url 'marketplace:seller_detail' p.seller.pk %}" class="text-decoration-none text-muted fw-semibold text-truncate" title="View seller profile">{{ p.seller.business_name }}</a>
+      <span class="badge bg-light text-secondary border px-2 py-1 flex-shrink-0" style="font-size: 0.68rem;" title="Craft origin"><i class="bi bi-geo-alt text-danger me-1"></i>{{ p.origin_region }}</span>
+    </div>
+
+    <!-- Rating Stars -->
+    <div class="rating" aria-label="{{ p.average_rating }} out of 5 stars">
+      {% with r=p.average_rating %}
+        {% for i in "12345" %}
+          {% if r >= forloop.counter %}<i class="bi bi-star-fill"></i>
+          {% elif r >= forloop.counter|add:"-0.5" %}<i class="bi bi-star-half"></i>
+          {% else %}<i class="bi bi-star"></i>{% endif %}
+        {% endfor %}
+        <small>({{ p.review_count }})</small>
+      {% endwith %}
+    </div>
+
+    <!-- Price -->
+    <div class="price">
+      ₹{{ p.final_price|floatformat:0 }}
+      {% if p.effective_discount > 0 %}
+        <del>₹{{ p.price|floatformat:0 }}</del>
+      {% endif %}
+    </div>
+
+    <!-- Dual Actions (Add to Cart / Buy Now) -->
+    <div class="product-actions mt-auto">
+      <button class="add-button" type="button" data-product-id="{{ p.pk }}" data-product-name="{{ p.name }}"
+        onclick="addToCart({{ p.pk }}, this)" aria-label="Add {{ p.name }} to cart"
+        {% if not p.stock %}disabled{% endif %}>
+        <i class="bi bi-cart-plus"></i> Add
+      </button>
+      <a class="buy-now-button" href="{% url 'marketplace:product_detail' p.pk %}">
+        Buy Now
+      </a>
+    </div>
+
+  </article>
+</div>

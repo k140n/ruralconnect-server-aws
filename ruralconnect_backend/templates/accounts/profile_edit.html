@@ -1,0 +1,164 @@
+{% extends "base_public.html" %}
+{% load static %}
+{% block title %}Edit Personal Details | RuralConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .card-profile-section {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    transition: all 0.2s ease;
+  }
+  .section-divider-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #102d59;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-floating-custom label {
+    display: block !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  .form-control:focus {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 0.2rem rgba(18, 88, 168, 0.15) !important;
+  }
+  .input-group:focus-within .input-group-text {
+    border-color: var(--blue) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}" class="text-decoration-none text-muted">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-decoration-none text-muted">My Profile</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Edit Personal Details</li>
+    </ol>
+  </nav>
+
+  <!-- Header Banner -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h3 fw-bold text-dark mb-1">Edit Personal Details</h1>
+      <p class="text-muted small mb-0">Update your account name and primary contact telephone number.</p>
+    </div>
+    <div>
+      <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-pill fw-semibold">
+        <i class="bi bi-arrow-left me-1"></i> Back to Profile
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Edit Form Column -->
+    <div class="col-lg-8">
+      <div class="card-profile-section p-4">
+        <form method="post" action="{% url 'accounts:profile_edit' %}" novalidate>
+          {% csrf_token %}
+
+          <div class="section-divider-title">
+            <i class="bi bi-person-badge text-primary"></i> Account Credentials &amp; Contact
+          </div>
+          <p class="text-muted small mb-3">
+            Your name appears on your order invoices and seller interactions.
+          </p>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+              {% for err in form.non_field_errors %}
+                <div>{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <!-- Full Name -->
+            <div class="col-12 form-floating-custom">
+              <label for="{{ form.full_name.id_for_label }}">
+                <i class="bi bi-person text-secondary me-1"></i> {{ form.full_name.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Primary Mobile Number -->
+            <div class="col-12 form-floating-custom">
+              <label for="{{ form.phone.id_for_label }}">
+                <i class="bi bi-telephone text-secondary me-1"></i> {{ form.phone.label }}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary fw-semibold border-end-0 small">+91</span>
+                {{ form.phone }}
+              </div>
+              <div class="form-text small text-muted">10-digit Indian mobile number for account security and SMS updates.</div>
+              {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Email (Read-Only) -->
+            <div class="col-12 form-floating-custom">
+              <label>
+                <i class="bi bi-envelope text-secondary me-1"></i> Email Address
+                <span class="badge bg-light text-muted border ms-1 rounded-pill"><i class="bi bi-lock me-1"></i>Primary Account ID</span>
+              </label>
+              <input type="email" class="form-control bg-light text-muted rounded-3" value="{{ user.email }}" disabled readonly>
+              <div class="form-text small text-muted">Your email address is your primary sign-in identifier and cannot be changed here.</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="d-flex align-items-center justify-content-between pt-4 mt-3 border-top flex-wrap gap-3">
+            <div class="text-muted small">
+              <i class="bi bi-shield-check text-primary me-1"></i>
+              Changes take effect immediately across all devices.
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                Cancel
+              </a>
+              <button type="submit" class="btn px-4 py-2 fw-bold text-white rounded-pill shadow-sm" style="background: #102d59;">
+                <i class="bi bi-check2-circle me-1"></i> Save Changes
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Tips Column -->
+    <div class="col-lg-4">
+      <div class="card-profile-section p-3 p-md-4 mb-4">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-geo-alt text-primary me-1"></i> Managing Delivery Addresses?</h6>
+        <p class="text-muted small mb-3">
+          Your delivery destinations (Home, Work, etc.) are managed separately in your Address Book.
+        </p>
+        <a href="{% url 'accounts:profile' %}#addresses" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-semibold">
+          <i class="bi bi-arrow-right me-1"></i> Manage Delivery Addresses
+        </a>
+      </div>
+
+      <div class="card-profile-section p-3 p-md-4">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-lock text-primary me-1"></i> Account Security</h6>
+        <p class="text-muted small mb-0">
+          Your mobile number is kept strictly private and only provided on shipping labels to help couriers contact you at delivery.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

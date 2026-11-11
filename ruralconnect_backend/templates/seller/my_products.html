@@ -1,0 +1,449 @@
+{% extends "base_seller.html" %}
+{% block title %}My Products | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}My Products Catalog{% endblock %}
+{% block nav_myproducts %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.product-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.product-row-clickable:hover {
+  background-color: #f7faf8 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Toolbar -->
+<div class="panel mb-4 p-3 shadow-sm">
+  <form method="get" class="row g-2 align-items-center">
+    {% if status_filter %}
+      <input type="hidden" name="status" value="{{ status_filter }}">
+    {% endif %}
+    <div class="col-md-6 col-lg-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Search your products by name, category...">
+        <button class="btn btn-rc" type="submit">Search</button>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-7 d-flex justify-content-md-end gap-2 flex-wrap align-items-center">
+      {% if q %}
+        <a href="{% url 'seller:my_products' %}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-sm btn-outline-secondary">Clear search</a>
+      {% endif %}
+      <span class="text-muted small me-2">Showing <strong>{{ products|length }}</strong> of {{ total_count }} products</span>
+      <a class="btn btn-rc btn-sm" href="{% url 'seller:add_product' %}">
+        <i class="bi bi-plus-circle me-1"></i> Add New Product
+      </a>
+    </div>
+  </form>
+
+  <!-- Status Filter Tabs -->
+  <div class="d-flex gap-2 mt-3 pt-3 border-top flex-wrap align-items-center">
+    <span class="text-muted small fw-bold me-1">Filter:</span>
+    <a class="btn btn-sm {% if not status_filter %}btn-rc{% else %}btn-outline-rc{% endif %}" href="{% url 'seller:my_products' %}{% if q %}?q={{ q }}{% endif %}">
+      All ({{ total_count }})
+    </a>
+    <a class="btn btn-sm {% if status_filter == 'approved' %}btn-rc{% else %}btn-outline-rc{% endif %}" href="?status=approved{% if q %}&q={{ q }}{% endif %}">
+      <i class="bi bi-broadcast me-1"></i> Live ({{ active_count }})
+    </a>
+    <a class="btn btn-sm {% if status_filter == 'paused' %}btn-rc{% else %}btn-outline-rc{% endif %}" href="?status=paused{% if q %}&q={{ q }}{% endif %}">
+      <i class="bi bi-pause-circle me-1"></i> Paused ({{ paused_count }})
+    </a>
+    {% if status_filter and status_filter != 'approved' and status_filter != 'paused' %}
+      <a class="btn btn-sm btn-rc" href="#">{{ status_filter|title }}</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Products Table -->
+<div class="panel p-0 shadow-sm overflow-hidden">
+  {% if products %}
+  <div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="min-width:260px">Product (Click to view details)</th>
+          <th>Category</th>
+          <th>Price &amp; Discount</th>
+          <th>Stock</th>
+          <th>Status &amp; Feedback</th>
+          <th class="text-end" style="min-width:180px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr class="product-row-clickable product-detail-trigger"
+            data-status="{{ p.status }}"
+            data-promoted="{{ p.promoted|yesno:'true,false' }}"
+            data-id="{{ p.id }}"
+            data-name="{{ p.name }}"
+            data-category="{{ p.category.name }}"
+            data-price="{{ p.price|floatformat:0 }}"
+            data-final-price="{{ p.final_price|floatformat:0 }}"
+            data-discount="{{ p.seller_discount }}"
+            data-campaign-discount="{{ p.active_campaign_discount|default:0 }}"
+            data-stock="{{ p.stock }}"
+            data-status-label="{{ p.get_status_display }}"
+            data-description="{{ p.description|escapejs }}"
+            data-location="{{ p.location }}"
+            data-reject-reason="{{ p.reject_reason|default:''|escapejs }}"
+            data-image="{% if p.main_image %}{{ p.main_image.url }}{% endif %}"
+            data-emoji="{{ p.emoji }}"
+            data-hue="{{ p.hue }}"
+            data-edit-url="{% url 'seller:edit_product' p.pk %}"
+            data-delete-url="{% url 'seller:delete_product' p.pk %}"
+            data-toggle-url="{% url 'seller:toggle_product_status' p.pk %}"
+            data-store-url="{% url 'marketplace:product_detail' p.pk %}">
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                   style="width:44px;height:44px;background:hsl({{ p.hue }},45%,90%);font-size:1.4rem;">
+                {% if p.main_image %}
+                  <img src="{{ p.main_image.url }}" alt="{{ p.name }}" class="rounded" style="width:44px;height:44px;object-fit:cover;">
+                {% else %}
+                  {{ p.emoji }}
+                {% endif %}
+              </div>
+              <div>
+                <strong class="d-block text-dark">{{ p.name }}</strong>
+                <div class="text-muted small">{{ p.location }}</div>
+                {% if p.promoted %}
+                  <span class="badge bg-warning text-dark py-0 px-2" style="font-size:0.7rem">Boosted</span>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">{{ p.category.name }}</span>
+          </td>
+          <td>
+            <div><strong>₹{{ p.final_price|floatformat:0 }}</strong></div>
+            {% if p.effective_discount > 0 %}
+              <div class="small text-muted">
+                <span class="text-decoration-line-through">₹{{ p.price|floatformat:0 }}</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle">{{ p.effective_discount }}% off</span>
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge {% if p.stock > 0 %}bg-light text-dark border{% else %}bg-danger{% endif %}">
+              {{ p.stock }} in stock
+            </span>
+          </td>
+          <td>
+            {% if p.status == 'approved' %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-broadcast me-1"></i> Live
+              </span>
+            {% elif p.status == 'paused' %}
+              <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                <i class="bi bi-pause-circle me-1"></i> Paused
+              </span>
+            {% elif p.status == 'suspended' %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                <i class="bi bi-slash-circle me-1"></i> Suspended
+              </span>
+            {% else %}
+              <span class="badge bg-light text-dark border px-2 py-1">{{ p.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end" onclick="event.stopPropagation();">
+            <div class="d-flex justify-content-end gap-1">
+              {% if p.status == 'approved' %}
+                <form method="post" action="{% url 'seller:toggle_product_status' p.pk %}" class="d-inline"
+                      onsubmit="return confirm('Pause &quot;{{ p.name|escapejs }}&quot;? It will be hidden from buyers until you unpause it.');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-warning text-dark btn-sm py-1 px-2" title="Pause listing (hide from store)">
+                    <i class="bi bi-pause-fill"></i> Pause
+                  </button>
+                </form>
+                <a class="btn btn-outline-secondary btn-sm py-1 px-2" href="{% url 'marketplace:product_detail' p.pk %}" target="_blank" title="View live listing">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              {% elif p.status == 'paused' %}
+                <form method="post" action="{% url 'seller:toggle_product_status' p.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-success btn-sm py-1 px-2" title="Activate listing (make visible to buyers)">
+                    <i class="bi bi-play-fill"></i> Activate
+                  </button>
+                </form>
+              {% endif %}
+
+              <button type="button" class="btn btn-outline-rc btn-sm py-1 px-2" onclick="openDetailFromRow(this);" title="View details">
+                <i class="bi bi-eye"></i>
+              </button>
+              <a class="btn btn-outline-secondary btn-sm py-1 px-2" href="{% url 'seller:edit_product' p.pk %}" title="Edit product">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="post" action="{% url 'seller:delete_product' p.pk %}" class="d-inline"
+                    onsubmit="return confirm('Are you sure you want to permanently delete &quot;{{ p.name|escapejs }}&quot;?')">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger btn-sm py-1 px-2" title="Delete product">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+    <p class="mb-2">No products found matching your criteria.</p>
+    <a class="btn btn-rc btn-sm" href="{% url 'seller:add_product' %}">Add New Product</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL: Comprehensive Product Details Modal (When clicking any item) -->
+<!-- ================================================================= -->
+<div class="modal fade" id="productDetailModal" tabindex="-1" aria-labelledby="productDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <div>
+          <span class="badge bg-light text-dark border small mb-1" id="mCategory">Category</span>
+          <h5 class="modal-title fw-bold" id="productDetailModalLabel">Product Details</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Rejection Notice (shown only if product is rejected) -->
+        <div id="mRejectionBox" class="alert alert-danger mb-3 d-none">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-exclamation-triangle-fill fs-5 mt-1 text-danger"></i>
+            <div>
+              <strong class="d-block text-danger">Platform Admin Rejection Feedback:</strong>
+              <div id="mRejectionText" class="mt-1"></div>
+              <small class="text-muted d-block mt-2">
+                Click <strong>"Edit Product"</strong> below to make the required adjustments and re-submit for review.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Left: Image Preview -->
+          <div class="col-md-5">
+            <div id="mImageWrapper" class="rounded border p-2 text-center bg-light d-flex align-items-center justify-content-center"
+                 style="min-height: 220px; max-height: 260px; overflow: hidden;">
+              <img id="mImage" src="" alt="Product" class="img-fluid rounded d-none" style="max-height: 220px; object-fit: contain;">
+              <div id="mEmojiBox" class="d-flex align-items-center justify-content-center rounded w-100" style="height: 220px; font-size: 4.5rem;">
+                🎨
+              </div>
+            </div>
+            <div class="mt-2 text-center">
+              <span id="mStatusBadge" class="badge bg-secondary px-3 py-2 fs-6">Status</span>
+              <span id="mPromotedBadge" class="badge bg-warning text-dark px-2 py-2 fs-6 ms-1 d-none">
+                <i class="bi bi-rocket-takeoff-fill"></i> Boosted
+              </span>
+            </div>
+          </div>
+
+          <!-- Right: Information & Pricing Breakdown -->
+          <div class="col-md-7">
+            <h4 class="fw-bold mb-1" id="mTitle">Product Name</h4>
+            <div class="text-muted small mb-3"><i class="bi bi-geo-alt"></i> <span id="mLocation">Location</span></div>
+
+            <!-- Price Breakdown Box -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="d-flex justify-content-between align-items-baseline">
+                <span class="text-muted small">Customer Price:</span>
+                <span class="fs-4 fw-bold text-rc" id="mFinalPrice">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 border-top pt-2">
+                <span>Base Price:</span>
+                <span id="mBasePrice">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1" id="mSellerDiscountRow">
+                <span>Your Seller Discount:</span>
+                <span class="text-success fw-semibold" id="mSellerDiscount">0%</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 d-none" id="mCampaignDiscountRow">
+                <span>Active Festival Campaign:</span>
+                <span class="text-danger fw-semibold" id="mCampaignDiscount">0%</span>
+              </div>
+              <div class="d-flex justify-content-between small text-muted mt-1 border-top pt-1">
+                <span>Stock in Inventory:</span>
+                <span class="fw-bold" id="mStock">0 units</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <h6 class="fw-bold mb-1 small text-uppercase text-muted">Artisan Story &amp; Description</h6>
+              <div class="small text-muted p-2 bg-light rounded" id="mDescription" style="max-height: 120px; overflow-y: auto; white-space: pre-line;">
+                No description provided.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <div class="d-flex gap-2">
+          <form id="mToggleForm" method="post" action="" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" id="mToggleBtn" class="btn btn-outline-warning text-dark btn-sm">
+              <i class="bi bi-pause-fill"></i> Pause Listing
+            </button>
+          </form>
+          <form id="mDeleteForm" method="post" action="" class="d-inline"
+                onsubmit="return confirm('Are you sure you want to permanently delete this product? This action cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </form>
+        </div>
+        <div class="d-flex gap-2">
+          <a id="mStoreLink" href="#" target="_blank" class="btn btn-outline-rc btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i> View Live on Store
+          </a>
+          <a id="mEditLink" href="#" class="btn btn-rc btn-sm">
+            <i class="bi bi-pencil-square me-1"></i> Edit Product
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.product-detail-trigger').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target.closest('a') || e.target.closest('button')) {
+        return;
+      }
+      populateProductModal(this.dataset);
+    });
+  });
+});
+
+function openDetailFromRow(btn) {
+  const row = btn.closest('.product-detail-trigger');
+  if (row) {
+    populateProductModal(row.dataset);
+  }
+}
+
+function populateProductModal(data) {
+  document.getElementById('mTitle').textContent = data.name || 'Product Details';
+  document.getElementById('mCategory').textContent = data.category || 'General';
+  document.getElementById('mLocation').textContent = data.location || 'Rural India';
+  document.getElementById('mFinalPrice').textContent = '₹' + (data.finalPrice || '0');
+  document.getElementById('mBasePrice').textContent = '₹' + (data.price || '0');
+  document.getElementById('mStock').textContent = (data.stock || '0') + ' units available';
+  document.getElementById('mDescription').textContent = data.description || 'No description provided.';
+
+  // Discounts
+  const sellerDisc = parseInt(data.discount || '0', 10);
+  const campDisc = parseInt(data.campaignDiscount || '0', 10);
+  document.getElementById('mSellerDiscount').textContent = sellerDisc + '% off';
+  
+  const campRow = document.getElementById('mCampaignDiscountRow');
+  if (campDisc > 0) {
+    campRow.classList.remove('d-none');
+    document.getElementById('mCampaignDiscount').textContent = campDisc + '% off';
+  } else {
+    campRow.classList.add('d-none');
+  }
+
+  // Status Badge
+  const statusBadge = document.getElementById('mStatusBadge');
+  statusBadge.className = 'badge px-3 py-2 fs-6 ';
+  const toggleForm = document.getElementById('mToggleForm');
+  const toggleBtn = document.getElementById('mToggleBtn');
+
+  if (data.status === 'approved') {
+    statusBadge.classList.add('bg-success');
+    statusBadge.textContent = 'Active & Live';
+    toggleForm.classList.remove('d-none');
+    toggleForm.action = data.toggleUrl || '#';
+    toggleBtn.className = 'btn btn-outline-warning text-dark btn-sm';
+    toggleBtn.innerHTML = '<i class="bi bi-pause-fill"></i> Pause Listing';
+    toggleForm.onsubmit = function() {
+      return confirm('Pause "' + (data.name || 'this item') + '"? It will be hidden from buyers until you reactivate it.');
+    };
+  } else if (data.status === 'paused') {
+    statusBadge.classList.add('bg-secondary');
+    statusBadge.textContent = 'Paused (Hidden from Buyers)';
+    toggleForm.classList.remove('d-none');
+    toggleForm.action = data.toggleUrl || '#';
+    toggleBtn.className = 'btn btn-outline-success btn-sm';
+    toggleBtn.innerHTML = '<i class="bi bi-play-fill"></i> Activate Listing';
+    toggleForm.onsubmit = null;
+  } else if (data.status === 'suspended') {
+    statusBadge.classList.add('bg-danger');
+    statusBadge.textContent = 'Suspended by Admin';
+    toggleForm.classList.add('d-none');
+  } else {
+    statusBadge.classList.add('bg-light', 'text-dark', 'border');
+    statusBadge.textContent = data.statusLabel || data.status;
+    toggleForm.classList.add('d-none');
+  }
+
+  // Promoted Badge
+  const promoBadge = document.getElementById('mPromotedBadge');
+  if (data.promoted === 'true') {
+    promoBadge.classList.remove('d-none');
+  } else {
+    promoBadge.classList.add('d-none');
+  }
+
+  // Rejection Notice
+  const rejBox = document.getElementById('mRejectionBox');
+  const rejText = document.getElementById('mRejectionText');
+  if (data.status === 'rejected') {
+    rejBox.classList.remove('d-none');
+    rejText.textContent = data.rejectReason || 'Please review your product description, pricing, or quality guidelines.';
+  } else {
+    rejBox.classList.add('d-none');
+  }
+
+  // Image / Emoji
+  const imgEl = document.getElementById('mImage');
+  const emojiBox = document.getElementById('mEmojiBox');
+  if (data.image) {
+    imgEl.src = data.image;
+    imgEl.classList.remove('d-none');
+    emojiBox.classList.add('d-none');
+  } else {
+    imgEl.classList.add('d-none');
+    emojiBox.classList.remove('d-none');
+    emojiBox.textContent = data.emoji || '📦';
+    const hue = data.hue || '140';
+    emojiBox.style.backgroundColor = `hsl(${hue}, 45%, 90%)`;
+  }
+
+  // Action links
+  document.getElementById('mEditLink').href = data.editUrl || '#';
+  const storeLink = document.getElementById('mStoreLink');
+  if (data.status === 'approved' && data.storeUrl) {
+    storeLink.href = data.storeUrl;
+    storeLink.classList.remove('d-none');
+  } else {
+    storeLink.classList.add('d-none');
+  }
+
+  // Delete form action
+  document.getElementById('mDeleteForm').action = data.deleteUrl || '#';
+
+  // Open the modal
+  const modalEl = document.getElementById('productDetailModal');
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+</script>
+{% endblock %}

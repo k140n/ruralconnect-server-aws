@@ -1,0 +1,917 @@
+{% extends "base_admin.html" %}
+{% block title %}Promotional Campaigns | RuralConnect Admin{% endblock %}
+{% block page_title %}Platform Promotional Campaigns{% endblock %}
+{% block nav_campaigns %}active{% endblock %}
+
+{% block top_actions %}
+<div class="d-none d-md-flex align-items-center gap-2">
+  <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-secondary d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-arrow-left me-2 text-secondary"></i><span>Overview</span>
+  </a>
+  <a href="{% url 'marketplace:home' %}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-shop text-primary me-2"></i><span>Storefront</span>
+  </a>
+  <a href="#createCampaignFormCard" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold text-white d-inline-flex align-items-center shadow-xs" style="height: 34px; font-size: 0.81rem; background: #102d59; border-color: #102d59;">
+    <i class="bi bi-plus-lg me-1"></i><span>New Campaign</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Compact Proportional KPI Metric Cards -->
+<div class="row g-3 mb-3">
+  <!-- 1. Live Running Campaigns -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card campaign-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #ecfdf5; color: #059669; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-lightning-charge-fill"></i>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
+          <span class="live-pulse-dot" style="width: 6px; height: 6px;"></span> Live Now
+        </span>
+      </div>
+      <div>
+        <div class="stat-number text-success fw-bold">{{ live_campaigns_count }}</div>
+        <div class="text-muted small fw-medium">Active Running Campaign{{ live_campaigns_count|pluralize }}</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>{% if scheduled_campaigns_count %}{{ scheduled_campaigns_count }} scheduled upcoming{% else %}All live promotions running{% endif %}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Total Enrolled Products -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card campaign-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #f3e8ff; color: #7e22ce; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-tag-fill"></i>
+        </div>
+        <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-2.5 py-1 small fw-bold" style="background: #f3e8ff; color: #7e22ce; border-color: #e9d5ff;">
+          Enrolled
+        </span>
+      </div>
+      <div>
+        <div class="stat-number fw-bold" style="color: #7e22ce;">{{ total_discounted_products }}</div>
+        <div class="text-muted small fw-medium">Promoted Products</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>Across active campaigns</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Average Discount -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card campaign-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #fffbeb; color: #d97706; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-stars"></i>
+        </div>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-bold">
+          Shopper Savings
+        </span>
+      </div>
+      <div>
+        <div class="stat-number fw-bold" style="color: #d97706;">{{ avg_discount }}%</div>
+        <div class="text-muted small fw-medium">Average Festive Discount</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>Applied automatically at checkout</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Total Configured -->
+  <div class="col-6 col-xl-3">
+    <div class="stat-hero-card campaign-kpi-card shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-icon-squircle" style="background: #eff6ff; color: #1d4ed8; width: 40px; height: 40px; font-size: 1.2rem;">
+          <i class="bi bi-collection-play-fill"></i>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small fw-bold">
+          Campaigns Hub
+        </span>
+      </div>
+      <div>
+        <div class="stat-number text-dark fw-bold">{{ total_campaigns }}</div>
+        <div class="text-muted small fw-medium">Configured Campaign{{ total_campaigns|pluralize }}</div>
+      </div>
+      <div class="action-link-subtle text-muted border-top">
+        <span>{{ paused_campaigns_count }} paused or concluded</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modern Filter Pills & Search Bar -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+  <div class="d-flex align-items-center flex-wrap gap-2">
+    <ul class="nav nav-pills gap-1 rounded-pill bg-white shadow-sm border p-1" id="campaignFilterTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 filter-btn" data-filter="all" style="font-size: 0.83rem;">
+          <i class="bi bi-grid-fill"></i>
+          <span>All</span>
+          <span class="badge rounded-pill bg-white text-dark ms-1 shadow-2xs">{{ total_campaigns }}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 filter-btn" data-filter="live" style="font-size: 0.83rem;">
+          <span class="live-pulse-dot" style="width:6px;height:6px;"></span>
+          <span>Live Now</span>
+          <span class="badge rounded-pill bg-light text-secondary border ms-1">{{ live_campaigns_count }}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 filter-btn" data-filter="scheduled" style="font-size: 0.83rem;">
+          <i class="bi bi-clock-history"></i>
+          <span>Scheduled</span>
+          <span class="badge rounded-pill bg-light text-secondary border ms-1">{{ scheduled_campaigns_count }}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 filter-btn" data-filter="paused" style="font-size: 0.83rem;">
+          <i class="bi bi-pause-circle"></i>
+          <span>Paused / Past</span>
+          <span class="badge rounded-pill bg-light text-secondary border ms-1">{{ paused_campaigns_count }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Live Search Input -->
+  <div class="position-relative" style="min-width: 250px;">
+    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem;"></i>
+    <input type="text" id="campaignSearchInput" class="form-control form-control-sm rounded-pill ps-5 pe-3 bg-white border shadow-2xs" placeholder="Search campaign name..." style="height: 36px; font-size: 0.85rem;">
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Left Column: Campaigns Feed -->
+  <div class="col-lg-8">
+    <div id="campaignsContainer">
+      {% for c in campaigns %}
+      <div class="panel mb-3 shadow-sm bg-white border campaign-card transition-all {% if c.status_key == 'live' %}border-success-subtle{% endif %}"
+           data-status="{{ c.status_key }}"
+           data-title="{{ c.name|lower }}"
+           data-desc="{{ c.description|lower }}"
+           style="border-radius: 16px; border-width: 1.5px; padding: 1.35rem 1.45rem;">
+        
+        <!-- Campaign Card Top Bar -->
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3 pb-3 border-bottom">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1.5">
+              <h2 class="h5 mb-0 fw-bold text-dark me-1">{{ c.name }}</h2>
+              <span class="badge rounded-pill fw-bold px-2.5 py-1 text-dark border d-inline-flex align-items-center" style="background: #fef3c7; border-color: #fde68a !important; font-size: 0.78rem;">
+                <i class="bi bi-fire text-danger me-1"></i>Flat {{ c.discount_percent }}% OFF
+              </span>
+              
+              {% if c.status_key == 'live' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
+                  <span class="live-pulse-dot" style="width: 6px; height: 6px;"></span> Live Now
+                </span>
+              {% elif c.status_key == 'scheduled' %}
+                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                  <i class="bi bi-clock"></i> Starts in {{ c.days_to_start }}d
+                </span>
+              {% elif c.status_key == 'paused' %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                  <i class="bi bi-pause-fill"></i> Paused
+                </span>
+              {% else %}
+                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                  <i class="bi bi-check-all"></i> Concluded
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Campaign Dates & Duration -->
+            <div class="text-muted small d-flex align-items-center gap-2 flex-wrap mb-1.5" style="font-size: 0.8rem;">
+              <span><i class="bi bi-calendar3 text-secondary me-1.5"></i> {{ c.start_date|date:"d M Y" }} → {{ c.end_date|date:"d M Y" }}</span>
+              <span class="text-secondary opacity-50">•</span>
+              <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">{{ c.total_days }} days duration</span>
+            </div>
+
+            {% if c.description %}
+              <p class="mb-0 mt-2 text-secondary small" style="line-height: 1.5; font-size: 0.83rem;">{{ c.description }}</p>
+            {% endif %}
+
+            <div class="mt-2">
+              {% if c.allow_seller_enrollment %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size:0.7rem;">
+                  <i class="bi bi-people-fill me-1"></i>Seller Self-Enrollment Open
+                </span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size:0.7rem;">
+                  <i class="bi bi-shield-lock me-1"></i>Admin Products Only
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Structured Action Toolbar -->
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- View Storefront Link -->
+            <a href="{% url 'marketplace:products' %}?campaign={{ c.id }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-secondary fw-semibold d-inline-flex align-items-center gap-1 shadow-2xs" title="View filtered storefront page">
+              <i class="bi bi-box-arrow-up-right text-primary"></i>
+              <span class="d-none d-sm-inline">Storefront</span>
+            </a>
+
+            <!-- Bulk Add Products Modal Trigger (Primary Accent) -->
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 text-white shadow-2xs" data-bs-toggle="modal" data-bs-target="#bulkProductModal{{ c.pk }}" style="background: #102d59; border-color: #102d59;">
+              <i class="bi bi-plus-lg"></i>
+              <span>Add Products</span>
+            </button>
+
+            <!-- Grouped Secondary Actions -->
+            <div class="btn-group btn-group-sm rounded-pill border bg-light p-0.5 shadow-2xs" role="group">
+              <!-- Edit -->
+              <button type="button" class="btn btn-sm btn-light border-0 rounded-pill px-2.5 py-1 text-secondary fw-semibold" data-bs-toggle="modal" data-bs-target="#editCampaignModal{{ c.pk }}" title="Edit campaign">
+                <i class="bi bi-pencil text-muted me-1"></i><span class="d-none d-md-inline">Edit</span>
+              </button>
+
+              <!-- Duplicate -->
+              <form method="post" class="d-inline m-0">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="duplicate">
+                <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                <button type="submit" class="btn btn-sm btn-light border-0 rounded-pill px-2.5 py-1 text-secondary fw-semibold" title="Duplicate as draft">
+                  <i class="bi bi-copy text-muted me-1"></i><span class="d-none d-md-inline">Duplicate</span>
+                </button>
+              </form>
+
+              <!-- Pause / Activate -->
+              <form method="post" class="d-inline m-0">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                {% if c.is_active %}
+                  <button type="submit" class="btn btn-sm border-0 rounded-pill px-2.5 py-1 fw-semibold text-warning-emphasis" style="background: #fef3c7;" title="Pause campaign">
+                    <i class="bi bi-pause-fill me-1"></i><span>Pause</span>
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm border-0 rounded-pill px-2.5 py-1 fw-semibold text-success" style="background: #ecfdf5;" title="Activate campaign">
+                    <i class="bi bi-play-fill me-1"></i><span>Activate</span>
+                  </button>
+                {% endif %}
+              </form>
+
+              <!-- Delete -->
+              <form method="post" class="d-inline m-0" onsubmit="return confirm('Permanently delete campaign &quot;{{ c.name|escapejs }}&quot;?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                <button type="submit" class="btn btn-sm btn-light border-0 rounded-pill px-2 py-1 text-danger fw-semibold" title="Delete campaign">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign Duration Timeline Bar -->
+        <div class="p-3 bg-light rounded-3 mb-3 border">
+          <div class="d-flex justify-content-between align-items-center mb-2 px-0.5">
+            <span class="text-secondary fw-semibold" style="font-size: 0.81rem;">
+              <i class="bi bi-hourglass-split me-1.5 text-primary"></i>
+              {% if c.status_key == 'live' %}
+                <strong>{{ c.days_left }} day{{ c.days_left|pluralize }}</strong> remaining
+              {% elif c.status_key == 'scheduled' %}
+                Starts in <strong>{{ c.days_to_start }} day{{ c.days_to_start|pluralize }}</strong>
+              {% elif c.status_key == 'ended' %}
+                Campaign finished {{ c.days_since_end }}d ago
+              {% else %}
+                Campaign paused
+              {% endif %}
+            </span>
+            <span class="badge bg-white text-secondary border rounded-pill px-2.5 py-1 fw-bold shadow-2xs" style="font-size: 0.74rem;">
+              {{ c.progress_pct }}% elapsed
+            </span>
+          </div>
+          <div class="progress" style="height: 7px; background-color: #e2e8f0; border-radius: 4px;">
+            <div class="progress-bar {% if c.status_key == 'live' %}bg-success{% elif c.status_key == 'scheduled' %}bg-info{% else %}bg-secondary{% endif %}"
+                 role="progressbar"
+                 style="width: {{ c.progress_pct }}%; border-radius: 4px;"
+                 aria-valuenow="{{ c.progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+
+        <!-- Participating Products Header -->
+        <div class="mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-2.5">
+            <div class="d-flex align-items-center gap-2">
+              <strong class="small text-dark text-uppercase fw-bold" style="font-size: 0.78rem; letter-spacing: 0.6px;">
+                Participating Products ({{ c.campaign_products.count }})
+              </strong>
+              <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-0.5" style="font-size: 0.72rem;">
+                {{ c.discount_percent }}% auto-discount applied
+              </span>
+            </div>
+          </div>
+
+          <!-- Structured 2-Column Product Grid with Clean Stacked Pricing -->
+          <div class="row g-2">
+            {% for cp in c.campaign_products.all %}
+              <div class="col-md-6">
+                <div class="product-badge-card border bg-white rounded-3 p-2.5 px-3 d-flex align-items-center justify-content-between shadow-2xs gap-3 transition-all h-100">
+                  <div class="d-flex align-items-center gap-2.5 min-w-0">
+                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light border flex-shrink-0" style="width:36px;height:36px;font-size:1.15rem;">
+                      {{ cp.product.emoji }}
+                    </span>
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-dark text-truncate" style="font-size: 0.86rem; line-height: 1.25;" title="{{ cp.product.name }}">
+                        {{ cp.product.name }}
+                      </div>
+                      <div class="text-muted text-truncate" style="font-size: 0.74rem; line-height: 1.3; margin-top: 2px;">
+                        {{ cp.product.category.name }} • {{ cp.product.seller.business_name|default:"Artisan" }}
+                        {% if cp.enrolled_by == 'seller' %}
+                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0 ms-1" style="font-size:0.62rem;">Seller Opt-In</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Clean Stacked Price Layout -->
+                  <div class="d-flex align-items-center gap-2.5 flex-shrink-0 ms-2">
+                    <div class="text-end">
+                      <div class="fw-bold text-success" style="font-size: 0.95rem; line-height: 1.15;">₹{{ cp.product.final_price|floatformat:0 }}</div>
+                      <div class="text-muted text-decoration-line-through" style="font-size: 0.73rem; line-height: 1.2; opacity: 0.75;">₹{{ cp.product.price|floatformat:0 }}</div>
+                    </div>
+
+                    <!-- Remove Product Button -->
+                    <form method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Remove &quot;{{ cp.product.name|escapejs }}&quot; from this campaign?')">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="remove_product">
+                      <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                      <input type="hidden" name="product_id" value="{{ cp.product.pk }}">
+                      <button type="submit" class="btn btn-link text-danger p-0.5 d-inline-flex align-items-center hover-scale" style="line-height:1; text-decoration:none;" title="Remove product">
+                        <i class="bi bi-x-circle-fill text-danger opacity-75" style="font-size: 1.05rem;"></i>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="col-12">
+                <div class="text-center p-4 bg-light rounded-3 border border-dashed">
+                  <div class="rounded-circle bg-white border d-inline-flex align-items-center justify-content-center mb-2" style="width:44px;height:44px;">
+                    <i class="bi bi-bag-plus text-primary fs-5"></i>
+                  </div>
+                  <div class="fw-semibold text-dark small mb-1">No products enrolled yet</div>
+                  <p class="text-muted small mb-2">Include approved products to feature them on the festive storefront with {{ c.discount_percent }}% OFF.</p>
+                  <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold text-white shadow-2xs" data-bs-toggle="modal" data-bs-target="#bulkProductModal{{ c.pk }}" style="background: #102d59; border-color: #102d59;">
+                    <i class="bi bi-plus-lg me-1"></i> Enroll Products Now
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+
+            {% if c.campaign_products.all %}
+              <!-- Inline Add Products Card in Grid -->
+              <div class="col-md-6">
+                <button type="button" class="btn btn-light border border-dashed rounded-3 p-2.5 px-3 w-100 h-100 d-flex align-items-center justify-content-center gap-2 text-secondary fw-semibold shadow-2xs hover-scale" data-bs-toggle="modal" data-bs-target="#bulkProductModal{{ c.pk }}" style="font-size: 0.83rem; border-style: dashed !important; background: #fafbfc; min-height: 56px;">
+                  <i class="bi bi-plus-circle text-primary fs-6"></i>
+                  <span>Add More Products</span>
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Bulk Product Picker Modal -->
+        <div class="modal fade text-start" id="bulkProductModal{{ c.pk }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_products_bulk">
+                <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                
+                <div class="modal-header border-bottom px-4 py-3">
+                  <div>
+                    <h5 class="modal-title fw-bold text-dark mb-0">Enroll Products in "{{ c.name }}"</h5>
+                    <div class="text-muted small">Select approved items to apply the Flat {{ c.discount_percent }}% OFF discount.</div>
+                  </div>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                  <!-- Search and Category Filters inside Modal -->
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                      <div class="position-relative">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control form-control-sm rounded-pill ps-5 modal-product-search" placeholder="Search by product name or seller..." oninput="filterModalProducts(this, '{{ c.pk }}')">
+                      </div>
+                    </div>
+                    <div class="col-md-5">
+                      <select class="form-select form-select-sm rounded-pill modal-category-filter" onchange="filterModalProductsByCategory(this, '{{ c.pk }}')">
+                        <option value="all">All Categories</option>
+                        {% for cat in categories %}
+                          <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Quick Select / Deselect Bar -->
+                  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <span class="small text-muted fw-medium">Available Catalog Items</span>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-xs btn-link text-decoration-none p-0 text-primary fw-semibold" onclick="toggleSelectAllModal('{{ c.pk }}', true)">Select All</button>
+                      <span class="text-muted small">•</span>
+                      <button type="button" class="btn btn-xs btn-link text-decoration-none p-0 text-secondary fw-semibold" onclick="toggleSelectAllModal('{{ c.pk }}', false)">Deselect All</button>
+                    </div>
+                  </div>
+
+                  <!-- Products Checklist List -->
+                  <div class="list-group list-group-flush border rounded-3 overflow-auto" id="modalProductList{{ c.pk }}" style="max-height: 340px;">
+                    {% for p in all_products %}
+                      <label class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-2.5 px-3 modal-item-row"
+                             data-product-name="{{ p.name|lower }}"
+                             data-product-category="{{ p.category.name|lower }}"
+                             data-product-seller="{{ p.seller.business_name|lower }}">
+                        <input class="form-check-input flex-shrink-0 modal-item-checkbox-{{ c.pk }}"
+                               type="checkbox"
+                               name="product_ids"
+                               value="{{ p.pk }}"
+                               {% if p.pk in c.enrolled_product_ids %}checked disabled{% endif %}>
+                        
+                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0" style="width: 36px; height: 36px; font-size: 1.1rem;">
+                          {{ p.emoji }}
+                        </div>
+
+                        <div class="flex-grow-1 text-truncate">
+                          <div class="d-flex align-items-center gap-2">
+                            <strong class="text-dark small text-truncate">{{ p.name }}</strong>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">{{ p.category.name }}</span>
+                            {% if p.pk in c.enrolled_product_ids %}
+                              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.65rem;">Enrolled</span>
+                            {% endif %}
+                          </div>
+                          <div class="text-muted small" style="font-size: 0.75rem;">
+                            Seller: {{ p.seller.business_name|default:"Artisan" }} • Stock: {{ p.stock }}
+                          </div>
+                        </div>
+
+                        <div class="text-end flex-shrink-0">
+                          <div class="small fw-bold text-dark">₹{{ p.price|floatformat:0 }}</div>
+                          <div class="small text-success fw-medium" style="font-size: 0.72rem;">Promo: ₹{{ p.price|floatformat:0 }} → Flat {{ c.discount_percent }}% OFF</div>
+                        </div>
+                      </label>
+                    {% empty %}
+                      <div class="p-4 text-center text-muted small">No approved products in catalog.</div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="modal-footer border-top px-4 py-3 bg-light">
+                  <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold text-white shadow-2xs" style="background: #102d59; border-color: #102d59;">
+                    <i class="bi bi-check2-circle me-1"></i> Save Enrolled Products
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Campaign Modal -->
+        <div class="modal fade text-start" id="editCampaignModal{{ c.pk }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+                <div class="modal-header border-bottom px-4 py-3">
+                  <h5 class="modal-title fw-bold text-dark mb-0">Edit Campaign: {{ c.name }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row g-3 p-4">
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold text-dark">Campaign Name</label>
+                    <input class="form-control rounded-3" name="name" value="{{ c.name }}" required>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold text-dark">Description</label>
+                    <textarea class="form-control rounded-3" name="description" rows="2">{{ c.description }}</textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold text-dark">Discount Percentage (%)</label>
+                    <div class="input-group">
+                      <input class="form-control rounded-start-3" type="number" name="discount_percent" value="{{ c.discount_percent }}" min="1" max="90" required>
+                      <span class="input-group-text rounded-end-3 bg-light">%</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold text-dark">Start Date</label>
+                    <input class="form-control rounded-3" type="date" name="start_date" value="{{ c.start_date|date:'Y-m-d' }}" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold text-dark">End Date</label>
+                    <input class="form-control rounded-3" type="date" name="end_date" value="{{ c.end_date|date:'Y-m-d' }}" required>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border">
+                      <input class="form-check-input ms-n4" type="checkbox" name="allow_seller_enrollment" value="1" id="editAllowSellerEnroll{{ c.pk }}" {% if c.allow_seller_enrollment %}checked{% endif %}>
+                      <label class="form-check-label small fw-semibold text-dark" for="editAllowSellerEnroll{{ c.pk }}">
+                        Allow Artisan Sellers to Self-Enroll Products
+                      </label>
+                      <div class="text-muted small" style="font-size:0.72rem;">Sellers can opt-in their approved crafts into this campaign.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light">
+                  <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold text-white shadow-2xs" style="background: #102d59; border-color: #102d59;">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      {% empty %}
+      <div class="panel text-center py-5 text-muted shadow-sm bg-white rounded-4 border">
+        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+          <i class="bi bi-lightning-charge text-secondary fs-2 opacity-50"></i>
+        </div>
+        <h3 class="h5 fw-bold text-dark">No promotional campaigns created yet</h3>
+        <p class="small text-muted mb-3" style="max-width: 380px; margin: 0 auto;">Launch festive sales, handloom discount festivals, or seasonal promotional events using the launch form on the right.</p>
+        <a href="#campNameInput" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold text-white" style="background:#102d59;">
+          <i class="bi bi-plus-lg me-1"></i> Launch First Campaign
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Right Column: Spacious, Uncluttered Creation Panel -->
+  <div class="col-lg-4">
+    <div class="sticky-top sidebar-sticky-panel" style="top: 1rem; z-index: 10;">
+      
+      <div class="panel shadow-sm bg-white border" id="createCampaignFormCard" style="border-radius: 18px; padding: 1.5rem;">
+        
+        <!-- Clean, Airy Header -->
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 32px; height: 32px; background: #102d59; font-size: 0.85rem;">
+              <i class="bi bi-plus-lg"></i>
+            </div>
+            <div>
+              <h2 class="h6 mb-0 fw-bold text-dark" style="font-size: 0.95rem;">Create Campaign</h2>
+              <div class="text-muted small" style="font-size: 0.74rem;">Schedule promotional offer</div>
+            </div>
+          </div>
+
+          <span class="badge bg-light text-secondary border rounded-pill px-3 py-1" style="font-size: 0.72rem;">
+            New Offer
+          </span>
+        </div>
+
+        <!-- Clean Form with Generous Spacing -->
+        <form method="post" class="row g-3" id="createCampaignForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add">
+
+          <!-- Campaign Name -->
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary mb-1" style="font-size: 0.8rem;">Campaign Name</label>
+            <input class="form-control rounded-3" name="name" id="campNameInput" placeholder="e.g. Onam Handloom Special" required style="font-size: 0.88rem; padding: 0.55rem 0.85rem; border-color: #cbd5e1;">
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary mb-1" style="font-size: 0.8rem;">Description <span class="text-muted fw-normal">(Optional)</span></label>
+            <textarea class="form-control rounded-3" name="description" id="campDescInput" rows="2" placeholder="e.g. Special festival discount on traditional handlooms" style="font-size: 0.84rem; padding: 0.55rem 0.85rem; line-height: 1.45; border-color: #cbd5e1; resize: none;"></textarea>
+          </div>
+
+          <!-- Discount Percentage with Clean Presets below -->
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-secondary mb-1" style="font-size: 0.8rem;">Discount Percentage</label>
+            <div class="input-group mb-2">
+              <input class="form-control rounded-start-3" type="number" name="discount_percent" id="discountInput" value="20" min="1" max="90" required style="font-size: 0.88rem; padding: 0.55rem 0.85rem; border-color: #cbd5e1;">
+              <span class="input-group-text rounded-end-3 bg-light text-muted fw-bold border-start-0" style="font-size: 0.85rem; border-color: #cbd5e1;">%</span>
+            </div>
+            <!-- Clean Preset Chips below with dedicated breathing room -->
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small me-1" style="font-size: 0.72rem;">Presets:</span>
+              <button type="button" class="btn btn-sm btn-preset-discount rounded-pill px-2 py-1 fw-semibold" style="font-size:0.75rem;" onclick="setDiscount(10, this)">10%</button>
+              <button type="button" class="btn btn-sm btn-preset-discount active rounded-pill px-2 py-1 fw-semibold" style="font-size:0.75rem;" onclick="setDiscount(20, this)">20%</button>
+              <button type="button" class="btn btn-sm btn-preset-discount rounded-pill px-2 py-1 fw-semibold" style="font-size:0.75rem;" onclick="setDiscount(30, this)">30%</button>
+              <button type="button" class="btn btn-sm btn-preset-discount rounded-pill px-2 py-1 fw-semibold" style="font-size:0.75rem;" onclick="setDiscount(50, this)">50%</button>
+            </div>
+          </div>
+
+          <!-- Campaign Schedule & Timeline Sub-Card -->
+          <div class="col-12">
+            <div class="p-3 rounded-3 border bg-light bg-opacity-40" style="border-color: #e2e8f0 !important;">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-semibold text-secondary" style="font-size: 0.78rem;">
+                  <i class="bi bi-calendar3 me-1 text-primary"></i>Campaign Schedule
+                </span>
+                <span class="badge bg-white text-dark border rounded-pill fw-semibold shadow-2xs" id="durationBadgePreview" style="font-size: 0.68rem; padding: 2px 8px;">14 Days Duration</span>
+              </div>
+              
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">Start Date</label>
+                  <input class="form-control form-control-sm rounded-3 bg-white" type="date" name="start_date" id="campStartDate" required style="font-size: 0.78rem; height: 34px; border-color: #cbd5e1;">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small text-muted mb-1" style="font-size: 0.72rem;">End Date</label>
+                  <input class="form-control form-control-sm rounded-3 bg-white" type="date" name="end_date" id="campEndDate" required style="font-size: 0.78rem; height: 34px; border-color: #cbd5e1;">
+                </div>
+              </div>
+
+              <!-- Quick Duration Chips -->
+              <div class="d-flex align-items-center gap-2 pt-1">
+                <button type="button" class="btn btn-sm btn-duration-chip rounded-pill px-2 py-1 fw-semibold" style="font-size:0.74rem;" onclick="setCampaignDates(7, this)">7 days</button>
+                <button type="button" class="btn btn-sm btn-duration-chip active rounded-pill px-2 py-1 fw-semibold" style="font-size:0.74rem;" onclick="setCampaignDates(14, this)">14 days</button>
+                <button type="button" class="btn btn-sm btn-duration-chip rounded-pill px-2 py-1 fw-semibold" style="font-size:0.74rem;" onclick="setCampaignDates(30, this)">30 days</button>
+                <button type="button" class="btn btn-sm btn-duration-chip rounded-pill px-2 py-1 fw-semibold" style="font-size:0.74rem;" onclick="setCampaignDates(45, this)">Festive (45d)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Allow Seller Enrollment Toggle -->
+          <div class="col-12">
+            <div class="form-check form-switch p-2 ps-5 rounded-3 bg-light border">
+              <input class="form-check-input ms-n4" type="checkbox" name="allow_seller_enrollment" value="1" id="allowSellerEnrollCheck" checked>
+              <label class="form-check-label small fw-semibold text-dark" for="allowSellerEnrollCheck">
+                Allow Artisan Sellers to Self-Enroll Products
+              </label>
+              <div class="text-muted small" style="font-size:0.72rem;">Sellers will see this campaign in their promotions portal and can opt-in their approved crafts.</div>
+            </div>
+          </div>
+
+          <!-- Launch Button -->
+          <div class="col-12 mt-3 pt-1">
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 text-white" type="submit" style="background: #102d59; border-color: #102d59; font-size: 0.92rem; height: 42px;">
+              <i class="bi bi-rocket-takeoff-fill"></i>
+              <span>Launch Campaign</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+/* Compact KPI Cards without vertical void */
+.campaign-kpi-card {
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 1rem 1.15rem !important;
+  border-radius: 16px !important;
+  gap: 0.55rem !important;
+}
+.campaign-kpi-card .stat-number {
+  font-size: 1.75rem !important;
+  line-height: 1.1 !important;
+  margin-bottom: 0.15rem !important;
+}
+.campaign-kpi-card .action-link-subtle {
+  margin-top: 0.25rem !important;
+  padding-top: 0.45rem !important;
+  font-size: 0.75rem !important;
+}
+
+/* Scrollable sticky sidebar on small/medium screens */
+.sidebar-sticky-panel {
+  max-height: calc(100vh - 4.5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.sidebar-sticky-panel::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-sticky-panel::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* Active nav pill styling */
+#campaignFilterTabs .nav-link.active {
+  background: #102d59 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(16, 45, 89, 0.2);
+}
+#campaignFilterTabs .nav-link.active .badge {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+#campaignFilterTabs .nav-link:not(.active) {
+  color: #64748b;
+}
+#campaignFilterTabs .nav-link:not(.active):hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.product-badge-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.hover-scale {
+  transition: transform 0.15s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Clean preset chips */
+.btn-preset-discount,
+.btn-duration-chip {
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+.btn-preset-discount:hover,
+.btn-duration-chip:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+.btn-preset-discount.active,
+.btn-duration-chip.active {
+  background-color: #102d59 !important;
+  color: #ffffff !important;
+  border-color: #102d59 !important;
+  box-shadow: 0 1px 4px rgba(16, 45, 89, 0.25) !important;
+}
+
+/* Modal styling */
+.modal-item-row:hover {
+  background-color: #f8fafc;
+}
+</style>
+
+{% block extra_js %}
+<script>
+// --- Quick Date Helper ---
+function setCampaignDates(days, btn) {
+  const today = new Date();
+  const end = new Date();
+  end.setDate(today.getDate() + days);
+
+  const formatDate = d => d.toISOString().split('T')[0];
+  const startInput = document.getElementById('campStartDate');
+  const endInput = document.getElementById('campEndDate');
+  if (startInput) startInput.value = formatDate(today);
+  if (endInput) endInput.value = formatDate(end);
+
+  const badge = document.getElementById('durationBadgePreview');
+  if (badge) badge.textContent = `${days} Days Duration`;
+
+  document.querySelectorAll('.btn-duration-chip').forEach(b => b.classList.remove('active'));
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    document.querySelectorAll('.btn-duration-chip').forEach(b => {
+      if (b.innerText.includes(days + ' days') || (days === 45 && b.innerText.includes('45d'))) {
+        b.classList.add('active');
+      }
+    });
+  }
+}
+
+function updateDateBadgeFromInputs() {
+  const startVal = document.getElementById('campStartDate')?.value;
+  const endVal = document.getElementById('campEndDate')?.value;
+  if (startVal && endVal) {
+    const s = new Date(startVal);
+    const e = new Date(endVal);
+    const diffDays = Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24)));
+    const badge = document.getElementById('durationBadgePreview');
+    if (badge) badge.textContent = `${diffDays} Day${diffDays > 1 ? 's' : ''} Duration`;
+  }
+}
+
+document.getElementById('campStartDate')?.addEventListener('change', updateDateBadgeFromInputs);
+document.getElementById('campEndDate')?.addEventListener('change', updateDateBadgeFromInputs);
+
+// --- Quick Discount Helper ---
+function setDiscount(val, btn) {
+  const input = document.getElementById('discountInput');
+  if (input) input.value = val;
+  
+  document.querySelectorAll('.btn-preset-discount').forEach(b => b.classList.remove('active'));
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    document.querySelectorAll('.btn-preset-discount').forEach(b => {
+      if (b.innerText.trim() === val + '%') {
+        b.classList.add('active');
+      }
+    });
+  }
+}
+
+// --- Filter Tab Logic ---
+document.querySelectorAll('#campaignFilterTabs .filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('#campaignFilterTabs .filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    const filter = this.getAttribute('data-filter');
+    filterCampaigns(filter);
+  });
+});
+
+function filterCampaigns(status) {
+  const search = document.getElementById('campaignSearchInput').value.toLowerCase();
+  const cards = document.querySelectorAll('.campaign-card');
+
+  cards.forEach(card => {
+    const cardStatus = card.getAttribute('data-status');
+    const cardTitle = card.getAttribute('data-title');
+    const cardDesc = card.getAttribute('data-desc');
+
+    const matchesStatus = (status === 'all') || 
+                          (status === 'live' && cardStatus === 'live') ||
+                          (status === 'scheduled' && cardStatus === 'scheduled') ||
+                          (status === 'paused' && (cardStatus === 'paused' || cardStatus === 'ended'));
+
+    const matchesSearch = !search || cardTitle.includes(search) || cardDesc.includes(search);
+
+    if (matchesStatus && matchesSearch) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// --- Real-time Search Input ---
+document.getElementById('campaignSearchInput').addEventListener('input', function() {
+  const activeTab = document.querySelector('#campaignFilterTabs .filter-btn.active');
+  const status = activeTab ? activeTab.getAttribute('data-filter') : 'all';
+  filterCampaigns(status);
+});
+
+// --- Modal Search & Category Filter ---
+function filterModalProducts(input, campaignId) {
+  const q = input.value.toLowerCase();
+  const modal = document.getElementById('bulkProductModal' + campaignId);
+  const catFilter = modal.querySelector('.modal-category-filter').value;
+  
+  modal.querySelectorAll('.modal-item-row').forEach(row => {
+    const name = row.getAttribute('data-product-name');
+    const seller = row.getAttribute('data-product-seller');
+    const cat = row.getAttribute('data-product-category');
+
+    const matchesSearch = !q || name.includes(q) || seller.includes(q);
+    const matchesCat = (catFilter === 'all') || (cat === catFilter);
+
+    row.style.display = (matchesSearch && matchesCat) ? '' : 'none';
+  });
+}
+
+function filterModalProductsByCategory(select, campaignId) {
+  const cat = select.value;
+  const modal = document.getElementById('bulkProductModal' + campaignId);
+  const q = modal.querySelector('.modal-product-search').value.toLowerCase();
+
+  modal.querySelectorAll('.modal-item-row').forEach(row => {
+    const name = row.getAttribute('data-product-name');
+    const seller = row.getAttribute('data-product-seller');
+    const rowCat = row.getAttribute('data-product-category');
+
+    const matchesSearch = !q || name.includes(q) || seller.includes(q);
+    const matchesCat = (cat === 'all') || (rowCat === cat);
+
+    row.style.display = (matchesSearch && matchesCat) ? '' : 'none';
+  });
+}
+
+function toggleSelectAllModal(campaignId, selectAll) {
+  const modal = document.getElementById('bulkProductModal' + campaignId);
+  modal.querySelectorAll(`.modal-item-checkbox-${campaignId}`).forEach(cb => {
+    if (!cb.disabled) {
+      cb.checked = selectAll;
+    }
+  });
+}
+
+// Default to 14 days on load if empty
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.getElementById('campStartDate').value) {
+    setCampaignDates(14);
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

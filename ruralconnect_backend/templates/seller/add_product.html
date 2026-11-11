@@ -1,0 +1,463 @@
+{% extends "base_seller.html" %}
+{% block title %}Add Product | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Add New Product{% endblock %}
+{% block nav_addproduct %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.form-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #102d59;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 0.75rem;
+}
+.live-preview-sticky {
+  position: sticky;
+  top: 1.5rem;
+}
+.preview-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.preview-img-box {
+  height: 200px;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.preview-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.img-upload-dropzone {
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.img-upload-dropzone:hover {
+  border-color: #1258a8;
+  background: #f0f4f9;
+}
+.preview-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item"><a href="{% url 'seller:dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'seller:my_products' %}" class="text-decoration-none">My Products</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Add Product</li>
+    </ol>
+  </nav>
+  <h2 class="h5 fw-bold text-dark mb-0">List a New Handcrafted Product</h2>
+  <p class="text-muted small">Fill in the details below. Once submitted, your product goes live immediately on RuralConnect.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate id="addProductForm">
+  {% csrf_token %}
+
+  <div class="row g-4">
+    <!-- Left Column: Form Fields -->
+    <div class="col-lg-8">
+      
+      <!-- 1. Basic Details Card -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <i class="bi bi-tag-fill"></i> 1. Product Identity &amp; Category
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small" for="id_name">
+              Product Title <span class="text-danger">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.name.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text small">Give your item an authentic, descriptive name.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="id_category">
+              Category <span class="text-danger">*</span>
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.category.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small" for="id_description">
+              Artisan Story &amp; Description <span class="text-danger">*</span>
+            </label>
+            {{ form.description }}
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              {% if form.description.errors %}
+                <div class="text-danger small"><i class="bi bi-exclamation-circle me-1"></i>{{ form.description.errors.0 }}</div>
+              {% else %}
+                <div class="text-muted small">Min 20 characters. Include dimensions, raw materials, and heritage technique.</div>
+              {% endif %}
+              <div class="text-muted small" id="charCount">0 characters</div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold small" for="id_location">
+              Artisan Origin / Location <span class="text-danger">*</span>
+            </label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.location.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text small">Village, Town or State where this craft originates (e.g. Jaipur, Rajasthan).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Pricing & Inventory Card -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <i class="bi bi-currency-rupee"></i> 2. Pricing &amp; Inventory
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="price">
+              Base Price (₹) <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light fw-bold text-dark">₹</span>
+              {{ form.price }}
+            </div>
+            {% if form.price.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.price.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="discount">
+              Seller Discount (%)
+            </label>
+            <div class="input-group">
+              {{ form.seller_discount }}
+              <span class="input-group-text bg-light text-dark">% off</span>
+            </div>
+            {% if form.seller_discount.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.seller_discount.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text small">Optional (0 to 90%).</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small" for="id_stock">
+              Quantity in Stock <span class="text-danger">*</span>
+            </label>
+            {{ form.stock }}
+            {% if form.stock.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.stock.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text small">Available ready-to-ship units.</div>
+          </div>
+
+          <div class="col-12">
+            <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <span class="text-muted small d-block">Estimated Customer Price:</span>
+                <span class="fs-4 fw-bold text-success" id="calcPriceDisplay">₹0</span>
+                <span class="text-muted small ms-2 text-decoration-line-through d-none" id="calcOriginalPrice">₹0</span>
+              </div>
+              <div class="text-end text-muted small">
+                <i class="bi bi-shield-check text-rc me-1"></i> Calculated automatically in real time
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Imagery Card -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <i class="bi bi-images"></i> 3. Product Photos &amp; Visuals
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small" for="id_main_image">
+              Primary Cover Photo <span class="text-danger">*</span>
+            </label>
+            {{ form.main_image }}
+            {% if form.main_image.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.main_image.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text small">This is the main thumbnail displayed across the store.</div>
+            <div id="mainImagePreview" class="mt-2"></div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small" for="extra_images">
+              Additional Gallery Photos (Up to 4)
+            </label>
+            <input class="form-control" id="extra_images" name="extra_images" type="file" accept="image/*" multiple>
+            <div class="form-text small">Show alternate angles, close-ups of texture or packaging.</div>
+            <div id="extraImagesPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instant Publishing Box -->
+      <div class="alert alert-success border-success-subtle bg-success-subtle d-flex align-items-start gap-2 shadow-sm rounded-3 mb-4">
+        <i class="bi bi-broadcast fs-5 mt-1 text-success"></i>
+        <div class="small text-success-emphasis">
+          <strong>Instant Publishing:</strong> Your handcrafted product will be published immediately and visible to buyers across India. You can pause or edit your listing at any time from your catalog.
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-rc px-4 py-2 fw-semibold" type="submit">
+          <i class="bi bi-broadcast me-1"></i> Publish Product Now
+        </button>
+        <a class="btn btn-outline-secondary px-4 py-2" href="{% url 'seller:my_products' %}">
+          Cancel
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Live Preview & Tips -->
+    <div class="col-lg-4">
+      <div class="live-preview-sticky">
+        
+        <!-- Live Card Preview -->
+        <div class="preview-card mb-3">
+          <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <span class="small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">Live Storefront Preview</span>
+            <span class="badge bg-warning text-dark small">Pending Review</span>
+          </div>
+
+          <div class="preview-img-box" id="cardPreviewImgBox">
+            <img id="cardPreviewImg" src="" alt="Preview" class="d-none">
+            <div id="cardPreviewPlaceholder" class="text-center p-3 text-muted">
+              <i class="bi bi-image fs-1 d-block opacity-25"></i>
+              <span class="small">Upload cover photo to preview</span>
+            </div>
+          </div>
+
+          <div class="p-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="badge bg-light text-dark border small" id="cardPreviewCategory">Category</span>
+              <span class="badge bg-success-subtle text-success small" id="cardPreviewStock">In Stock</span>
+            </div>
+            
+            <h5 class="fw-bold text-dark mb-1 text-truncate" id="cardPreviewTitle">Product Title</h5>
+            <div class="small text-muted mb-2"><i class="bi bi-geo-alt"></i> <span id="cardPreviewLocation">Origin Location</span></div>
+
+            <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-baseline">
+              <div>
+                <span class="fs-4 fw-bold text-rc" id="cardPreviewPrice">₹0</span>
+                <span class="text-muted small text-decoration-line-through ms-1 d-none" id="cardPreviewStrikePrice">₹0</span>
+              </div>
+              <span class="badge bg-success d-none" id="cardPreviewDiscountBadge">0% off</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="panel p-3 bg-white shadow-sm border">
+          <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Best Practices for Approval</h6>
+          <ul class="small text-muted ps-3 mb-0" style="line-height:1.6;">
+            <li class="mb-1"><strong>Authentic Craft:</strong> Describe the traditional artisan technique, material (e.g. terracotta, pure silk, brass), and dimensions.</li>
+            <li class="mb-1"><strong>Clear Photos:</strong> Use well-lit images on a plain or neutral background.</li>
+            <li class="mb-1"><strong>Fair Pricing:</strong> Transparent pricing attracts more buyers and increases review ratings.</li>
+            <li><strong>Stock Accuracy:</strong> Maintain real stock counts to avoid order cancellations.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nameInput = document.getElementById('id_name');
+  const catInput = document.getElementById('id_category');
+  const descInput = document.getElementById('id_description');
+  const priceInput = document.getElementById('price');
+  const discInput = document.getElementById('discount');
+  const stockInput = document.getElementById('id_stock');
+  const locInput = document.getElementById('id_location');
+  const mainImgInput = document.getElementById('id_main_image');
+  const extraImgsInput = document.getElementById('extra_images');
+
+  // Preview elements
+  const prevTitle = document.getElementById('cardPreviewTitle');
+  const prevCat = document.getElementById('cardPreviewCategory');
+  const prevPrice = document.getElementById('cardPreviewPrice');
+  const prevStrikePrice = document.getElementById('cardPreviewStrikePrice');
+  const prevDiscBadge = document.getElementById('cardPreviewDiscountBadge');
+  const prevStock = document.getElementById('cardPreviewStock');
+  const prevLoc = document.getElementById('cardPreviewLocation');
+  const prevImg = document.getElementById('cardPreviewImg');
+  const prevPlaceholder = document.getElementById('cardPreviewPlaceholder');
+  const calcPriceDisplay = document.getElementById('calcPriceDisplay');
+  const calcOriginalPrice = document.getElementById('calcOriginalPrice');
+  const charCount = document.getElementById('charCount');
+
+  // 1. Text sync
+  if (nameInput) {
+    nameInput.addEventListener('input', () => {
+      prevTitle.textContent = nameInput.value.trim() || 'Product Title';
+    });
+  }
+
+  if (locInput) {
+    locInput.addEventListener('input', () => {
+      prevLoc.textContent = locInput.value.trim() || 'Origin Location';
+    });
+  }
+
+  if (catInput) {
+    catInput.addEventListener('change', () => {
+      const selected = catInput.options[catInput.selectedIndex];
+      prevCat.textContent = (selected && selected.value) ? selected.text : 'Category';
+    });
+  }
+
+  if (descInput) {
+    descInput.addEventListener('input', () => {
+      const len = descInput.value.length;
+      charCount.textContent = `${len} character${len === 1 ? '' : 's'}`;
+      if (len < 20) {
+        charCount.className = 'text-danger small fw-semibold';
+      } else {
+        charCount.className = 'text-success small';
+      }
+    });
+  }
+
+  // 2. Live Price & Discount Calculation
+  function updatePricing() {
+    const base = parseFloat(priceInput ? priceInput.value : 0) || 0;
+    const disc = parseFloat(discInput ? discInput.value : 0) || 0;
+
+    if (base > 0) {
+      const finalPrice = Math.round(base * (1 - (disc / 100)));
+      calcPriceDisplay.textContent = '₹' + finalPrice.toLocaleString('en-IN');
+      prevPrice.textContent = '₹' + finalPrice.toLocaleString('en-IN');
+
+      if (disc > 0) {
+        calcOriginalPrice.textContent = '₹' + base.toLocaleString('en-IN');
+        calcOriginalPrice.classList.remove('d-none');
+        prevStrikePrice.textContent = '₹' + base.toLocaleString('en-IN');
+        prevStrikePrice.classList.remove('d-none');
+        prevDiscBadge.textContent = disc + '% off';
+        prevDiscBadge.classList.remove('d-none');
+      } else {
+        calcOriginalPrice.classList.add('d-none');
+        prevStrikePrice.classList.add('d-none');
+        prevDiscBadge.classList.add('d-none');
+      }
+    } else {
+      calcPriceDisplay.textContent = '₹0';
+      prevPrice.textContent = '₹0';
+      calcOriginalPrice.classList.add('d-none');
+      prevStrikePrice.classList.add('d-none');
+      prevDiscBadge.classList.add('d-none');
+    }
+  }
+
+  if (priceInput) priceInput.addEventListener('input', updatePricing);
+  if (discInput) discInput.addEventListener('input', updatePricing);
+  updatePricing();
+
+  // 3. Stock sync
+  if (stockInput) {
+    stockInput.addEventListener('input', () => {
+      const qty = parseInt(stockInput.value, 10) || 0;
+      if (qty > 0) {
+        prevStock.textContent = `${qty} in stock`;
+        prevStock.className = 'badge bg-success-subtle text-success small';
+      } else {
+        prevStock.textContent = 'Out of Stock';
+        prevStock.className = 'badge bg-danger-subtle text-danger small';
+      }
+    });
+  }
+
+  // 4. Main image preview
+  if (mainImgInput) {
+    mainImgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      const previewBox = document.getElementById('mainImagePreview');
+      previewBox.innerHTML = '';
+
+      if (file) {
+        const url = URL.createObjectURL(file);
+        prevImg.src = url;
+        prevImg.classList.remove('d-none');
+        prevPlaceholder.classList.add('d-none');
+
+        const thumb = document.createElement('img');
+        thumb.src = url;
+        thumb.className = 'preview-thumb';
+        previewBox.appendChild(thumb);
+      } else {
+        prevImg.classList.add('d-none');
+        prevPlaceholder.classList.remove('d-none');
+      }
+    });
+  }
+
+  // 5. Extra images preview
+  if (extraImgsInput) {
+    extraImgsInput.addEventListener('change', function() {
+      const previewBox = document.getElementById('extraImagesPreview');
+      previewBox.innerHTML = '';
+      Array.from(this.files).slice(0, 4).forEach(file => {
+        const url = URL.createObjectURL(file);
+        const thumb = document.createElement('img');
+        thumb.src = url;
+        thumb.className = 'preview-thumb';
+        previewBox.appendChild(thumb);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

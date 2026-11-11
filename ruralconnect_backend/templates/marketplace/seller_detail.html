@@ -1,0 +1,484 @@
+{% extends "base_public.html" %}
+{% load static %}
+{% block title %}{{ seller.business_name }} | RuralConnect Artisan Store{% endblock %}
+
+{% block extra_css %}
+<style>
+  .artisan-hero {
+    background: linear-gradient(135deg, #102d59 0%, #1e4d8c 50%, #2b6cb0 100%);
+    border-radius: 1.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(16, 45, 89, 0.18);
+  }
+  .artisan-hero::after {
+    content: "";
+    position: absolute;
+    right: -30px;
+    bottom: -30px;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(28, 112, 201, 0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .artisan-avatar-large {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #07113e;
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    border: 3.5px solid #1c70c9;
+    flex-shrink: 0;
+  }
+  .stat-pill {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 0.95rem;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .stat-pill:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+  }
+  .stat-icon-glow {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(242, 169, 59, 0.16);
+    border: 1px solid rgba(242, 169, 59, 0.28);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+  .artisan-story-box {
+    background: #ffffff;
+    border: 1px solid #dce8e1;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  }
+  .trust-perk-card {
+    background: #ffffff;
+    border: 1px solid #dce8e1;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .trust-perk-card:hover {
+    transform: translateY(-3px);
+    border-color: #2f7a57;
+    box-shadow: 0 8px 20px rgba(30, 77, 59, 0.08);
+  }
+  .trust-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(30, 77, 59, 0.08);
+    color: #1e4d3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+  .cat-filter-btn {
+    border-radius: 999px;
+    padding: 0.45rem 1.2rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #2d3748;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .cat-filter-btn:hover {
+    background: #f7faf8;
+    color: #1e4d3b;
+    border-color: #1e4d3b;
+    transform: translateY(-1px);
+  }
+  .cat-filter-btn.active {
+    background: #1e4d3b;
+    color: #ffffff;
+    border-color: #1e4d3b;
+    box-shadow: 0 4px 12px rgba(30, 77, 59, 0.25);
+  }
+  .review-bubble {
+    border: 1px solid #eaedf0;
+    border-radius: 0.85rem;
+    background: #ffffff;
+    padding: 1.15rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}" class="text-decoration-none text-muted">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:products' %}" class="text-decoration-none text-muted">Artisans &amp; Sellers</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ seller.business_name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Artisan Store Hero Banner -->
+  <div class="artisan-hero p-4 p-md-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
+      <div class="d-flex align-items-center gap-3 gap-md-4 flex-wrap flex-sm-nowrap">
+        <div class="artisan-avatar-large shadow flex-shrink-0">
+          {{ seller.business_name|slice:":1"|upper|default:"A" }}
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <h1 class="h2 fw-bold text-white mb-0 text-capitalize" style="font-family: 'DM Sans', sans-serif;">{{ seller.business_name|title }}</h1>
+            {% if seller.is_verified %}
+              <span class="badge bg-success bg-opacity-75 border border-success-subtle text-white px-3 py-1 rounded-pill small fw-semibold d-inline-flex align-items-center">
+                <i class="bi bi-patch-check-fill me-1 text-warning"></i> Verified Rural Artisan
+              </span>
+            {% endif %}
+            <span class="badge text-white px-3 py-1 rounded-pill small fw-semibold d-inline-flex align-items-center"
+                  style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(8px);">
+              <i class="bi bi-geo-alt-fill text-warning me-1"></i> Origin: {{ seller.origin_region }}
+            </span>
+          </div>
+
+          <div class="text-light opacity-90 small mb-1 d-flex flex-wrap gap-3 align-items-center" style="margin-bottom: 0.35rem;">
+            <span class="d-inline-flex align-items-center">
+              <i class="bi bi-geo-alt-fill text-warning me-2"></i>
+              <span>{{ seller.location }}</span>
+            </span>
+            <span class="d-inline-flex align-items-center">
+              <i class="bi bi-calendar2-week text-warning me-2"></i>
+              <span>Artisan partner since {{ seller.created_at|date:"M Y" }}</span>
+            </span>
+          </div>
+
+          <div class="small text-light opacity-80 d-flex align-items-center">
+            <i class="bi bi-shield-check text-warning fs-6 me-2 flex-shrink-0"></i>
+            <span>Direct producer dispatch · Zero middleman markups</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action & Trust Metrics -->
+      <div class="d-flex flex-wrap align-items-center gap-3 ms-lg-auto">
+        <!-- Rating Metric -->
+        <div class="stat-pill text-white">
+          <div class="stat-icon-glow text-warning">
+            <i class="bi bi-star-fill"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-5 lh-1">
+              {% if avg_rating > 0 %}{{ avg_rating }}<small class="fs-7 text-white-50">/5</small>{% else %}New{% endif %}
+            </div>
+            <div class="small opacity-75 mt-1" style="font-size: 0.76rem;">
+              {{ total_reviews }} customer review{{ total_reviews|pluralize }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Metric -->
+        <div class="stat-pill text-white">
+          <div class="stat-icon-glow text-warning">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-5 lh-1">{{ total_active_products }}</div>
+            <div class="small opacity-75 mt-1" style="font-size: 0.76rem;">Crafts listed</div>
+          </div>
+        </div>
+
+        <!-- Chat on WhatsApp Button -->
+        <a href="{{ seller.get_whatsapp_url }}" target="_blank" rel="noopener noreferrer"
+          class="btn btn-whatsapp rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center"
+          style="font-size: 0.88rem; height: fit-content;"
+          title="Chat directly with {{ seller.business_name }} on WhatsApp">
+          <i class="bi bi-whatsapp me-2 fs-5"></i>
+          <span>Chat on WhatsApp</span>
+        </a>
+
+        <!-- Share Studio Button -->
+        <button type="button" class="btn btn-outline-light rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center"
+          style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); font-size: 0.88rem; height: fit-content;"
+          onclick="shareArtisanStore()" title="Share this artisan store">
+          <i class="bi bi-share me-2"></i>
+          <span>Share</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About the Artisan Studio (Full-Width Editorial Card) -->
+  <div class="artisan-story-box p-4 p-md-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h2 class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-journal-bookmark-fill text-success"></i> About the Maker &amp; Heritage
+      </h2>
+      <span class="badge bg-light text-muted border px-2.5 py-1 rounded-pill small">
+        <i class="bi bi-award text-success me-1"></i> Indigenous Craft
+      </span>
+    </div>
+
+    {% if seller.bio %}
+      <div class="p-3.5 rounded-3 mb-3" style="background: #f8faf9; border-left: 4px solid #1e4d3b; padding: 1.15rem 1.25rem;">
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi bi-quote text-success fs-3 lh-1 flex-shrink-0" style="transform: rotate(180deg); margin-top: -3px;"></i>
+          <span class="lead fs-6 text-dark fst-italic" style="line-height: 1.6;">
+            {{ seller.bio }}
+          </span>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-secondary mb-3" style="line-height: 1.6;">
+        {{ seller.business_name }} is a dedicated rural craft producer based in {{ seller.location }}. Every item listed is handmade or curated with regional authenticity, preserving indigenous traditional art forms and heirloom heritage.
+      </p>
+    {% endif %}
+
+    <div class="small text-muted pt-3 border-top d-flex flex-wrap gap-3 gap-md-4 align-items-center">
+      <span><i class="bi bi-check-circle-fill text-success me-2"></i> Verified Workshop Identity</span>
+      <span><i class="bi bi-geo-alt-fill text-danger me-2"></i> Ships direct from {{ seller.location }}</span>
+      <span><i class="bi bi-cash-stack text-success me-2"></i> 100% Price Directly Empowers Artisan Family</span>
+    </div>
+  </div>
+
+  <!-- 3 Buyer Trust Pillars (Balanced 3-Column Deck) -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <div class="trust-perk-card d-flex align-items-start gap-3">
+        <div class="trust-icon-box">
+          <i class="bi bi-award-fill"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark mb-1">Authentic Regional Craft</div>
+          <div class="text-secondary small" style="line-height: 1.45;">
+            Handcrafted using indigenous techniques and materials native to {{ seller.location }}.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="trust-perk-card d-flex align-items-start gap-3">
+        <div class="trust-icon-box">
+          <i class="bi bi-box2-heart-fill"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark mb-1">Carefully Packed by Maker</div>
+          <div class="text-secondary small" style="line-height: 1.45;">
+            Every fragile heirloom and handicraft is personally packed with extra protection before courier handover.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="trust-perk-card d-flex align-items-start gap-3">
+        <div class="trust-icon-box">
+          <i class="bi bi-shield-fill-check"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark mb-1">RuralConnect Protection</div>
+          <div class="text-secondary small" style="line-height: 1.45;">
+            Secure checkout with Cash on Delivery (COD) and doorstep transit protection for peace of mind.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Catalog Section -->
+  <section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+      <div>
+        <h2 class="h4 fw-bold text-dark mb-1">
+          <i class="bi bi-shop me-1 text-rc"></i> Products by {{ seller.business_name }}
+        </h2>
+        <p class="text-muted small mb-0">Showing {{ products.count }} item{{ products.count|pluralize }} available for purchase</p>
+      </div>
+
+      <!-- Search & Sort Controls -->
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Search input within seller products -->
+        <form method="get" class="d-flex align-items-center">
+          {% if active_category %}<input type="hidden" name="cat" value="{{ active_category.slug }}">{% endif %}
+          {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+          <div class="input-group input-group-sm">
+            <input type="text" name="q" class="form-control" placeholder="Search in store…" value="{{ search_query|default:'' }}">
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+            {% if search_query %}
+              <a href="{% url 'marketplace:seller_detail' seller.pk %}" class="btn btn-outline-secondary" title="Clear search"><i class="bi bi-x"></i></a>
+            {% endif %}
+          </div>
+        </form>
+
+        <!-- Sort dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-sort-down me-1"></i>
+            {% if current_sort == 'price_asc' %}Price: Low to High
+            {% elif current_sort == 'price_desc' %}Price: High to Low
+            {% elif current_sort == 'discount' %}Biggest Discount
+            {% elif current_sort == 'rating' %}Highest Rated
+            {% else %}Newest First{% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><a class="dropdown-item {% if current_sort == 'newest' %}active{% endif %}" href="?{% if active_category %}cat={{ active_category.slug }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}sort=newest">Newest First</a></li>
+            <li><a class="dropdown-item {% if current_sort == 'price_asc' %}active{% endif %}" href="?{% if active_category %}cat={{ active_category.slug }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}sort=price_asc">Price: Low to High</a></li>
+            <li><a class="dropdown-item {% if current_sort == 'price_desc' %}active{% endif %}" href="?{% if active_category %}cat={{ active_category.slug }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}sort=price_desc">Price: High to Low</a></li>
+            <li><a class="dropdown-item {% if current_sort == 'discount' %}active{% endif %}" href="?{% if active_category %}cat={{ active_category.slug }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}sort=discount">Biggest Discount</a></li>
+            <li><a class="dropdown-item {% if current_sort == 'rating' %}active{% endif %}" href="?{% if active_category %}cat={{ active_category.slug }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}sort=rating">Highest Rated</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Filter Pills -->
+    {% if seller_categories %}
+      <div class="d-flex gap-2 flex-wrap mb-4">
+        <a href="{% url 'marketplace:seller_detail' seller.pk %}{% if current_sort %}?sort={{ current_sort }}{% endif %}"
+           class="cat-filter-btn {% if not active_category %}active{% endif %}">
+          All Products ({{ total_active_products }})
+        </a>
+        {% for cat in seller_categories %}
+          <a href="?cat={{ cat.slug }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+             class="cat-filter-btn {% if active_category.id == cat.id %}active{% endif %}">
+            <span>{{ cat.emoji }}</span> {{ cat.name }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Product Grid -->
+    {% if products %}
+      <div class="row g-3">
+        {% for p in products %}
+          {% include "marketplace/_product_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5 bg-white rounded-4 border p-4 shadow-sm">
+        <div class="mb-3 text-muted" style="font-size: 3.5rem; opacity: 0.6;">📦</div>
+        <h4 class="fw-bold text-dark">No products found</h4>
+        <p class="text-muted small mx-auto" style="max-width: 420px;">
+          {% if search_query %}
+            No items matched "{{ search_query }}" from this artisan. Try clearing the search or category filter.
+          {% else %}
+            This artisan currently doesn't have any products listed in this category.
+          {% endif %}
+        </p>
+        <a href="{% url 'marketplace:seller_detail' seller.pk %}" class="btn btn-outline-rc btn-sm">
+          View All Products by {{ seller.business_name }}
+        </a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Customer Reviews Section -->
+  <section class="mt-5 pt-3 border-top">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="h4 fw-bold text-dark mb-1">
+          <i class="bi bi-chat-square-quote me-1 text-rc"></i> Customer Feedback for {{ seller.business_name }}
+        </h2>
+        <p class="text-muted small mb-0">Verified reviews across all items handcrafted or sold by this artisan</p>
+      </div>
+      <div>
+        <span class="badge bg-light text-dark border px-3 py-2 small fw-semibold">
+          <i class="bi bi-star-fill text-warning me-1"></i> {{ avg_rating }} average rating ({{ total_reviews }} review{{ total_reviews|pluralize }})
+        </span>
+      </div>
+    </div>
+
+    {% if reviews %}
+      <div class="row g-3">
+        {% for rev in reviews %}
+          <div class="col-md-6 col-lg-4">
+            <div class="review-bubble h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="stars text-warning small" aria-label="{{ rev.rating }} stars">
+                    {% for i in "12345" %}
+                      {% if rev.rating >= forloop.counter %}
+                        <i class="bi bi-star-fill"></i>
+                      {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </span>
+                  <span class="text-muted small" style="font-size: 0.75rem;">{{ rev.created_at|date:"d M Y" }}</span>
+                </div>
+
+                <p class="small text-secondary mb-3 fst-italic">
+                  "{{ rev.text|truncatewords:45 }}"
+                </p>
+              </div>
+
+              <div class="pt-2 border-top small d-flex justify-content-between align-items-center text-muted">
+                <span class="fw-semibold text-dark">
+                  <i class="bi bi-person-check text-success me-1"></i>
+                  {{ rev.reviewer.full_name|default:"Verified Buyer"|truncatechars:18 }}
+                </span>
+                <a href="{% url 'marketplace:product_detail' rev.product.pk %}" class="text-decoration-none text-muted small text-truncate" style="max-width: 140px;" title="{{ rev.product.name }}">
+                  {{ rev.product.name }}
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-4 bg-light rounded-4 border p-4">
+        <i class="bi bi-star text-muted fs-2 d-block mb-2 opacity-50"></i>
+        <h6 class="fw-bold text-dark mb-1">No reviews yet for this artisan</h6>
+        <p class="text-muted small mb-0">
+          Be among the first customers to order an authentic piece and share your review!
+        </p>
+      </div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareArtisanStore() {
+  if (navigator.share) {
+    navigator.share({
+      title: '{{ seller.business_name|escapejs }} | RuralConnect Artisan Store',
+      text: 'Explore authentic handcrafted heritage items from {{ seller.business_name|escapejs }} on RuralConnect',
+      url: window.location.href,
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('Artisan store link copied to clipboard!', 'success');
+    }).catch(() => {
+      showToast('Could not copy link to clipboard.', 'danger');
+    });
+  }
+}
+</script>
+{% endblock %}
+

@@ -1,0 +1,282 @@
+{% extends "base_public.html" %}
+{% block title %}{% if active_category %}{{ active_category.name }}{% else %}All products{% endif %} | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <!-- Minimalist Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small text-muted mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:home' %}" class="text-muted text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'marketplace:products' %}" class="text-muted text-decoration-none">Products</a></li>
+      {% if active_category %}
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ active_category.name }}</li>
+      {% else %}
+        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">All Products</li>
+      {% endif %}
+    </ol>
+  </nav>
+
+  <!-- Mobile Filter Bar & Quick Category Chips (< 992px) -->
+  <div class="d-lg-none mb-3">
+    <div class="mobile-filter-bar d-flex align-items-center gap-2">
+      <!-- Sort Dropdown -->
+      <div class="dropdown flex-fill">
+        <button class="btn btn-sm btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.85rem; border-radius: 12px; background: #fff;">
+          <i class="bi bi-arrow-down-up"></i>
+          <span>
+            {% if sort == 'price_asc' %}Price: Low-High
+            {% elif sort == 'price_desc' %}Price: High-Low
+            {% elif sort == 'rating' %}Top rated
+            {% else %}Sort: Newest{% endif %}
+          </span>
+        </button>
+        <ul class="dropdown-menu shadow-lg border-0 rounded-4 w-100 py-1" style="font-size: 0.9rem;">
+          <li><a class="dropdown-item py-2 {% if not sort %}active{% endif %}" href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}sort="><i class="bi bi-clock me-2"></i>Newest</a></li>
+          <li><a class="dropdown-item py-2 {% if sort == 'price_asc' %}active{% endif %}" href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}sort=price_asc"><i class="bi bi-sort-numeric-down me-2"></i>Price: Low to High</a></li>
+          <li><a class="dropdown-item py-2 {% if sort == 'price_desc' %}active{% endif %}" href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}sort=price_desc"><i class="bi bi-sort-numeric-down-alt me-2"></i>Price: High to Low</a></li>
+          <li><a class="dropdown-item py-2 {% if sort == 'rating' %}active{% endif %}" href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}sort=rating"><i class="bi bi-star-fill text-warning me-2"></i>Top rated</a></li>
+        </ul>
+      </div>
+
+      <!-- Filter Sheet Trigger Button -->
+      <button class="btn btn-sm btn-rc flex-fill d-flex align-items-center justify-content-center gap-1.5 py-2 fw-semibold position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" aria-controls="filterOffcanvas" style="font-size: 0.85rem; border-radius: 12px;">
+        <i class="bi bi-funnel-fill"></i>
+        <span>Filters</span>
+        {% if request.GET.min_price or request.GET.max_price or request.GET.loc or cat_slug %}
+          <span class="badge bg-warning text-dark rounded-pill ms-1 px-1.5" style="font-size: 0.7rem;">Active</span>
+        {% endif %}
+      </button>
+    </div>
+
+    <!-- Quick Category Chips Scroll -->
+    <div class="cat-chip-scroll mt-2 d-flex gap-2 overflow-x-auto pb-1" style="scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+      <a href="{% url 'marketplace:products' %}{% if q %}?q={{ q }}{% endif %}" class="btn btn-sm rounded-pill text-nowrap {% if not active_category %}btn-rc{% else %}btn-light border{% endif %}" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
+        All Items
+      </a>
+      {% for cat in categories %}
+        <a href="{% url 'marketplace:products' %}?cat={{ cat.slug }}{% if q %}&q={{ q }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="btn btn-sm rounded-pill text-nowrap {% if active_category.slug == cat.slug %}btn-rc{% else %}btn-light border{% endif %}" style="font-size: 0.82rem; padding: 0.35rem 0.85rem;">
+          {{ cat.emoji }} {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Desktop Sidebar filters (Hidden on mobile) -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="panel sticky-top" style="top: 100px; z-index: 10;">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <h2 class="h5 m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-sliders text-primary"></i> Filters
+          </h2>
+          {% if active_category or request.GET.min_price or request.GET.max_price or request.GET.loc or q %}
+            <a href="{% url 'marketplace:products' %}" class="small text-danger fw-semibold text-decoration-none">Reset all</a>
+          {% endif %}
+        </div>
+
+        <form method="get" action="{% url 'marketplace:products' %}">
+          {% if cat_slug %}<input type="hidden" name="cat" value="{{ cat_slug }}">{% endif %}
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+
+          <!-- Sort Order -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">Sort by</label>
+            <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+              <option value="">Newest Arrivals</option>
+              <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+              <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+              <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+            </select>
+          </div>
+
+          <!-- Price Range Filter -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">Price Range (₹)</label>
+            <div class="d-flex gap-2">
+              <input class="form-control form-control-sm" type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}">
+              <input class="form-control form-control-sm" type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}">
+            </div>
+          </div>
+
+          <!-- Location Filter -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 0.5px;">Artisan Origin / State</label>
+            <input class="form-control form-control-sm" type="text" name="loc" placeholder="e.g. Kerala, Bengal" value="{{ request.GET.loc }}">
+          </div>
+
+          <div class="d-flex gap-2 pt-1">
+            <button class="btn btn-rc btn-sm flex-fill py-2">Apply Filters</button>
+            <a class="btn btn-light btn-sm border py-2" href="{% url 'marketplace:products' %}{% if cat_slug %}?cat={{ cat_slug }}{% endif %}">Clear</a>
+          </div>
+        </form>
+
+        <hr class="my-3">
+
+        <!-- Categories List -->
+        <h3 class="small fw-bold text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Categories</h3>
+        <div class="d-flex flex-column gap-1">
+          <a class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded text-decoration-none {% if not active_category %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}" href="{% url 'marketplace:products' %}{% if q %}?q={{ q }}{% endif %}">
+            <span>All Categories</span>
+            <i class="bi bi-chevron-right small text-muted"></i>
+          </a>
+          {% for cat in categories %}
+            <a class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded text-decoration-none {% if active_category.slug == cat.slug %}bg-light fw-bold text-primary{% else %}text-dark{% endif %}"
+               href="{% url 'marketplace:products' %}?cat={{ cat.slug }}{% if q %}&q={{ q }}{% endif %}">
+              <span>{{ cat.emoji }} {{ cat.name }}</span>
+              <i class="bi bi-chevron-right small text-muted"></i>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Grid & Results Area -->
+    <div class="col-lg-9">
+      <!-- Active Campaign Banner (if any) -->
+      {% if active_campaign %}
+        <div class="alert alert-primary border-0 shadow-sm d-flex justify-content-between align-items-center mb-4 rounded-4" style="background: linear-gradient(135deg, #102d59 0%, #1e4d8c 100%); color: #fff;">
+          <div>
+            <strong>🎉 Festival Offer: {{ active_campaign.name }}</strong> — <span class="badge bg-warning text-dark">{{ active_campaign.discount_percent }}% OFF</span>
+            <div class="small opacity-75 mt-1">{{ active_campaign.description }} (Valid until {{ active_campaign.end_date|date:"d M Y" }})</div>
+          </div>
+          <a class="btn btn-sm btn-gold text-nowrap" href="{% url 'marketplace:products' %}">View all products</a>
+        </div>
+      {% endif %}
+
+      <!-- Active Filter Pill Tags -->
+      {% if active_category or request.GET.min_price or request.GET.max_price or request.GET.loc or q %}
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-3 p-2 bg-light rounded-3">
+          <span class="small text-muted fw-semibold me-1"><i class="bi bi-funnel"></i> Active:</span>
+          {% if active_category %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="badge bg-white text-dark border py-1.5 px-2.5 rounded-pill text-decoration-none shadow-sm">
+              Category: {{ active_category.name }} <i class="bi bi-x-circle-fill ms-1 text-secondary"></i>
+            </a>
+          {% endif %}
+          {% if request.GET.min_price %}
+            <a href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="badge bg-white text-dark border py-1.5 px-2.5 rounded-pill text-decoration-none shadow-sm">
+              Min: ₹{{ request.GET.min_price }} <i class="bi bi-x-circle-fill ms-1 text-secondary"></i>
+            </a>
+          {% endif %}
+          {% if request.GET.max_price %}
+            <a href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="badge bg-white text-dark border py-1.5 px-2.5 rounded-pill text-decoration-none shadow-sm">
+              Max: ₹{{ request.GET.max_price }} <i class="bi bi-x-circle-fill ms-1 text-secondary"></i>
+            </a>
+          {% endif %}
+          {% if request.GET.loc %}
+            <a href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="badge bg-white text-dark border py-1.5 px-2.5 rounded-pill text-decoration-none shadow-sm">
+              Location: {{ request.GET.loc }} <i class="bi bi-x-circle-fill ms-1 text-secondary"></i>
+            </a>
+          {% endif %}
+          {% if q %}
+            <a href="?{% if cat_slug %}cat={{ cat_slug }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}{% if request.GET.loc %}loc={{ request.GET.loc }}&{% endif %}{% if sort %}sort={{ sort }}{% endif %}" class="badge bg-white text-dark border py-1.5 px-2.5 rounded-pill text-decoration-none shadow-sm">
+              Search: "{{ q }}" <i class="bi bi-x-circle-fill ms-1 text-secondary"></i>
+            </a>
+          {% endif %}
+          <a href="{% url 'marketplace:products' %}" class="small text-danger text-decoration-none ms-auto fw-semibold">
+            Clear all
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Section Title & Counter -->
+      <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <h1 class="h4 m-0 fw-bold">
+          {% if active_campaign %}{{ active_campaign.name }} Products{% elif active_category %}{{ active_category.name }}{% elif q %}Results for "{{ q }}"{% else %}All Products{% endif %}
+        </h1>
+        <span class="text-muted small fw-medium">{{ products|length }} product{{ products|length|pluralize }} found</span>
+      </div>
+
+      <!-- Products Grid -->
+      {% if products %}
+      <div class="row g-3">
+        {% for p in products %}
+          {% include "marketplace/_product_card.html" %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-5 my-4 bg-light rounded-4 border">
+        <div class="mb-3">
+          <i class="bi bi-search text-muted" style="font-size: 3rem; opacity: 0.4;"></i>
+        </div>
+        <h2 class="h5 fw-bold text-dark mb-2">No matching products found</h2>
+        <p class="text-muted mb-4" style="max-width: 400px; margin-inline: auto;">Try broadening your search, resetting the price range, or clearing filters.</p>
+        <a class="btn btn-rc px-4 py-2" href="{% url 'marketplace:products' %}">Browse All Products</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Offcanvas Filter Sheet for Mobile (< 992px) -->
+<div class="offcanvas offcanvas-bottom rounded-top-4 d-lg-none" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel" style="height: 85vh; border-top: 3px solid var(--blue, #1258a8);">
+  <div class="offcanvas-header border-bottom py-3 px-4">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-sliders text-primary fs-5"></i>
+      <h5 class="offcanvas-title fw-bold m-0" id="filterOffcanvasLabel">Filter Products</h5>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <form method="get" action="{% url 'marketplace:products' %}" class="d-flex flex-column h-100 overflow-hidden">
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+
+    <div class="offcanvas-body p-4 overflow-y-auto">
+      <!-- Sort By -->
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Sort Order</label>
+        <select class="form-select py-2" name="sort">
+          <option value="">Newest Listings</option>
+          <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Top Rated First</option>
+        </select>
+      </div>
+
+      <!-- Categories -->
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Category</label>
+        <select class="form-select py-2" name="cat">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if cat_slug == cat.slug %}selected{% endif %}>{{ cat.emoji }} {{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Price Range -->
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Price Range (₹)</label>
+        <div class="d-flex gap-2">
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted">₹</span>
+            <input class="form-control py-2" type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}">
+          </div>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-muted">₹</span>
+            <input class="form-control py-2" type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}">
+          </div>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-muted text-uppercase mb-2" style="letter-spacing: 0.5px;">Artisan Location / State</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light text-muted"><i class="bi bi-geo-alt"></i></span>
+          <input class="form-control py-2" type="text" name="loc" placeholder="e.g. Kerala, Jaipur, Bengal" value="{{ request.GET.loc }}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Bottom Actions -->
+    <div class="p-3 border-top bg-light d-flex gap-2 mt-auto" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;">
+      <a class="btn btn-outline-secondary flex-fill py-2.5 fw-semibold" href="{% url 'marketplace:products' %}{% if q %}?q={{ q }}{% endif %}">
+        Clear All
+      </a>
+      <button type="submit" class="btn btn-rc flex-fill py-2.5 fw-semibold">
+        Apply Filters
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

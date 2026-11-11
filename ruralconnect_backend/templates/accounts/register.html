@@ -1,0 +1,230 @@
+{% extends "base_public.html" %}
+{% block title %}Create an Account | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-5">
+  <div class="auth-card" style="max-width: 760px; margin: 0 auto;">
+    <div class="text-center mb-4">
+      <h1 class="h3 fw-bold text-dark mb-2">Create your account</h1>
+      <p class="text-muted small">Join RuralConnect to shop authentic rural treasures or sell your own crafts</p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <ul class="nav nav-pills tabs-role mb-4 justify-content-center" role="tablist">
+      <li class="nav-item flex-fill text-center">
+        <button class="nav-link w-100 py-2 fw-semibold {% if active_tab != 'seller' %}active{% endif %}"
+                id="buyer-tab" data-bs-toggle="pill" data-bs-target="#tab-buyer" type="button" role="tab">
+          <i class="bi bi-bag-heart me-1"></i> I want to shop (Buyer)
+        </button>
+      </li>
+      <li class="nav-item flex-fill text-center">
+        <button class="nav-link w-100 py-2 fw-semibold {% if active_tab == 'seller' %}active{% endif %}"
+                id="seller-tab" data-bs-toggle="pill" data-bs-target="#tab-seller" type="button" role="tab">
+          <i class="bi bi-shop me-1"></i> I want to sell (Artisan / Seller)
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- BUYER REGISTRATION TAB -->
+      <div class="tab-pane fade {% if active_tab != 'seller' %}show active{% endif %}" id="tab-buyer" role="tabpanel">
+        <div class="p-3 bg-light rounded-3 mb-4 d-flex align-items-center gap-3 border" style="border-color: var(--line) !important;">
+          <div class="text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #102d59;">
+            <i class="bi bi-person-check fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark">Buyer Account</div>
+            <div class="small text-muted">Discover rare antiques, vintage electronics, handloom &amp; regional crafts delivered straight to you.</div>
+          </div>
+        </div>
+
+        <form method="post" class="row g-3" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="reg_type" value="buyer">
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_buyer_full_name">Full name <span class="text-danger">*</span></label>
+            {{ buyer_form.full_name }}
+            {% if buyer_form.full_name.errors %}<div class="text-danger small mt-1">{{ buyer_form.full_name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_buyer_email">Email address <span class="text-danger">*</span></label>
+            {{ buyer_form.email }}
+            {% if buyer_form.email.errors %}<div class="text-danger small mt-1">{{ buyer_form.email.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold" for="id_buyer_phone">Phone number <span class="text-muted small fw-normal">(Optional — for delivery SMS updates)</span></label>
+            {{ buyer_form.phone }}
+            {% if buyer_form.phone.errors %}<div class="text-danger small mt-1">{{ buyer_form.phone.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_buyer_password">Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ buyer_form.password }}
+              <button class="btn btn-outline-secondary" type="button" id="toggleBuyerPw1" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if buyer_form.password.errors %}<div class="text-danger small mt-1">{{ buyer_form.password.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_buyer_confirm_password">Confirm password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ buyer_form.confirm_password }}
+              <button class="btn btn-outline-secondary" type="button" id="toggleBuyerPw2" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if buyer_form.confirm_password.errors %}<div class="text-danger small mt-1">{{ buyer_form.confirm_password.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 form-check ms-2 my-2">
+            {{ buyer_form.terms }}
+            <label class="form-check-label small" for="{{ buyer_form.terms.id_for_label }}">
+              I agree to the <a href="#" class="text-decoration-underline text-primary">Terms of Service</a> and <a href="#" class="text-decoration-underline text-primary">Privacy Policy</a>.
+            </label>
+            {% if buyer_form.terms.errors %}<div class="text-danger small mt-1">{{ buyer_form.terms.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 mt-3">
+            <button class="btn btn-lg w-100 py-3 fw-bold text-white rounded-pill shadow-sm" style="background: #102d59;" type="submit">
+              <i class="bi bi-envelope-check me-2"></i> Create Buyer Account &bull; Verify Email
+            </button>
+            <div class="form-text text-center small text-muted mt-2">
+              <i class="bi bi-shield-check text-primary me-1"></i> We'll send a 6-digit verification code to your email to activate your account.
+            </div>
+          </div>
+        </form>
+
+        <div class="row text-center mt-4 pt-3 border-top g-2 small text-muted">
+          <div class="col-4"><i class="bi bi-shield-check text-primary me-1"></i> Verified Sellers</div>
+          <div class="col-4"><i class="bi bi-truck text-primary me-1"></i> Safe Delivery</div>
+          <div class="col-4"><i class="bi bi-arrow-repeat text-primary me-1"></i> Authentic Goods</div>
+        </div>
+      </div>
+
+      <!-- SELLER REGISTRATION TAB -->
+      <div class="tab-pane fade {% if active_tab == 'seller' %}show active{% endif %}" id="tab-seller" role="tabpanel">
+        <div class="p-3 bg-light rounded-3 mb-4 d-flex align-items-center gap-3 border" style="border-color: var(--line) !important;">
+          <div class="text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #1258a8;">
+            <i class="bi bi-shop fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark">Artisan &amp; Seller Account</div>
+            <div class="small text-muted">Sell vintage collections, brassware, wooden furniture and handloom to buyers across India.</div>
+          </div>
+        </div>
+
+        <form method="post" class="row g-3" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="reg_type" value="seller">
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_full_name">Full name <span class="text-danger">*</span></label>
+            {{ seller_form.full_name }}
+            {% if seller_form.full_name.errors %}<div class="text-danger small mt-1">{{ seller_form.full_name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_email">Email address <span class="text-danger">*</span></label>
+            {{ seller_form.email }}
+            {% if seller_form.email.errors %}<div class="text-danger small mt-1">{{ seller_form.email.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_phone">Phone number <span class="text-danger">*</span></label>
+            {{ seller_form.phone }}
+            {% if seller_form.phone.errors %}<div class="text-danger small mt-1">{{ seller_form.phone.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_business_name">Business or workshop name <span class="text-danger">*</span></label>
+            {{ seller_form.business_name }}
+            {% if seller_form.business_name.errors %}<div class="text-danger small mt-1">{{ seller_form.business_name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold" for="id_seller_location">Location (village, district, state) <span class="text-danger">*</span></label>
+            {{ seller_form.location }}
+            {% if seller_form.location.errors %}<div class="text-danger small mt-1">{{ seller_form.location.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_password">Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ seller_form.password }}
+              <button class="btn btn-outline-secondary" type="button" id="toggleSellerPw1" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if seller_form.password.errors %}<div class="text-danger small mt-1">{{ seller_form.password.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" for="id_seller_confirm_password">Confirm password <span class="text-danger">*</span></label>
+            <div class="input-group">
+              {{ seller_form.confirm_password }}
+              <button class="btn btn-outline-secondary" type="button" id="toggleSellerPw2" aria-label="Show password"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if seller_form.confirm_password.errors %}<div class="text-danger small mt-1">{{ seller_form.confirm_password.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 form-check ms-2 my-2">
+            {{ seller_form.terms }}
+            <label class="form-check-label small" for="{{ seller_form.terms.id_for_label }}">
+              I accept the <a href="#" class="text-decoration-underline text-primary">Seller Terms &amp; Conditions</a>. Listings require verification.
+            </label>
+            {% if seller_form.terms.errors %}<div class="text-danger small mt-1">{{ seller_form.terms.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 mt-3">
+            <button class="btn btn-lg w-100 py-3 fw-bold text-white rounded-pill shadow-sm" style="background: #102d59;" type="submit">
+              <i class="bi bi-envelope-check me-2"></i> Create Seller Account &bull; Verify Email
+            </button>
+            <div class="form-text text-center small text-muted mt-2">
+              <i class="bi bi-shield-check text-primary me-1"></i> We'll send a 6-digit verification code to your email to activate your account.
+            </div>
+          </div>
+        </form>
+
+        <div class="row text-center mt-4 pt-3 border-top g-2 small text-muted">
+          <div class="col-4"><i class="bi bi-check-circle text-primary me-1"></i> Direct Buyer Access</div>
+          <div class="col-4"><i class="bi bi-graph-up-arrow text-primary me-1"></i> Promotional Boosts</div>
+          <div class="col-4"><i class="bi bi-patch-check text-primary me-1"></i> Verified Badge</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-3 border-top text-center">
+      <p class="mb-0 text-muted small">
+        Already have an account?
+        <a class="fw-bold text-primary text-decoration-none ms-1" href="{% url 'accounts:login' %}">
+          Sign in here
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function attachToggle(btnId, selector) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const input = document.querySelector(selector);
+    if (!input) return;
+    const isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    const icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = isPw ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
+  });
+}
+
+attachToggle('toggleBuyerPw1', '#tab-buyer input[name="password"]');
+attachToggle('toggleBuyerPw2', '#tab-buyer input[name="confirm_password"]');
+attachToggle('toggleSellerPw1', '#tab-seller input[name="password"]');
+attachToggle('toggleSellerPw2', '#tab-seller input[name="confirm_password"]');
+</script>
+{% endblock %}

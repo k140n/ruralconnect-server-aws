@@ -1,0 +1,547 @@
+{% extends "base_seller.html" %}
+{% block title %}Promotions & Campaigns | RuralConnect Seller Portal{% endblock %}
+{% block page_title %}Promotions & Campaigns{% endblock %}
+{% block nav_promotions %}active{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat p-3 bg-white rounded-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-start">
+        <i class="bi bi-tag-fill fs-3 text-success"></i>
+        <span class="badge bg-success-subtle text-success border border-success-subtle">Festive</span>
+      </div>
+      <div class="my-2">
+        <div class="n mb-0 text-success fw-bold fs-3">{{ enrolled_campaign_products|length }}</div>
+        <div class="text-muted small">Products in Platform Campaigns</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat p-3 bg-white rounded-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-start">
+        <i class="bi bi-megaphone-fill fs-3 text-primary"></i>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Open</span>
+      </div>
+      <div class="my-2">
+        <div class="n mb-0 text-primary fw-bold fs-3">{{ available_campaigns|length }}</div>
+        <div class="text-muted small">Available Platform Campaigns</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat p-3 bg-white rounded-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-start">
+        <i class="bi bi-rocket-takeoff-fill fs-3 text-warning"></i>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Spotlight</span>
+      </div>
+      <div class="my-2">
+        <div class="n mb-0 text-warning-emphasis fw-bold fs-3">{{ active_boosts|length }}</div>
+        <div class="text-muted small">Active Boosted Products</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat p-3 bg-white rounded-4 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-start">
+        <i class="bi bi-check-circle-fill fs-3 text-secondary"></i>
+        <span class="badge bg-light text-secondary border">Catalog</span>
+      </div>
+      <div class="my-2">
+        <div class="n mb-0 text-dark fw-bold fs-3">{{ approved_products|length }}</div>
+        <div class="text-muted small">Approved Products Eligible</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Navigation Pills -->
+<ul class="nav nav-pills mb-4 gap-2 border-bottom pb-3" id="promotionTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2" id="campaigns-tab" data-bs-toggle="tab" data-bs-target="#campaigns-pane" type="button" role="tab">
+      <i class="bi bi-megaphone"></i>
+      <span>Platform Discount Campaigns</span>
+      {% if available_campaigns %}
+        <span class="badge bg-success rounded-pill ms-1">{{ available_campaigns|length }} Open</span>
+      {% endif %}
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2" id="boosts-tab" data-bs-toggle="tab" data-bs-target="#boosts-pane" type="button" role="tab">
+      <i class="bi bi-rocket-takeoff"></i>
+      <span>Visibility Boost Plans</span>
+      {% if active_boosts %}
+        <span class="badge bg-warning text-dark rounded-pill ms-1">{{ active_boosts|length }} Active</span>
+      {% endif %}
+    </button>
+  </li>
+</ul>
+
+<!-- Tab Contents -->
+<div class="tab-content" id="promotionTabsContent">
+  <!-- TAB 1: Platform Discount Campaigns -->
+  <div class="tab-pane fade show active" id="campaigns-pane" role="tabpanel">
+    
+    <!-- Explainer Banner -->
+    <div class="card border-0 shadow-sm rounded-4 p-3.5 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border-left: 4px solid #16a34a !important;">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #102d59;">
+            <i class="bi bi-gift-fill fs-5"></i>
+          </div>
+          <div>
+            <h5 class="h6 fw-bold text-dark mb-0.5">Admin-Hosted Marketplace Campaigns</h5>
+            <div class="small text-secondary">
+              RuralConnect curates site-wide festive offers and clearance events. Enroll your approved products to be featured on festive banner carousels and unlock extra customer orders!
+            </div>
+          </div>
+        </div>
+        <span class="badge bg-white text-dark border rounded-pill px-3 py-1.5 fw-semibold shadow-2xs">
+          Direct Opt-In: Instant Enrollment
+        </span>
+      </div>
+    </div>
+
+    <!-- Available Campaigns Grid -->
+    <div class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-event text-primary"></i>
+          <span>Active &amp; Upcoming Campaigns Open for Enrollment</span>
+        </h3>
+        <span class="text-muted small">{{ available_campaigns|length }} campaign{{ available_campaigns|pluralize }} available</span>
+      </div>
+
+      {% if available_campaigns %}
+        <div class="row g-3">
+          {% for c in available_campaigns %}
+          <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
+              <div class="p-4 d-flex flex-column justify-content-between h-100">
+                <div>
+                  <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <span class="badge rounded-pill fw-bold px-3 py-1 text-dark border d-inline-flex align-items-center" style="background: #fef3c7; border-color: #fde68a !important; font-size: 0.8rem;">
+                      <i class="bi bi-fire text-danger me-1"></i>Flat {{ c.discount_percent }}% OFF
+                    </span>
+                    {% if c.is_live %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1.5">
+                        <span class="bg-success rounded-circle" style="width:6px;height:6px;"></span> Live Now
+                      </span>
+                    {% else %}
+                      <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                        <i class="bi bi-clock me-1"></i>Starts {{ c.start_date|date:"d M" }}
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <h4 class="h5 fw-bold text-dark mb-1.5">{{ c.name }}</h4>
+                  <p class="text-secondary small mb-3" style="line-height: 1.45;">
+                    {{ c.description|default:"Platform-wide heritage promotion event with priority storefront placement." }}
+                  </p>
+
+                  <div class="d-flex align-items-center gap-3 text-muted small mb-3 flex-wrap">
+                    <span><i class="bi bi-calendar3 me-1.5 text-primary"></i>{{ c.start_date|date:"d M" }} - {{ c.end_date|date:"d M Y" }}</span>
+                    <span>&bull;</span>
+                    <span><i class="bi bi-hourglass-split me-1 text-warning"></i>{{ c.days_remaining }} day{{ c.days_remaining|pluralize }} remaining</span>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    {% if c.seller_enrolled_count > 0 %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                        <i class="bi bi-check2-circle me-1"></i>{{ c.seller_enrolled_count }} of your products enrolled
+                      </span>
+                    {% else %}
+                      <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 small">
+                        0 products enrolled
+                      </span>
+                    {% endif %}
+                  </div>
+                  <button type="button" class="btn btn-sm text-white rounded-pill px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs"
+                          style="background: #102d59;" data-bs-toggle="modal" data-bs-target="#enrollModal{{ c.pk }}">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>Enroll Products</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enroll Products Modal for this Campaign -->
+          <div class="modal fade" id="enrollModal{{ c.pk }}" tabindex="-1" aria-labelledby="enrollModalLabel{{ c.pk }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+              <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; background: #102d59;">
+                      <i class="bi bi-tag-fill"></i>
+                    </div>
+                    <div>
+                      <h5 class="modal-title h6 fw-bold text-dark mb-0" id="enrollModalLabel{{ c.pk }}">Enroll Products: {{ c.name }}</h5>
+                      <span class="text-muted small">Flat <strong>{{ c.discount_percent }}% OFF</strong> will be applied during campaign</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form method="post" action="{% url 'seller:promotions' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="enroll_campaign">
+                  <input type="hidden" name="campaign_id" value="{{ c.pk }}">
+
+                  <div class="modal-body p-4">
+                    {% if c.eligible_products %}
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="small text-secondary fw-semibold">Select products from your catalog to include:</span>
+                        <div class="d-flex gap-2">
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-primary p-0 small" onclick="selectAllInCampaign('{{ c.pk }}', true)">Select All</button>
+                          <span class="text-muted">&bull;</span>
+                          <button type="button" class="btn btn-sm btn-link text-decoration-none text-secondary p-0 small" onclick="selectAllInCampaign('{{ c.pk }}', false)">Deselect</button>
+                        </div>
+                      </div>
+
+                      <div class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
+                        {% for item in c.eligible_products %}
+                        <label class="form-check p-3 rounded-3 border bg-white d-flex align-items-center justify-content-between cursor-pointer hover-bg-light transition-all mb-0" style="cursor: pointer;">
+                          <div class="d-flex align-items-center gap-3">
+                            <input class="form-check-input m-0 flex-shrink-0 camp-checkbox-{{ c.pk }}" type="checkbox" name="product_ids" value="{{ item.product.pk }}" {% if item.is_enrolled %}checked{% endif %}>
+                            <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#f1f5f9;">
+                              {% if item.product.main_image %}
+                                <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                              {% else %}
+                                {{ item.product.emoji }}
+                              {% endif %}
+                            </div>
+                            <div>
+                              <strong class="d-block text-dark small">{{ item.product.name }}</strong>
+                              <span class="text-muted small" style="font-size:0.75rem;">Category: {{ item.product.category.name }} &bull; Stock: {{ item.product.stock }}</span>
+                            </div>
+                          </div>
+
+                          <div class="text-end">
+                            <span class="text-decoration-line-through text-muted small d-block" style="font-size:0.75rem;">₹{{ item.product.price|floatformat:0 }}</span>
+                            <span class="fw-bold text-success">₹{{ item.festive_price|floatformat:0 }}</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-1.5 py-0" style="font-size:0.65rem;">-{{ c.discount_percent }}%</span>
+                          </div>
+                        </label>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <div class="text-center py-4 text-muted">
+                        <i class="bi bi-box-seam fs-3 text-secondary d-block mb-2"></i>
+                        You have no approved products eligible for this campaign.
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  <div class="modal-footer border-top bg-light px-4 py-2.5 d-flex justify-content-between align-items-center">
+                    <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Enrolled items receive priority placement and campaign badges on the live store.</span>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-sm btn-success text-white rounded-pill px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i>Save Enrolled Products
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center text-muted bg-white rounded-4 shadow-sm">
+          <i class="bi bi-megaphone text-secondary opacity-50" style="font-size: 3rem;"></i>
+          <h6 class="mt-3 fw-bold text-dark">No platform campaigns currently active</h6>
+          <p class="small text-muted mb-0">Platform administrators regularly launch festival sales (Onam, Diwali, Handloom Day). Check back soon!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Enrolled Products Table -->
+    <div class="panel p-0 shadow-sm overflow-hidden mb-4 bg-white rounded-4 border-0">
+      <div class="p-3.5 px-4 border-bottom bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h3 class="h6 mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-1.5 text-success"></i> My Products Currently Enrolled in Campaigns</h3>
+          <span class="small text-muted">Items receiving active campaign discounts and featured placement</span>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold">
+          {{ enrolled_campaign_products|length }} product{{ enrolled_campaign_products|length|pluralize }} participating
+        </span>
+      </div>
+
+      {% if enrolled_campaign_products %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr class="small text-secondary">
+                <th class="ps-4">Product</th>
+                <th>Campaign</th>
+                <th>Discount</th>
+                <th>Price After Discount</th>
+                <th>Campaign Status</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cp in enrolled_campaign_products %}
+              <tr>
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:#f1f5f9;">
+                      {% if cp.product.main_image %}
+                        <img src="{{ cp.product.main_image.url }}" alt="{{ cp.product.name }}" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                      {% else %}
+                        {{ cp.product.emoji }}
+                      {% endif %}
+                    </div>
+                    <div>
+                      <strong class="d-block text-dark text-capitalize">{{ cp.product.name }}</strong>
+                      <span class="text-muted small">Original: ₹{{ cp.product.price|floatformat:0 }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <strong class="text-dark small d-block">{{ cp.campaign.name }}</strong>
+                  <span class="text-muted small" style="font-size:0.75rem;">Ends {{ cp.campaign.end_date|date:"d M Y" }}</span>
+                </td>
+                <td>
+                  <span class="badge rounded-pill fw-bold px-2 py-0.5 text-dark border" style="background: #fef3c7; border-color: #fde68a !important; font-size: 0.75rem;">
+                    {{ cp.campaign.discount_percent }}% OFF
+                  </span>
+                </td>
+                <td>
+                  <div class="fw-bold text-success fs-6">₹{{ cp.festive_price|floatformat:0 }}</div>
+                  <span class="text-muted small" style="font-size:0.72rem;">Customer price</span>
+                </td>
+                <td>
+                  {% if cp.is_campaign_live %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                      <span class="live-pulse-dot me-1"></span> Live on Storefront
+                    </span>
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                      Scheduled
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="text-end pe-4">
+                  <div class="d-flex justify-content-end align-items-center gap-2">
+                    <a href="{% url 'marketplace:product_detail' cp.product.pk %}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2.5 text-secondary shadow-2xs" style="height:30px; font-size:0.76rem;" title="View product storefront">
+                      <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                    <form method="post" action="{% url 'seller:promotions' %}" class="d-inline m-0" onsubmit="return confirm('Withdraw {{ cp.product.name|escapejs }} from {{ cp.campaign.name|escapejs }}? The campaign discount will be removed.');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="withdraw_campaign">
+                      <input type="hidden" name="campaign_product_id" value="{{ cp.pk }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-2xs" style="height:30px; font-size:0.74rem;">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Withdraw</span>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-tag text-secondary opacity-50" style="font-size: 2.5rem;"></i>
+          <h6 class="mt-2 fw-bold text-dark">No products enrolled in campaigns yet</h6>
+          <p class="small text-muted mb-0">Use the "Enroll Products" button in any active campaign above to participate.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- TAB 2: Visibility Boost Plans -->
+  <div class="tab-pane fade" id="boosts-pane" role="tabpanel">
+    <div class="row g-4">
+      <!-- Left Column: Active Boosts Table & Past History -->
+      <div class="col-lg-7">
+        <div class="panel p-0 shadow-sm overflow-hidden mb-4 bg-white rounded-4 border-0">
+          <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <h3 class="h6 mb-0 fw-bold"><i class="bi bi-rocket me-1 text-rc"></i> Active Boost Campaigns</h3>
+            <span class="badge bg-light text-dark border">{{ active_boosts|length }} active</span>
+          </div>
+
+          {% if active_boosts %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th>Plan Tier</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th class="text-end">Storefront</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for boost in active_boosts %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                           style="width:38px;height:38px;background:hsl({{ boost.product.hue }},45%,90%);font-size:1.2rem;">
+                        {% if boost.product.main_image %}
+                          <img src="{{ boost.product.main_image.url }}" alt="{{ boost.product.name }}" class="rounded" style="width:38px;height:38px;object-fit:cover;">
+                        {% else %}
+                          {{ boost.product.emoji }}
+                        {% endif %}
+                      </div>
+                      <div>
+                        <strong class="d-block text-capitalize">{{ boost.product.name }}</strong>
+                        <span class="text-muted small">₹{{ boost.product.final_price|floatformat:0 }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge bg-light text-dark border">{{ boost.plan.name }}</span></td>
+                  <td>
+                    <div class="small fw-semibold">{{ boost.start_date|date:"d M" }} - {{ boost.end_date|date:"d M Y" }}</div>
+                    <div class="text-muted small" style="font-size:0.75rem;">Expires {{ boost.end_date|timeuntil }}</div>
+                  </td>
+                  <td><span class="badge bg-success">Active</span></td>
+                  <td class="text-end">
+                    <a href="{% url 'marketplace:product_detail' boost.product.pk %}" target="_blank" class="btn btn-sm btn-outline-rc" title="View live storefront product">
+                      <i class="bi bi-box-arrow-up-right"></i> Live
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-5 text-center text-muted">
+            <i class="bi bi-rocket text-secondary opacity-50" style="font-size: 3rem;"></i>
+            <h6 class="mt-3 fw-bold text-dark">No active boosts right now</h6>
+            <p class="small text-muted mb-0">Select an approved product on the right to promote it to the top of category pages and homepage spotlight.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if past_boosts %}
+        <!-- Past Boosts History -->
+        <div class="panel p-0 shadow-sm overflow-hidden mb-4 bg-white rounded-4 border-0">
+          <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="h6 mb-0 fw-bold text-secondary"><i class="bi bi-clock-history me-1"></i> Past Promotion History</h3>
+              <span class="small text-muted">Expired and completed boost campaigns</span>
+            </div>
+            <span class="badge bg-secondary">{{ past_boosts|length }}</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle text-muted small">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th>Plan</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for boost in past_boosts %}
+                <tr>
+                  <td>
+                    <strong class="text-dark text-capitalize">{{ boost.product.name }}</strong>
+                  </td>
+                  <td>{{ boost.plan.name }}</td>
+                  <td>Ended {{ boost.end_date|date:"d M Y" }}</td>
+                  <td>
+                    {% if boost.status == 'cancelled' %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Cancelled</span>
+                    {% else %}
+                      <span class="badge bg-light text-secondary border">Expired</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column: Boost a Product Form -->
+      <div class="col-lg-5">
+        <div class="panel p-4 shadow-sm bg-white mb-4 rounded-4 border-0">
+          <h3 class="h6 fw-bold mb-3"><i class="bi bi-plus-circle-fill text-warning me-1"></i> Boost an Approved Product</h3>
+
+          {% if approved_products and boost_plans %}
+          <form method="post" action="{% url 'seller:promotions' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="boost">
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">1. Select Approved Product</label>
+              <select class="form-select" name="product_id" required>
+                <option value="">Choose an approved product…</option>
+                {% for p in approved_products %}
+                  <option value="{{ p.pk }}">
+                    {{ p.name|title }} (₹{{ p.final_price|floatformat:0 }}, Stock: {{ p.stock }})
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text small">Only approved products can be promoted.</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold small">2. Choose Promotion Plan</label>
+              {% for plan in boost_plans %}
+              <div class="form-check border rounded-3 p-3 mb-2 bg-light">
+                <input class="form-check-input mt-1" type="radio" name="plan_id" value="{{ plan.pk }}" id="plan_{{ plan.pk }}" required {% if forloop.first %}checked{% endif %}>
+                <label class="form-check-label w-100 ms-1 cursor-pointer" for="plan_{{ plan.pk }}">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <strong>{{ plan.name }}</strong>
+                    <span class="badge bg-warning text-dark fw-bold">₹{{ plan.price|floatformat:0 }}</span>
+                  </div>
+                  <div class="small text-muted mt-1">{{ plan.duration_days }} days homepage and category spotlight</div>
+                  {% if plan.description %}
+                    <div class="text-secondary small mt-1" style="font-size:0.78rem;">{{ plan.description }}</div>
+                  {% endif %}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-rc py-2 fw-semibold" type="submit">
+                <i class="bi bi-rocket-takeoff me-1"></i> Activate Boost Now
+              </button>
+            </div>
+          </form>
+          {% else %}
+          <div class="alert alert-info small mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            {% if not approved_products %}
+              You don't have any approved products yet. Products waiting for review or requiring edits cannot be boosted until approved by platform admin.
+            {% else %}
+              No active boost plans configured by platform admin.
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectAllInCampaign(campId, check) {
+  const checkboxes = document.querySelectorAll(`.camp-checkbox-${campId}`);
+  checkboxes.forEach(cb => cb.checked = check);
+}
+</script>
+{% endblock %}

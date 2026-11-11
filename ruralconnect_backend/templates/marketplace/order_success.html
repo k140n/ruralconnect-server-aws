@@ -1,0 +1,139 @@
+{% extends "base_public.html" %}
+{% load static %}
+{% block title %}Order Confirmed #{{ order.order_number }} | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-5" style="max-width: 960px;">
+  <!-- Success Banner -->
+  <div class="text-center mb-5">
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm" style="width: 84px; height: 84px; background: #e8f5e9; color: #1e7e34;">
+      <i class="bi bi-check2-circle" style="font-size: 3rem;"></i>
+    </div>
+    <h1 class="h2 fw-bold text-dark mb-2">Thank You for Your Order!</h1>
+    <p class="lead text-muted mb-2 fs-6">
+      Order <span class="fw-bold" style="color: #102d59;">#{{ order.order_number }}</span> has been confirmed successfully.
+    </p>
+    <p class="text-muted small mb-0">
+      Each rural artisan and craftsman has been notified to hand-pack your items with care.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Order Items -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="border: 1px solid var(--line) !important;">
+        <div class="card-header bg-light bg-opacity-50 py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+          <h2 class="h6 mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-box-seam text-primary"></i> Ordered Items ({{ order.items.count }})
+          </h2>
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold">
+            {{ order.get_status_display }}
+          </span>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for item in order.items.all %}
+            <div class="list-group-item p-3.5 px-4 d-flex gap-3 align-items-center border-bottom">
+              {% if item.product and item.product.main_image %}
+                <img src="{{ item.product.main_image.url }}" alt="{{ item.product_name }}" class="rounded-3" style="width: 64px; height: 64px; object-fit: cover; background: #f2f4f7;">
+              {% else %}
+                <div class="rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 64px; height: 64px; background: #f2f4f7; font-size: 1.8rem;">
+                  {{ item.product.emoji|default:"📦" }}
+                </div>
+              {% endif %}
+              <div class="flex-grow-1">
+                <h3 class="h6 mb-1 fw-bold text-dark">
+                  {% if item.product %}
+                    <a href="{% url 'marketplace:product_detail' item.product.id %}" class="text-decoration-none text-dark" style="color: var(--ink);">{{ item.product_name }}</a>
+                  {% else %}
+                    {{ item.product_name }}
+                  {% endif %}
+                </h3>
+                <div class="small text-muted mb-1">
+                  Sold by: <span class="fw-semibold text-secondary">{{ item.seller.business_name }}</span>
+                </div>
+                <div class="small text-muted">
+                  Qty: <span class="fw-bold text-dark">{{ item.quantity }}</span> × ₹{{ item.unit_price|floatformat:0 }}
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="fw-bold fs-6 mb-1" style="color: #102d59;">₹{{ item.line_total|floatformat:0 }}</div>
+                <span class="badge bg-light text-secondary border small rounded-pill px-2.5 py-1">
+                  {{ item.get_status_display }}
+                </span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-3 flex-wrap">
+        <a href="{% url 'marketplace:my_orders' %}" class="btn rounded-pill px-4 py-2.5 fw-bold text-white shadow-sm" style="background: #102d59;">
+          <i class="bi bi-clock-history me-1"></i> Track in My Orders
+        </a>
+        <a href="{% url 'marketplace:products' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold">
+          <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+        </a>
+      </div>
+    </div>
+
+    <!-- Order & Shipping Summary -->
+    <div class="col-lg-5">
+      <!-- Delivery Details Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" style="border: 1px solid var(--line) !important;">
+        <h3 class="h6 fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+          <i class="bi bi-truck text-primary"></i> Shipping Address
+        </h3>
+        <p class="mb-1 fw-bold text-dark">{{ order.full_name }}</p>
+        <p class="small text-muted mb-1">{{ order.shipping_address }}</p>
+        <p class="small text-muted mb-2">{{ order.city }}, {{ order.state }} - {{ order.postal_code }}</p>
+        <div class="small text-muted d-flex align-items-center gap-1">
+          <i class="bi bi-telephone text-secondary"></i> {{ order.phone }}
+        </div>
+      </div>
+
+      <!-- Payment & Financial Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid var(--line) !important;">
+        <h3 class="h6 fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
+          <i class="bi bi-receipt text-primary"></i> Payment Summary
+        </h3>
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">Subtotal:</span>
+          <span class="fw-semibold text-dark">₹{{ order.subtotal|floatformat:0 }}</span>
+        </div>
+        {% if order.discount_saved > 0 %}
+        <div class="d-flex justify-content-between mb-2 small text-success">
+          <span>Discount savings:</span>
+          <span class="fw-semibold">−₹{{ order.discount_saved|floatformat:0 }}</span>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">Delivery fee:</span>
+          <span class="{% if order.delivery_fee == 0 %}text-success fw-bold{% else %}text-dark fw-semibold{% endif %}">
+            {% if order.delivery_fee == 0 %}FREE{% else %}₹{{ order.delivery_fee|floatformat:0 }}{% endif %}
+          </span>
+        </div>
+        <hr class="my-3" style="border-color: var(--line);">
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+          <span class="fw-bold text-dark fs-6">Grand Total:</span>
+          <span class="fs-4 fw-bold" style="color: #102d59;">₹{{ order.total_amount|floatformat:0 }}</span>
+        </div>
+        <div class="p-3 bg-light rounded-3 small">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Payment Mode:</span>
+            <span class="fw-semibold text-dark">{{ order.get_payment_method_display }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="text-muted">Payment Status:</span>
+            <span class="badge {% if order.payment_status == 'paid' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %} rounded-pill px-2.5 py-1">
+              {{ order.payment_status|title }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

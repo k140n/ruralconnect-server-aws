@@ -1,0 +1,306 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Artisan Sales Statement &bull; {{ seller.business_name }} &bull; RuralConnect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f6f8fb;
+      color: #171c2a;
+      font-size: 0.9rem;
+      padding: 2rem 1rem;
+    }
+    .statement-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem 3rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e2e8f0;
+    }
+    .brand-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #102d59;
+      letter-spacing: -0.5px;
+    }
+    .brand-title em {
+      color: #1c70c9;
+      font-style: normal;
+    }
+    .statement-badge {
+      font-size: 0.75rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      background: #f0f4f9;
+      color: #102d59;
+      border: 1px solid #cbd5e1;
+    }
+    .summary-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.1rem;
+    }
+    .summary-val {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #102d59;
+    }
+    .table-statement thead th {
+      background-color: #f8fafc;
+      color: #102d59;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .table-statement tbody td {
+      font-size: 0.85rem;
+      vertical-align: middle;
+      border-bottom: 1px solid #edf2ef;
+    }
+    .badge-status {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+    }
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+      }
+      .statement-container {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 15mm 15mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Print & Navigation Controls (Hidden in Print) -->
+<div class="container mb-4 no-print" style="max-width: 900px;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 bg-white rounded-4 shadow-sm border">
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'seller:analytics' %}?range={{ range_param }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+      </a>
+      <span class="text-muted small">Period: <strong>{{ range_label }}</strong></span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <!-- Change Range -->
+      <div class="dropdown">
+        <button class="btn btn-light btn-sm dropdown-toggle rounded-pill px-3 border" type="button" data-bs-toggle="dropdown">
+          <i class="bi bi-calendar3 me-1"></i> Change Period
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+          <li><a class="dropdown-item small" href="?range=7d">Last 7 Days</a></li>
+          <li><a class="dropdown-item small" href="?range=30d">Last 30 Days</a></li>
+          <li><a class="dropdown-item small" href="?range=90d">Last 90 Days</a></li>
+          <li><a class="dropdown-item small" href="?range=year">This Year</a></li>
+          <li><a class="dropdown-item small" href="?range=all">All Time</a></li>
+        </ul>
+      </div>
+      <a href="{% url 'seller:analytics' %}?range={{ range_param }}&export=csv" class="btn btn-outline-success btn-sm rounded-pill px-3">
+        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download CSV
+      </a>
+      <button onclick="window.print()" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">
+        <i class="bi bi-printer-fill me-1"></i> Print / Save as PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Statement Document -->
+<div class="statement-container">
+  <!-- Document Header -->
+  <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+    <div>
+      <div class="brand-title mb-1">
+        Rural<em>Connect</em>
+      </div>
+      <div class="text-muted small">National Rural Artisans Marketplace &amp; Fair Trade Platform</div>
+      <div class="text-muted small mt-1">Official Performance &amp; Settlement Statement</div>
+    </div>
+    <div class="text-end">
+      <span class="statement-badge">Official Record</span>
+      <div class="small text-muted mt-2">Statement Ref: <strong>RC-STMT-{{ seller.pk }}-{{ range_param|upper }}</strong></div>
+      <div class="small text-muted">Generated: <strong>{{ generated_at|date:"d M Y, h:i A" }}</strong></div>
+    </div>
+  </div>
+
+  <!-- Seller & Period Meta -->
+  <div class="row g-3 mb-4 p-3 bg-light rounded-3" style="border: 1px solid #e9ecef;">
+    <div class="col-sm-6">
+      <div class="text-uppercase text-muted small fw-semibold" style="letter-spacing: 0.5px; font-size: 0.72rem;">Artisan / Enterprise Details</div>
+      <div class="fw-bold fs-6 text-dark mt-1">{{ seller.business_name }}</div>
+      <div class="small text-muted">Proprietor: {{ seller.user.full_name }}</div>
+      <div class="small text-muted">Location: {{ seller.location|default:"India" }}</div>
+      <div class="small text-muted">Contact: {{ seller.user.phone|default:seller.user.email }}</div>
+    </div>
+    <div class="col-sm-6 text-sm-end">
+      <div class="text-uppercase text-muted small fw-semibold" style="letter-spacing: 0.5px; font-size: 0.72rem;">Reporting Window</div>
+      <div class="fw-bold fs-6 text-dark mt-1">{{ range_label }}</div>
+      <div class="small text-muted">Active Listings: <strong>{{ seller.products.count }} crafts</strong></div>
+      <div class="small text-muted">Seller Status: <span class="badge bg-success-subtle text-success">Verified Artisan</span></div>
+    </div>
+  </div>
+
+  <!-- Financial Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="summary-box">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem;">Gross Sales</div>
+        <div class="summary-val mt-1">₹{{ gross_revenue|floatformat:2 }}</div>
+        <div class="small text-muted" style="font-size: 0.75rem;">Across {{ orders_count }} orders</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-box">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem;">Units Fulfilled</div>
+        <div class="summary-val mt-1">{{ total_units }} <span class="fs-6 fw-normal text-muted">units</span></div>
+        <div class="small text-muted" style="font-size: 0.75rem;">{{ delivered_count }} delivered</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-box">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem;">Cancellations</div>
+        <div class="summary-val text-danger mt-1">₹{{ cancelled_revenue|floatformat:2 }}</div>
+        <div class="small text-muted" style="font-size: 0.75rem;">{{ cancelled_count }} cancelled items</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-box" style="border-left: 3px solid #102d59;">
+        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem;">Net Realizable</div>
+        <div class="summary-val text-success mt-1">₹{{ net_realizable|floatformat:2 }}</div>
+        <div class="small text-muted" style="font-size: 0.75rem;">Payout balance</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Channels Split -->
+  <div class="d-flex align-items-center justify-content-between p-2.5 px-3 mb-4 bg-light rounded-3 small">
+    <div><strong>Payment Channels:</strong></div>
+    <div><i class="bi bi-qr-code text-primary me-1"></i> UPI / Online: <strong>{{ payment_upi }} orders</strong></div>
+    <div><i class="bi bi-cash-stack text-success me-1"></i> Cash on Delivery: <strong>{{ payment_cod }} orders</strong></div>
+    <div>Dispatched Items: <strong>{{ shipped_count }} in transit</strong></div>
+  </div>
+
+  <!-- Itemized Transaction Ledger Table -->
+  <div class="mb-4">
+    <h3 class="h6 fw-bold text-dark mb-2">Itemized Order Fulfillment Ledger</h3>
+    <div class="table-responsive">
+      <table class="table table-statement align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Order #</th>
+            <th scope="col">Item / Craft</th>
+            <th scope="col" class="text-center">Qty</th>
+            <th scope="col" class="text-end">Price</th>
+            <th scope="col" class="text-end">Line Total</th>
+            <th scope="col" class="text-center">Status</th>
+            <th scope="col" class="text-end">Destination</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if ledger_items %}
+            {% for item in ledger_items %}
+            <tr>
+              <td class="text-muted text-nowrap" style="font-size: 0.8rem;">
+                {{ item.created_at|date:"d M Y" }}
+              </td>
+              <td>
+                <strong>#{{ item.order.order_number|default:"N/A" }}</strong>
+              </td>
+              <td>
+                <div class="fw-semibold text-dark">{{ item.product_name }}</div>
+                {% if item.product and item.product.category %}
+                  <div class="text-muted" style="font-size: 0.75rem;">{{ item.product.category.name }}</div>
+                {% endif %}
+              </td>
+              <td class="text-center fw-bold">{{ item.quantity }}</td>
+              <td class="text-end text-muted">₹{{ item.unit_price|floatformat:2 }}</td>
+              <td class="text-end fw-bold text-dark">₹{{ item.line_total|floatformat:2 }}</td>
+              <td class="text-center">
+                {% if item.status == 'delivered' %}
+                  <span class="badge bg-success-subtle text-success badge-status">Delivered</span>
+                {% elif item.status == 'shipped' %}
+                  <span class="badge bg-info-subtle text-info badge-status">Shipped</span>
+                {% elif item.status == 'confirmed' %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis badge-status">Confirmed</span>
+                {% elif item.status == 'cancelled' %}
+                  <span class="badge bg-danger-subtle text-danger badge-status">Cancelled</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary badge-status">Pending</span>
+                {% endif %}
+              </td>
+              <td class="text-end small text-muted">
+                {{ item.order.city|default:"" }}{% if item.order.city and item.order.state %}, {% endif %}{{ item.order.state|default:"India" }}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">
+                No orders recorded for this artisan in the selected timeframe ({{ range_label }}).
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+        {% if ledger_items %}
+        <tfoot>
+          <tr class="fw-bold" style="background: #f8fafc; border-top: 2px solid #102d59;">
+            <td colspan="3" class="text-uppercase py-2">Total Ledger Summary</td>
+            <td class="text-center py-2">{{ total_units }}</td>
+            <td class="text-end py-2">&mdash;</td>
+            <td class="text-end py-2 text-success">₹{{ gross_revenue|floatformat:2 }}</td>
+            <td colspan="2" class="text-end py-2 text-muted small">Excludes cancellations</td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+
+  <!-- Signoff / Certification Block -->
+  <div class="row pt-4 mt-4 border-top">
+    <div class="col-8">
+      <div class="small text-muted" style="font-size: 0.78rem; line-height: 1.4;">
+        <strong>Certification Note:</strong> This statement is computer-generated by the RuralConnect Fair-Trade Platform and reflects authoritative records of orders, customer deliveries, and financial balances for {{ seller.business_name }}. Valid for cooperative society audits, SHG microfinance documentation, and local bookkeeping.
+      </div>
+    </div>
+    <div class="col-4 text-end">
+      <div class="small fw-bold text-dark mt-4">RuralConnect Platform Ops</div>
+      <div class="small text-muted" style="font-size: 0.75rem;">Verified Digital Ledger</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

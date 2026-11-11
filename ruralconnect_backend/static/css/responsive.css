@@ -1,0 +1,495 @@
+/* ==========================================================================
+   RuralConnect Responsive Design & Mobile Experience Stylesheet
+   ========================================================================== */
+
+/* Global Mobile Fixes & Safe Area Insets */
+:root {
+  --mobile-bottom-nav-height: 62px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent auto-zoom on iOS when tapping input fields */
+@media (max-width: 767.98px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile App Bottom Navigation Bar
+   -------------------------------------------------------------------------- */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--mobile-bottom-nav-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1040;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.mobile-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  gap: 3px;
+  flex: 1;
+  height: 100%;
+  transition: color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.mobile-bottom-nav-item i {
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.mobile-bottom-nav-item:active i {
+  transform: scale(0.9);
+}
+
+.mobile-bottom-nav-item.active,
+.mobile-bottom-nav-item:hover {
+  color: var(--blue, #1258a8);
+  font-weight: 600;
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: #b33939;
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  font-weight: 700;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Offset body on mobile so bottom bar does not obscure content */
+@media (max-width: 767.98px) {
+  body.has-bottom-nav,
+  body {
+    padding-bottom: calc(var(--mobile-bottom-nav-height) + var(--safe-bottom) + 12px) !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Header & Topline Enhancements
+   -------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .topline {
+    font-size: 0.78rem;
+  }
+  .topline .container {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+  .site-header {
+    padding-top: 0.35rem;
+    padding-bottom: 0.45rem;
+  }
+  .search-bar {
+    width: 100% !important;
+    display: flex !important;
+    border: 1.5px solid var(--blue-dark, #102d59) !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    height: 42px;
+  }
+  .search-bar input {
+    font-size: 0.92rem;
+    padding: 0.5rem 1rem;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    border: none !important;
+    background: transparent;
+  }
+  .search-bar button {
+    padding: 0 1.25rem;
+    background: var(--blue-dark, #102d59) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .cat-nav {
+    padding: 0.2rem 0;
+  }
+  .cat-nav .scroll {
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cat-nav a {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Slide-in Offcanvas Drawer
+   -------------------------------------------------------------------------- */
+.mobile-nav-drawer {
+  max-width: 320px;
+  border-right: none;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-nav-drawer .offcanvas-header {
+  padding: 1.1rem 1.25rem;
+  background: #ffffff;
+}
+
+.mobile-nav-drawer .list-group-item {
+  transition: background 0.15s ease;
+  font-size: 0.95rem;
+}
+
+.mobile-nav-drawer .list-group-item:active {
+  background-color: #f1f5f9;
+}
+
+/* --------------------------------------------------------------------------
+   Catalog Filter Bar & Offcanvas Sheet for Mobile
+   -------------------------------------------------------------------------- */
+.mobile-filter-bar {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cat-chip-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.cat-chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.active-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  background: #f0f4f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--blue-dark, #102d59);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.active-filter-badge:hover {
+  background: #e2e8f0;
+  color: #0b1a30;
+}
+
+/* --------------------------------------------------------------------------
+   Product Card Mobile Tuning
+   -------------------------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  .pcard {
+    border-radius: 14px;
+  }
+  .pbody {
+    padding: 0.75rem 0.65rem 0.75rem !important;
+  }
+  .pbody h3, .pname {
+    font-size: 0.9rem !important;
+    line-height: 1.3 !important;
+    min-height: 2.3em !important;
+  }
+  .pprice {
+    font-size: 1.15rem !important;
+    padding-top: 0.35rem !important;
+  }
+  .pprice strong {
+    font-size: 1.15rem !important;
+  }
+  .pprice s {
+    font-size: 0.82rem !important;
+  }
+  .badge-off {
+    font-size: 0.68rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+  .badge-spons {
+    font-size: 0.65rem !important;
+    padding: 0.15rem 0.45rem !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Dashboards & Layout Responsive Rules
+   -------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .hero .slide {
+    grid-template-columns: 1fr;
+    padding: 1.8rem;
+  }
+  .slide-art {
+    display: none;
+  }
+  .cta-band {
+    grid-template-columns: 1fr;
+    padding: 2rem;
+  }
+  .dash {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sidebar-open .sidebar {
+    transform: none;
+  }
+  .sidebar-open::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1045;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .promo-strip {
+    grid-template-columns: 1fr;
+  }
+  .logo {
+    font-size: 1.25rem;
+  }
+  .dash-main {
+    padding: 1rem;
+  }
+  .search-bar select {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Sticky Purchase CTA Bar (Product Detail)
+   -------------------------------------------------------------------------- */
+.mobile-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px 14px calc(10px + var(--safe-bottom));
+  z-index: 1040;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* --------------------------------------------------------------------------
+   Homepage Hero & Carousel Fluidity on Mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  .hero {
+    margin: 8px 8px 0 !important;
+    border-radius: 20px !important;
+  }
+  .hero .carousel-item {
+    border-radius: 20px !important;
+  }
+  .hero .slide {
+    min-height: 290px !important;
+    padding: 1.75rem 1.25rem !important;
+  }
+  .slide h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .slide p {
+    font-size: 0.88rem !important;
+    margin-bottom: 1rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .slide .btn-lg {
+    padding: 0.45rem 1.2rem !important;
+    font-size: 0.9rem !important;
+  }
+  .hero .carousel-control-prev,
+  .hero .carousel-control-next {
+    display: none !important;
+  }
+
+  /* Horizontal carousel tracks on mobile: peek naturally with native smooth swipe */
+  .rc-carousel-arrow {
+    display: none !important;
+  }
+  .rc-carousel-track {
+    gap: 0.85rem !important;
+    padding: 0.5rem 0.25rem 0.85rem 0.25rem !important;
+  }
+  .rc-carousel-item {
+    flex: 0 0 215px !important;
+    width: 215px !important;
+    max-width: 215px !important;
+    min-width: 215px !important;
+  }
+  .banner-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  .banner-row a {
+    min-height: 120px !important;
+    padding: 1rem !important;
+  }
+  .banner-row strong {
+    font-size: 1rem !important;
+  }
+  .banner-row i {
+    font-size: 3rem !important;
+    right: 0.5rem !important;
+    bottom: 0.1rem !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Cart & Modal Touch Optimization
+   -------------------------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  .qty button {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1.15rem !important;
+  }
+  .modal-dialog {
+    margin: 0.5rem !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Desktop & Shared Header Polish
+   -------------------------------------------------------------------------- */
+.cart-pill-badge {
+  background: #f2a93b;
+  color: #17261f;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  min-width: 22px;
+}
+.cart-pill-badge[hidden] {
+  display: none !important;
+}
+
+.cat-nav a.active {
+  background: #ffffff !important;
+  color: var(--blue, #1258a8) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+.cat-nav a.deals-link {
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+.cat-nav a.deals-link i {
+  color: #d97706 !important;
+}
+
+@media (min-width: 992px) {
+  .search-bar {
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 999px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .search-bar:focus-within {
+    border-color: var(--blue, #1258a8) !important;
+    box-shadow: 0 0 0 3px rgba(18, 88, 168, 0.15) !important;
+  }
+  .search-bar select {
+    border-right: 1px solid #e2e8f0 !important;
+    border-radius: 999px 0 0 999px !important;
+    background-color: #f8fafc !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 500;
+    color: #334155;
+  }
+  .search-bar input {
+    padding: 0.55rem 1rem !important;
+  }
+  .search-bar button {
+    border-radius: 0 999px 999px 0 !important;
+    padding: 0 1.35rem !important;
+  }
+}
+
+/* Dropdown menus use native instantaneous positioning */
+.dropdown-menu {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+

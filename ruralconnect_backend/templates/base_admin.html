@@ -1,0 +1,134 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Platform Admin | RuralConnect{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'css/marketplace.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=2.3">
+</head>
+<body>
+<div class="dash">
+  <aside class="sidebar admin" aria-label="Platform admin navigation">
+    <a class="logo" href="{% url 'platform_admin:dashboard' %}">
+      <span class="brand text-white">rural<span style="color:#ffffff;">connect</span><span class="dot" style="color:#1c70c9;">.</span></span>
+    </a>
+    <div class="portal-badge d-flex align-items-center gap-1">
+      <i class="bi bi-shield-lock-fill text-info"></i> Platform Admin
+    </div>
+
+    <div class="sidebar-section-title">Core Platform</div>
+    <nav class="nav flex-column gap-1 mb-2">
+      <a class="nav-link {% block nav_dashboard %}{% endblock %}" href="{% url 'platform_admin:dashboard' %}"><i class="bi bi-speedometer2"></i>Overview</a>
+      <a class="nav-link {% block nav_manage %}{% endblock %}" href="{% url 'platform_admin:manage_products' %}"><i class="bi bi-boxes"></i>Manage products</a>
+      <a class="nav-link {% block nav_categories %}{% endblock %}" href="{% url 'platform_admin:manage_categories' %}"><i class="bi bi-tags"></i>Categories</a>
+    </nav>
+
+    <div class="sidebar-section-title">Growth &amp; Promotions</div>
+    <nav class="nav flex-column gap-1 mb-2">
+      <a class="nav-link {% block nav_banners %}{% endblock %}" href="{% url 'platform_admin:banners' %}"><i class="bi bi-image"></i>Banners</a>
+      <a class="nav-link {% block nav_campaigns %}{% endblock %}" href="{% url 'platform_admin:campaigns' %}"><i class="bi bi-lightning-charge"></i>Campaigns</a>
+      <a class="nav-link {% block nav_boosts %}{% endblock %}" href="{% url 'platform_admin:boost_plans' %}"><i class="bi bi-rocket-takeoff"></i>Boost plans</a>
+    </nav>
+
+    <div class="sidebar-section-title">Storefront</div>
+    <nav class="nav flex-column gap-1">
+      <a class="nav-link" href="{% url 'marketplace:home' %}" target="_blank"><i class="bi bi-shop"></i>View marketplace <i class="bi bi-arrow-up-right small ms-auto opacity-50"></i></a>
+      <a class="nav-link nav-link-logout" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-left"></i>Sign out</a>
+    </nav>
+  </aside>
+
+  <div class="dash-content">
+    <div class="dash-top d-flex align-items-center justify-content-between flex-wrap gap-3 py-2.5 ps-4 pe-4 pe-xl-5 bg-white border-bottom">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-light d-lg-none p-2 rounded-3" data-sidebar-toggle aria-label="Toggle menu"><i class="bi bi-list fs-5"></i></button>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <h1 class="h5 m-0 fw-bold text-dark text-nowrap">{% block page_title %}Admin{% endblock %}</h1>
+          <span class="d-inline-flex align-items-center rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold ms-2" style="font-size: 0.74rem; padding: 4px 12px; gap: 8px;">
+            <span class="live-pulse-dot"></span>
+            <span>Store Live</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        {% block top_actions %}{% endblock %}
+
+        <div class="vr my-auto opacity-25 d-none d-md-block mx-1" style="height: 22px;"></div>
+
+        <!-- Interactive Admin Profile Dropdown -->
+        <div class="dropdown">
+          <button class="btn p-0 border-0 d-flex align-items-center gap-2 px-2.5 py-1.5 bg-light rounded-pill border" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Account settings">
+            <div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem; background: #0b1a30;">
+              {{ request.user.full_name|slice:":2"|upper|default:"AD" }}
+            </div>
+            <span class="fw-bold text-dark text-nowrap" style="font-size: 0.82rem;">
+              {{ request.user.full_name|default:request.user.email|truncatechars:18 }}
+            </span>
+            <i class="bi bi-chevron-down text-muted small pe-1" style="font-size: 0.68rem;"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 230px;">
+            <li class="px-3 py-2 border-bottom mb-1">
+              <div class="fw-bold text-dark text-truncate" style="font-size: 0.85rem;">{{ request.user.full_name|default:request.user.email }}</div>
+              <div class="small text-muted text-truncate" style="font-size: 0.75rem;">{{ request.user.email }}</div>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1 px-2 py-0.5" style="font-size: 0.65rem;">Platform Super Admin</span>
+            </li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-dark" href="{% url 'marketplace:home' %}" target="_blank">
+                <i class="bi bi-shop text-primary"></i> View Marketplace
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-dark" href="{% url 'platform_admin:manage_products' %}">
+                <i class="bi bi-boxes text-primary"></i> Manage Catalog
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-left"></i> Sign Out
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    {% if messages %}
+    <div class="px-3 pt-2">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="dash-main">{% block content %}{% endblock %}</main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelectorAll('[data-sidebar-toggle]').forEach(b =>
+  b.addEventListener('click', () => document.body.classList.toggle('sidebar-open'))
+);
+
+// Prevent browser back-button from displaying cached dashboard after logout
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted || (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+    window.location.reload();
+  }
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

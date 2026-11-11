@@ -1,0 +1,576 @@
+{% extends "base_public.html" %}
+{% load static %}
+{% block title %}Shopping Cart | RuralConnect{% endblock %}
+
+{% block content %}
+<div class="page-wrap py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h3 mb-1 fw-bold text-dark">Shopping Cart</h1>
+      <p class="text-muted small mb-0" id="cartSubtitle">Review your selected items</p>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary rounded-pill px-4 fw-semibold" href="{% url 'marketplace:products' %}">
+        <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+      </a>
+    </div>
+  </div>
+
+  <div id="cartApp">
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading cart…</span>
+      </div>
+      <p class="mt-2 text-muted">Loading your cart items…</p>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header text-white px-4 py-3" style="background: #102d59;">
+        <h5 class="modal-title d-flex align-items-center gap-2 fw-bold" id="checkoutModalLabel">
+          <i class="bi bi-shield-check fs-4"></i> Secure Delivery &amp; Checkout
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      {% if not user.is_authenticated %}
+      <div class="modal-body p-4 text-center">
+        <div class="my-3">
+          <div class="d-inline-flex p-3 rounded-circle bg-light text-primary mb-3">
+            <i class="bi bi-person-lock" style="font-size: 2.8rem; color: #102d59;"></i>
+          </div>
+          <h4 class="fw-bold text-dark">Please Sign In to Complete Purchase</h4>
+          <p class="text-muted mx-auto" style="max-width: 460px;">
+            To ensure your order is safely tracked, routed directly to rural artisans, and delivered to your doorstep, please sign in or register your account.
+          </p>
+          <div class="d-flex justify-content-center gap-2 mt-4">
+            <a href="{% url 'accounts:login' %}?next={% url 'marketplace:cart' %}" class="btn rounded-pill px-4 py-2.5 fw-bold text-white" style="background: #102d59;">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Continue
+            </a>
+            <a href="{% url 'accounts:register_buyer' %}?next={% url 'marketplace:cart' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold">
+              Create New Account
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+      {% else %}
+      <form id="checkoutForm" onsubmit="confirmOrder(event)">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <!-- Contact / Delivery Details -->
+            <div class="col-md-7">
+              <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                <i class="bi bi-geo-alt-fill text-success me-1"></i> Shipping &amp; Recipient Information
+              </h6>
+              
+              {% if delivery_addresses %}
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label small fw-semibold text-muted mb-0">
+                      <i class="bi bi-geo-alt-fill text-success me-1"></i> Deliver To (Saved Addresses)
+                    </label>
+                    <a href="{% url 'accounts:address_add' %}" target="_blank" class="small text-decoration-none text-rc">
+                      <i class="bi bi-plus-circle me-1"></i> Add new
+                    </a>
+                  </div>
+                  <select id="coAddressSelect" class="form-select form-select-sm" onchange="onSelectSavedAddress(this)">
+                    {% for addr in delivery_addresses %}
+                      <option value="{{ addr.id }}"
+                              data-fullname="{{ addr.full_name }}"
+                              data-phone="{{ addr.phone }}"
+                              data-street="{{ addr.street_address }}"
+                              data-city="{{ addr.city }}"
+                              data-state="{{ addr.state }}"
+                              data-postal="{{ addr.postal_code }}"
+                              {% if addr.is_default or addr.id == default_address.id %}selected{% endif %}>
+                        {{ addr.get_address_type_display }}: {{ addr.full_name }} — {{ addr.street_address|truncatechars:30 }}, {{ addr.city }} ({{ addr.postal_code }}) {% if addr.is_default %}[DEFAULT]{% endif %}
+                      </option>
+                    {% endfor %}
+                    <option value="custom">+ Enter a different delivery address...</option>
+                  </select>
+                </div>
+              {% endif %}
+
+              <div class="row g-2 mb-2">
+                <div class="col-sm-6">
+                  <label class="form-label small fw-semibold text-muted mb-1">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" id="coFullName" class="form-control form-control-sm" value="{{ default_address.full_name|default:user.full_name }}" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label small fw-semibold text-muted mb-1">Phone Number <span class="text-danger">*</span></label>
+                  <input type="tel" id="coPhone" class="form-control form-control-sm" value="{{ default_address.phone|default:user.phone|default:'' }}" placeholder="10-digit mobile number" required>
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold text-muted mb-0">Street Address &amp; Locality <span class="text-danger">*</span></label>
+                  <a href="{% url 'accounts:profile' %}#addresses" target="_blank" class="small text-decoration-none text-muted" title="Manage your saved addresses in profile">
+                    <i class="bi bi-gear"></i> Manage addresses
+                  </a>
+                </div>
+                <textarea id="coAddress" class="form-control form-control-sm" rows="2" placeholder="e.g. Door No. 12B, Craft Lane, Near Temple" required>{{ default_address.street_address|default:user.buyer_profile.shipping_address|default:'' }}</textarea>
+              </div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-sm-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">City / Town <span class="text-danger">*</span></label>
+                  <input type="text" id="coCity" class="form-control form-control-sm" value="{{ default_address.city|default:user.buyer_profile.city|default:'' }}" placeholder="e.g. Kozhikode" required>
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">State</label>
+                  <input type="text" id="coState" class="form-control form-control-sm" value="{{ default_address.state|default:user.buyer_profile.state|default:'Kerala' }}" required>
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">Postal Code <span class="text-danger">*</span></label>
+                  <input type="text" id="coPostalCode" class="form-control form-control-sm" value="{{ default_address.postal_code|default:user.buyer_profile.postal_code|default:'' }}" placeholder="673001" required>
+                </div>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="coSaveToProfile" checked>
+                <label class="form-check-label small text-muted" for="coSaveToProfile">
+                  Save this delivery address to my buyer profile for future orders
+                </label>
+              </div>
+
+              <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 mt-3">
+                <i class="bi bi-credit-card-2-front text-success me-1"></i> Payment Mode
+              </h6>
+              <div class="p-2 bg-light rounded-3 border">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio" name="coPaymentMethod" id="payCod" value="cod" checked>
+                  <label class="form-check-label fw-semibold text-dark" for="payCod">
+                    <i class="bi bi-cash-stack text-success me-1"></i> Cash on Delivery (COD)
+                    <div class="small fw-normal text-muted">Pay with cash or UPI directly when your package is handed over</div>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="coPaymentMethod" id="payUpi" value="upi">
+                  <label class="form-check-label fw-semibold text-dark" for="payUpi">
+                    <i class="bi bi-qr-code text-primary me-1"></i> UPI / Instant Online Simulation
+                    <div class="small fw-normal text-muted">Prepaid direct settlement into artisan bank account</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary Sidebar -->
+            <div class="col-md-5">
+              <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
+                <div>
+                  <h6 class="fw-bold text-dark mb-3">Order Invoice Summary</h6>
+                  <div id="checkoutSummaryBox" class="small mb-3">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                  <div class="p-2 bg-success-subtle rounded border border-success-subtle text-success small mb-3">
+                    <i class="bi bi-patch-check-fill me-1"></i> <strong>Artisan Guarantee:</strong> Each line item directly notifies the rural seller for instant packing.
+                  </div>
+                </div>
+
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold text-muted mb-1">Order Notes (Optional)</label>
+                  <input type="text" id="coNotes" class="form-control form-control-sm" placeholder="e.g. Leave package with neighbor if away">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="checkoutErrorAlert" class="alert alert-danger py-2 small mt-3 d-none"></div>
+        </div>
+
+        <div class="modal-footer bg-light px-4 border-0">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnPlaceOrder" class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm" style="background: #102d59;">
+            <span id="placeOrderSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+            Confirm &amp; Place Order
+          </button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentCartData = null;
+
+function onSelectSavedAddress(sel) {
+  if (!sel) return;
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.value === 'custom') {
+    document.getElementById('coFullName').value = "{{ user.full_name }}";
+    document.getElementById('coPhone').value = "{{ user.phone|default:'' }}";
+    document.getElementById('coAddress').value = "";
+    document.getElementById('coCity').value = "";
+    document.getElementById('coState').value = "Kerala";
+    document.getElementById('coPostalCode').value = "";
+    document.getElementById('coAddress').focus();
+    return;
+  }
+  document.getElementById('coFullName').value = opt.getAttribute('data-fullname') || '';
+  document.getElementById('coPhone').value = opt.getAttribute('data-phone') || '';
+  document.getElementById('coAddress').value = opt.getAttribute('data-street') || '';
+  document.getElementById('coCity').value = opt.getAttribute('data-city') || '';
+  document.getElementById('coState').value = opt.getAttribute('data-state') || 'Kerala';
+  document.getElementById('coPostalCode').value = opt.getAttribute('data-postal') || '';
+}
+
+function inr(n) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+
+async function loadCart() {
+  const app = document.getElementById('cartApp');
+  try {
+    const res = await fetch("{% url 'marketplace:cart_items_api' %}");
+    const data = await res.json();
+    currentCartData = data;
+    renderCart(data);
+    updateCartCount(data.cart_count || 0);
+  } catch(err) {
+    app.innerHTML = `
+      <div class="alert alert-danger">
+        Failed to load cart products. Please refresh the page or try again later.
+      </div>
+    `;
+  }
+}
+
+function renderCart(cartData) {
+  const app = document.getElementById('cartApp');
+  const items = (cartData && cartData.items) ? cartData.items : [];
+  const summary = (cartData && cartData.summary) ? cartData.summary : {
+    total_count: 0,
+    total_mrp: 0,
+    subtotal: 0,
+    discount_saved: 0,
+    delivery: 0,
+    grand_total: 0
+  };
+
+  if (!items.length) {
+    document.getElementById('cartSubtitle').textContent = 'Your cart is empty';
+    app.innerHTML = `
+      <div class="text-center py-5 my-4 bg-white rounded-4 border p-5 shadow-sm" style="max-width: 580px; margin: 0 auto; border-color: var(--line) !important;">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: #f2f4f7;">
+          <i class="bi bi-cart-x text-muted" style="font-size: 2.5rem;"></i>
+        </div>
+        <h2 class="h4 fw-bold text-dark mb-2">Your cart is currently empty</h2>
+        <p class="text-muted mx-auto mb-4" style="max-width: 440px; font-size: 0.95rem;">
+          Looks like you haven't added anything to your cart yet. Explore our handcrafted heirlooms, vintage electronics, and regional artisan specialties.
+        </p>
+        <a class="btn rounded-pill px-4 py-2.5 fw-bold text-white shadow-sm" style="background: #102d59;" href="{% url 'marketplace:products' %}">
+          <i class="bi bi-bag-plus me-1"></i> Start Shopping
+        </a>
+      </div>
+    `;
+    updateCartCount(0);
+    return;
+  }
+
+  document.getElementById('cartSubtitle').textContent = `${summary.total_count} item${summary.total_count > 1 ? 's' : ''} in your cart`;
+
+  let itemsHtml = items.map(item => {
+    const imageHtml = item.main_image
+      ? `<img src="${item.main_image}" alt="${item.name}" class="rounded-3" style="width: 90px; height: 90px; object-fit: cover;">`
+      : `<div class="rounded-3 d-flex align-items-center justify-content-center fw-bold" style="width: 90px; height: 90px; background: hsl(${item.hue}, 45%, 88%); font-size: 2.2rem;">${item.emoji}</div>`;
+
+    return `
+      <div class="p-3 p-md-4 border-bottom d-flex gap-3 align-items-start flex-wrap flex-md-nowrap">
+        <a href="${item.url}" class="flex-shrink-0" style="background: #f2f4f7; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+          ${imageHtml}
+        </a>
+        <div class="flex-grow-1">
+          <h3 class="h6 mb-1 fw-bold">
+            <a href="${item.url}" class="text-decoration-none text-dark" style="color: var(--ink);">${item.name}</a>
+          </h3>
+          <div class="small text-muted mb-2">
+            Sold by: ${item.seller_url ? `<a href="${item.seller_url}" class="fw-semibold text-dark text-decoration-none" title="View artisan profile">${item.seller} <i class="bi bi-patch-check-fill text-primary small"></i></a>` : `<span class="fw-semibold text-secondary">${item.seller}</span>`}
+            · <span class="${item.stock > 0 ? 'text-success' : 'text-danger'} fw-semibold">${item.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="qty d-inline-flex align-items-center border rounded-pill px-2 py-1 bg-light">
+              <button class="btn btn-sm p-0 border-0 text-dark" onclick="updateQty(${item.id}, -1)" aria-label="Decrease quantity" style="width: 26px; height: 26px;">
+                <i class="bi bi-dash"></i>
+              </button>
+              <span class="px-3 fw-bold small">${item.quantity}</span>
+              <button class="btn btn-sm p-0 border-0 text-dark" onclick="updateQty(${item.id}, 1)" ${item.quantity >= item.stock ? 'disabled' : ''} aria-label="Increase quantity" style="width: 26px; height: 26px;">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+
+            <button class="btn btn-link text-danger text-decoration-none small p-0 fw-semibold" onclick="removeFromCart(${item.id})">
+              <i class="bi bi-trash3 me-1"></i> Remove
+            </button>
+          </div>
+        </div>
+
+        <div class="text-md-end flex-shrink-0 ms-auto">
+          <div class="fs-5 fw-bold" style="color: #102d59;">${inr(item.line_total)}</div>
+          ${item.discount > 0 ? `
+            <div class="small text-muted">
+              <s class="text-secondary">${inr(item.line_mrp)}</s>
+              <span class="badge bg-danger-subtle text-danger ms-1 fw-semibold">${item.discount}% off</span>
+            </div>
+          ` : ''}
+          <div class="small text-muted mt-1">₹${Math.round(item.final_price)} each</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="row g-4">
+      <!-- Items List Column -->
+      <div class="col-lg-8">
+        <div class="bg-white rounded-4 border shadow-sm overflow-hidden mb-3" style="border-color: var(--line) !important;">
+          <div class="p-3 px-4 bg-light bg-opacity-50 border-bottom d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">Cart Items (${summary.total_count})</span>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="clearCart()">
+              <i class="bi bi-trash3 me-1"></i> Clear Cart
+            </button>
+          </div>
+          <div>${itemsHtml}</div>
+        </div>
+      </div>
+
+      <!-- Order Summary Column -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 100px; background: #fff; border: 1px solid var(--line) !important;">
+          <h2 class="h5 fw-bold text-dark mb-3">Order Summary</h2>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Total MRP (${summary.total_count} items)</span>
+            <span class="fw-semibold text-dark">${inr(summary.total_mrp)}</span>
+          </div>
+
+          ${summary.discount_saved > 0 ? `
+            <div class="d-flex justify-content-between mb-2 text-success">
+              <span>Discount savings</span>
+              <span class="fw-semibold">−${inr(summary.discount_saved)}</span>
+            </div>
+          ` : ''}
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Delivery fee</span>
+            <span class="fw-semibold ${summary.delivery === 0 ? 'text-success' : 'text-dark'}">
+              ${summary.delivery === 0 ? '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">FREE</span>' : inr(summary.delivery)}
+            </span>
+          </div>
+
+          ${summary.delivery > 0 ? `
+            <div class="alert alert-info py-2 px-3 small rounded-3 mb-3 border-0 bg-primary-subtle text-primary-emphasis">
+              <i class="bi bi-info-circle me-1"></i> Add <strong>${inr(999 - summary.subtotal)}</strong> more for <strong>FREE Delivery</strong>!
+            </div>
+          ` : ''}
+
+          <hr class="my-3" style="border-color: var(--line);">
+
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <span class="fs-5 fw-bold text-dark">Total Amount</span>
+            <span class="fs-4 fw-bold" style="color: #102d59;">${inr(summary.grand_total)}</span>
+          </div>
+
+          <button class="btn btn-lg w-100 py-3 fw-bold shadow-sm rounded-pill text-white" style="background: #102d59;" onclick="openCheckout(${summary.grand_total}, ${summary.total_count})">
+            <i class="bi bi-shield-lock-fill me-2"></i> Proceed to Checkout
+          </button>
+
+          <div class="text-center mt-3 text-muted small">
+            <div class="d-flex align-items-center justify-content-center gap-1 text-dark fw-semibold mb-1">
+              <i class="bi bi-patch-check-fill text-primary"></i> Safe &amp; Secure Checkout
+            </div>
+            Direct from verified rural artisans and collectors
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function updateQty(id, delta) {
+  try {
+    const res = await fetch("{% url 'marketplace:cart_update_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({ product_id: id, delta: delta })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentCartData = data.cart;
+      renderCart(data.cart);
+      updateCartCount(data.cart_count);
+    } else {
+      showToast(data.error || 'Failed to update quantity', 'danger');
+    }
+  } catch(e) {
+    showToast('Failed to update quantity', 'danger');
+  }
+}
+
+async function removeFromCart(id) {
+  try {
+    const res = await fetch("{% url 'marketplace:cart_remove_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({ product_id: id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentCartData = data.cart;
+      renderCart(data.cart);
+      updateCartCount(data.cart_count);
+      showToast('Item removed from cart', 'info');
+    }
+  } catch(e) {
+    showToast('Failed to remove item', 'danger');
+  }
+}
+
+async function clearCart() {
+  if (confirm('Are you sure you want to clear all items from your cart?')) {
+    try {
+      const res = await fetch("{% url 'marketplace:cart_clear_api' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentCartData = data.cart;
+        renderCart(data.cart);
+        updateCartCount(0);
+        showToast('Your cart has been cleared', 'info');
+      }
+    } catch(e) {
+      showToast('Failed to clear cart', 'danger');
+    }
+  }
+}
+
+function openCheckout(grandTotal, count) {
+  const summaryBox = document.getElementById('checkoutSummaryBox');
+  if (summaryBox && currentCartData && currentCartData.summary) {
+    const s = currentCartData.summary;
+    summaryBox.innerHTML = `
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Total MRP:</span>
+        <span>${inr(s.total_mrp)}</span>
+      </div>
+      ${s.discount_saved > 0 ? `
+        <div class="d-flex justify-content-between mb-1 text-success">
+          <span>Discount:</span>
+          <span>−${inr(s.discount_saved)}</span>
+        </div>
+      ` : ''}
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Delivery:</span>
+        <span class="${s.delivery === 0 ? 'text-success fw-bold' : ''}">${s.delivery === 0 ? 'FREE' : inr(s.delivery)}</span>
+      </div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <strong class="text-dark">Total Payable:</strong>
+        <strong class="fs-5" style="color: #102d59;">${inr(s.grand_total)}</strong>
+      </div>
+    `;
+  }
+  const modal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+  modal.show();
+}
+
+async function confirmOrder(e) {
+  if (e) e.preventDefault();
+
+  const errAlert = document.getElementById('checkoutErrorAlert');
+  if (errAlert) errAlert.classList.add('d-none');
+
+  const btn = document.getElementById('btnPlaceOrder');
+  const spinner = document.getElementById('placeOrderSpinner');
+  if (btn) btn.disabled = true;
+  if (spinner) spinner.classList.remove('d-none');
+
+  const fullName = document.getElementById('coFullName') ? document.getElementById('coFullName').value.trim() : '';
+  const phone = document.getElementById('coPhone') ? document.getElementById('coPhone').value.trim() : '';
+  const shippingAddress = document.getElementById('coAddress') ? document.getElementById('coAddress').value.trim() : '';
+  const city = document.getElementById('coCity') ? document.getElementById('coCity').value.trim() : '';
+  const state = document.getElementById('coState') ? document.getElementById('coState').value.trim() : 'Kerala';
+  const postalCode = document.getElementById('coPostalCode') ? document.getElementById('coPostalCode').value.trim() : '';
+  const payMethodInput = document.querySelector('input[name="coPaymentMethod"]:checked');
+  const paymentMethod = payMethodInput ? payMethodInput.value : 'cod';
+  const notes = document.getElementById('coNotes') ? document.getElementById('coNotes').value.trim() : '';
+  const saveToProfile = document.getElementById('coSaveToProfile') ? document.getElementById('coSaveToProfile').checked : true;
+
+  try {
+    const res = await fetch("{% url 'marketplace:checkout_place_order_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify({
+        full_name: fullName,
+        phone: phone,
+        shipping_address: shippingAddress,
+        city: city,
+        state: state,
+        postal_code: postalCode,
+        payment_method: paymentMethod,
+        order_notes: notes,
+        save_to_profile: saveToProfile,
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.login_required) {
+      window.location.href = data.login_url;
+      return;
+    }
+
+    if (data.success && data.redirect_url) {
+      updateCartCount(0);
+      window.location.href = data.redirect_url;
+      return;
+    }
+
+    if (errAlert) {
+      errAlert.textContent = data.error || 'Failed to place order. Please verify your details.';
+      errAlert.classList.remove('d-none');
+    } else {
+      showToast(data.error || 'Failed to place order', 'danger');
+    }
+  } catch(err) {
+    if (errAlert) {
+      errAlert.textContent = 'Network or server error while placing order. Please try again.';
+      errAlert.classList.remove('d-none');
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (spinner) spinner.classList.add('d-none');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadCart();
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,898 @@
+{% extends "base_admin.html" %}
+{% block title %}Overview | RuralConnect Platform Admin{% endblock %}
+{% block page_title %}Platform Overview{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block top_actions %}
+<div class="d-none d-md-flex align-items-center gap-2">
+  <a href="{% url 'platform_admin:campaigns' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark shadow-2xs d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-plus-lg text-primary me-2"></i><span>Campaign</span>
+  </a>
+  <a href="{% url 'platform_admin:banners' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark shadow-2xs d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-plus-lg text-primary me-2"></i><span>Banner</span>
+  </a>
+  <a href="{% url 'platform_admin:manage_products' %}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-dark shadow-2xs d-inline-flex align-items-center" style="height: 34px; font-size: 0.81rem; background: #ffffff;">
+    <i class="bi bi-boxes text-primary me-2"></i><span>Catalog</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Primary Metric Cards (4 Columns) -->
+<div class="row g-3 mb-3">
+  <!-- 1. Total Catalog -->
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'platform_admin:manage_products' %}" class="stat-hero-card" title="Browse full product catalog">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #eff6ff; color: #1d4ed8;">
+          <i class="bi bi-boxes"></i>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-bold">Catalog</span>
+      </div>
+      <div>
+        <div class="stat-number mb-1">{{ total_products }}</div>
+        <div class="text-muted small fw-medium">Total Products</div>
+      </div>
+      <div class="action-link-subtle text-primary mt-3 pt-2 border-top">
+        Browse all items <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- 2. Approved & Live -->
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'platform_admin:manage_products' %}?status=approved" class="stat-hero-card" title="View approved live products">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #ecfdf5; color: #047857;">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-bold">Live</span>
+      </div>
+      <div>
+        <div class="stat-number text-success mb-1">{{ approved }}</div>
+        <div class="text-muted small fw-medium">Approved &amp; Active</div>
+      </div>
+      <div class="action-link-subtle text-success mt-3 pt-2 border-top">
+        View live items <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- 3. Active Campaigns -->
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'platform_admin:campaigns' %}" class="stat-hero-card" title="Manage promotional campaigns">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #faf5ff; color: #7e22ce;">
+          <i class="bi bi-lightning-charge-fill"></i>
+        </div>
+        <span class="badge bg-purple-subtle border rounded-pill px-2 py-1 small fw-bold" style="background:#f3e8ff; color:#7e22ce; border-color:#e9d5ff;">Festivals</span>
+      </div>
+      <div>
+        <div class="stat-number mb-1" style="color: #7e22ce;">{{ active_campaigns }}</div>
+        <div class="text-muted small fw-medium">Active Campaigns</div>
+      </div>
+      <div class="action-link-subtle mt-3 pt-2 border-top" style="color: #7e22ce;">
+        Manage campaigns <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- 4. Boosted Listings -->
+  <div class="col-6 col-xl-3">
+    <a href="{% url 'platform_admin:boost_plans' %}" class="stat-hero-card" title="View active sponsored boost plans">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #fffbeb; color: #b45309;">
+          <i class="bi bi-rocket-takeoff-fill"></i>
+        </div>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-1 small fw-bold">Sponsored</span>
+      </div>
+      <div>
+        <div class="stat-number text-warning-emphasis mb-1">{{ active_promos }}</div>
+        <div class="text-muted small fw-medium">Boosted Listings</div>
+      </div>
+      <div class="action-link-subtle text-warning-emphasis mt-3 pt-2 border-top">
+        View boost plans <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Secondary Operational Row (3 Columns) -->
+<div class="row g-3 mb-4">
+  <!-- 5. Registered Sellers -->
+  <div class="col-12 col-md-4">
+    <a href="#" class="stat-hero-card" data-bs-toggle="modal" data-bs-target="#sellersModal" title="Open sellers directory">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #ecfeff; color: #0e7490;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1 small fw-bold">Artisans</span>
+      </div>
+      <div>
+        <div class="stat-number text-dark mb-1">{{ sellers }}</div>
+        <div class="text-muted small fw-medium">Registered Sellers</div>
+      </div>
+      <div class="action-link-subtle text-info mt-3 pt-2 border-top">
+        Open directory <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- 6. Paused by Sellers -->
+  <div class="col-6 col-md-4">
+    <a href="{% url 'platform_admin:manage_products' %}?status=paused" class="stat-hero-card" title="View seller-paused products">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #f1f5f9; color: #475569;">
+          <i class="bi bi-pause-circle-fill"></i>
+        </div>
+        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1 small fw-bold">Paused</span>
+      </div>
+      <div>
+        <div class="stat-number text-secondary mb-1">{{ paused }}</div>
+        <div class="text-muted small fw-medium">Paused by Sellers</div>
+      </div>
+      <div class="action-link-subtle text-secondary mt-3 pt-2 border-top">
+        View paused items <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+
+  <!-- 7. Suspended by Admin -->
+  <div class="col-6 col-md-4">
+    <a href="{% url 'platform_admin:manage_products' %}?status=suspended" class="stat-hero-card" title="View policy-suspended products">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="stat-icon-squircle" style="background: #fff1f2; color: #be123c;">
+          <i class="bi bi-slash-circle-fill"></i>
+        </div>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small fw-bold">Suspended</span>
+      </div>
+      <div>
+        <div class="stat-number text-danger mb-1">{{ suspended }}</div>
+        <div class="text-muted small fw-medium">Policy Suspended</div>
+      </div>
+      <div class="action-link-subtle text-danger mt-3 pt-2 border-top">
+        Inspect suspended <i class="bi bi-arrow-right"></i>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Split Row: Recent Catalog Additions & Registered Sellers -->
+<div class="row g-4">
+  <!-- Recent Products -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+      <div class="p-3.5 px-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width:32px; height:32px; background:#eff6ff;">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <h2 class="h6 mb-0 fw-bold text-dark">Recent Catalog Items</h2>
+        </div>
+        <a href="{% url 'platform_admin:manage_products' %}" class="small text-primary text-decoration-none fw-semibold">
+          View all ({{ total_products }}) &rarr;
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr class="text-secondary small">
+              <th class="ps-4">Product</th>
+              <th>Seller</th>
+              <th>Status</th>
+              <th class="text-end pe-4">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in recent_products %}
+            <tr>
+              <td class="ps-4">
+                <div class="d-flex align-items-center gap-3">
+                  {% if p.main_image %}
+                    <img src="{{ p.main_image.url }}" alt="{{ p.name }}" class="rounded-3 shadow-sm flex-shrink-0" style="width: 42px; height: 42px; object-fit: cover;">
+                  {% else %}
+                    <div class="rounded-3 shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: hsl({{ p.hue }}, 45%, 90%); font-size: 1.3rem;">
+                      {{ p.emoji }}
+                    </div>
+                  {% endif %}
+                  <div class="text-truncate" style="max-width: 240px;">
+                    <a href="{% url 'marketplace:product_detail' p.pk %}" target="_blank" class="fw-bold text-dark text-decoration-none d-block text-truncate" title="{{ p.name }}">
+                      {{ p.name }}
+                    </a>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                      <span class="badge bg-light text-secondary border px-2 py-1" style="font-size:0.68rem;">{{ p.category.name }}</span>
+                      {% if p.promoted %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1" style="font-size:0.65rem;"><i class="bi bi-rocket-takeoff-fill me-1"></i>Boosted</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="small fw-semibold text-dark d-block text-truncate" style="max-width: 140px;">{{ p.seller.business_name }}</span>
+                <span class="text-muted small" style="font-size: 0.72rem;">{{ p.origin_region }}</span>
+              </td>
+              <td>
+                {% if p.status == 'approved' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold">Live</span>
+                {% elif p.status == 'pending' %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small fw-semibold">Pending</span>
+                {% elif p.status == 'rejected' %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small fw-semibold">Rejected</span>
+                {% elif p.status == 'suspended' %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 small fw-semibold">Suspended</span>
+                {% elif p.status == 'paused' %}
+                  <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 small fw-semibold">Paused</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <span class="fw-bold text-dark">₹{{ p.final_price|floatformat:0 }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted py-5">No products in catalog yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sellers Directory Overview -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+      <div class="p-3.5 px-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-info" style="width:32px; height:32px; background:#ecfeff;">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <h2 class="h6 mb-0 fw-bold text-dark">Registered Artisans</h2>
+        </div>
+        <a href="#" class="small text-primary text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#sellersModal">
+          Directory ({{ sellers }}) &rarr;
+        </a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for s in seller_list|slice:":5" %}
+        <div class="list-group-item d-flex justify-content-between align-items-center p-3 px-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 40px; height: 40px; font-size: 0.85rem; background: #102d59;">
+              {{ s.business_name|slice:":2"|upper }}
+            </div>
+            <div class="text-truncate" style="max-width: 200px;">
+              <div class="d-flex align-items-center gap-1.5">
+                <strong class="text-dark text-truncate">{{ s.business_name }}</strong>
+                {% if not s.user.is_active %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-1.5 py-0" style="font-size:0.6rem;">Suspended</span>
+                {% endif %}
+              </div>
+              <span class="text-muted small d-block text-truncate" style="font-size: 0.74rem;">
+                <i class="bi bi-geo-alt me-1 text-danger"></i>{{ s.location|default:"India" }}
+              </span>
+            </div>
+          </div>
+          <a href="{% url 'platform_admin:manage_products' %}?q={{ s.business_name|urlencode }}" class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold text-secondary" title="View products by this artisan">
+            {{ s.product_count }} item{{ s.product_count|pluralize }}
+          </a>
+        </div>
+        {% empty %}
+        <div class="p-5 text-center text-muted">No registered sellers found.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Registered Sellers Full Modal -->
+<div class="modal fade" id="sellersModal" tabindex="-1" aria-labelledby="sellersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <!-- Modal Header -->
+      <div class="modal-header border-bottom bg-white px-4 py-3 align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width:36px; height:36px; background:#eff6ff;">
+            <i class="bi bi-people-fill fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title h6 fw-bold text-dark mb-0" id="sellersModalLabel">Registered Artisans &amp; Sellers</h5>
+            <span class="text-muted small">Complete directory of all registered marketplace merchants</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Live Instant Search Bar & Status Filters -->
+      <div class="px-4 py-3 bg-light border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="position-relative flex-grow-1" style="max-width: 380px;">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+          <input type="search" id="modalSellerSearch" class="form-control form-control-sm rounded-pill ps-5 py-2 bg-white border" placeholder="Search by artisan name, email, or region...">
+        </div>
+        <div class="d-flex align-items-center gap-1.5 flex-wrap" id="sellerFilterGroup">
+          <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 py-1 seller-filter-btn active" data-filter="all">All ({{ sellers }})</button>
+          <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 seller-filter-btn position-relative" data-filter="pending">
+            <i class="bi bi-clock-history me-1"></i>KYC Pending
+            {% if pending_verifications_count > 0 %}
+              <span class="badge bg-warning text-dark rounded-pill ms-1">{{ pending_verifications_count }}</span>
+            {% endif %}
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 seller-filter-btn" data-filter="verified">
+            <i class="bi bi-patch-check-fill me-1"></i>Verified
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 seller-filter-btn" data-filter="unsubmitted">
+            Unsubmitted
+          </button>
+        </div>
+        <div class="text-muted small fw-medium text-nowrap ms-auto">
+          Showing <span id="sellerVisibleCount" class="fw-bold text-dark">{{ sellers }}</span> of {{ sellers }} artisans
+        </div>
+      </div>
+
+      <!-- Modal Table Body -->
+      <div class="modal-body p-0">
+        <div class="table-responsive" style="max-height: 520px;">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light sticky-top">
+              <tr class="small text-secondary">
+                <th class="ps-4" style="width: 26%;">Artisan / Business</th>
+                <th style="width: 20%;">Owner &amp; Contact</th>
+                <th style="width: 14%;">Location</th>
+                <th style="width: 9%;">Products</th>
+                <th style="width: 14%;">Trust &amp; KYC</th>
+                <th style="width: 8%;">Account</th>
+                <th class="text-end pe-4" style="width: 9%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sellersTableBody">
+              {% for s in seller_list %}
+              <tr class="seller-row {% if not s.user.is_active %}bg-danger bg-opacity-10{% endif %}"
+                  data-kyc="{{ s.verification_status }}"
+                  data-active="{% if s.user.is_active %}active{% else %}suspended{% endif %}">
+                <td class="ps-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs" style="width: 38px; height: 38px; font-size: 0.8rem; background: {% if s.user.is_active %}#102d59{% else %}#dc2626{% endif %};">
+                      {{ s.business_name|slice:":2"|upper }}
+                    </div>
+                    <div class="text-truncate" style="max-width: 220px;">
+                      <div class="d-flex align-items-center gap-2">
+                        <strong class="text-dark d-block text-truncate">{{ s.business_name }}</strong>
+                        {% if s.is_verified and s.user.is_active %}
+                          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill p-0 px-1" style="font-size:0.62rem;" title="Verified Merchant"><i class="bi bi-patch-check-fill"></i></span>
+                        {% endif %}
+                      </div>
+                      {% if s.bio %}
+                        <div class="text-muted small text-truncate" style="font-size:0.73rem;">{{ s.bio }}</div>
+                      {% else %}
+                        <div class="text-muted small" style="font-size:0.73rem;">Heritage Artisan Merchant</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark small text-truncate" style="max-width: 180px;">{{ s.user.full_name }}</div>
+                  <a href="mailto:{{ s.user.email }}" class="text-muted small text-decoration-none text-truncate d-block" style="font-size:0.75rem;">
+                    <i class="bi bi-envelope me-1 text-secondary"></i>{{ s.user.email }}
+                  </a>
+                  {% if s.user.phone %}
+                    <div class="text-muted small" style="font-size:0.72rem;"><i class="bi bi-telephone me-1 text-secondary"></i>{{ s.user.phone }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-light text-secondary border px-2 py-1 mb-1 d-inline-block">
+                    <i class="bi bi-geo-alt text-danger me-1"></i>{{ s.origin_region|default:s.location }}
+                  </span>
+                  {% if s.location %}
+                    <div class="text-muted small text-truncate" style="font-size:0.72rem; max-width: 140px;">{{ s.location }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-semibold text-nowrap">
+                    {{ s.product_count }} listed
+                  </span>
+                </td>
+                <td>
+                  {% if s.verification_status == 'pending' %}
+                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 small fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 shadow-2xs">
+                      <span class="bg-warning rounded-circle" style="width:6px;height:6px;"></span> Pending Review
+                    </span>
+                  {% elif s.is_verified or s.verification_status == 'verified' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 shadow-2xs">
+                      <i class="bi bi-patch-check-fill text-success"></i> Verified Artisan
+                    </span>
+                  {% elif s.verification_status == 'rejected' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small fw-semibold text-nowrap d-inline-flex align-items-center gap-1.5 shadow-2xs" title="{{ s.verification_rejection_reason }}">
+                      <i class="bi bi-exclamation-circle text-danger"></i> Needs Attention
+                    </span>
+                  {% else %}
+                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 small text-nowrap">
+                      Not Submitted
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if s.user.is_active %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small fw-semibold text-nowrap">
+                      Active
+                    </span>
+                  {% else %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small fw-semibold text-nowrap" title="Locked due to malpractice">
+                      Suspended
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="text-end pe-4">
+                  <div class="d-flex justify-content-end align-items-center gap-1.5 flex-nowrap">
+                    {% if s.verification_status == 'pending' %}
+                      <button type="button" class="btn btn-sm btn-warning text-dark border rounded-pill px-2.5 fw-bold text-nowrap d-inline-flex align-items-center gap-1 shadow-2xs" style="height: 30px; font-size: 0.74rem;" onclick="openReviewKycModal('{{ s.pk }}', '{{ s.business_name|escapejs }}', '{{ s.user.full_name|escapejs }}', '{{ s.user.email|escapejs }}', '{{ s.user.phone|default:''|escapejs }}', '{{ s.get_verification_doc_type_display|escapejs }}', '{{ s.verification_id_number|default:''|escapejs }}', '{% if s.verification_document %}{% url 'accounts:view_verification_doc' s.pk %}{% endif %}', '{{ s.verification_status }}', '{{ s.verification_rejection_reason|default:''|escapejs }}', '{{ s.verification_submitted_at|date:'M d, Y H:i'|default:'' }}')" title="Review submitted artisan credentials">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Review</span>
+                      </button>
+                    {% else %}
+                      <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-secondary shadow-2xs" style="width: 30px; height: 30px;" onclick="openReviewKycModal('{{ s.pk }}', '{{ s.business_name|escapejs }}', '{{ s.user.full_name|escapejs }}', '{{ s.user.email|escapejs }}', '{{ s.user.phone|default:''|escapejs }}', '{{ s.get_verification_doc_type_display|escapejs }}', '{{ s.verification_id_number|default:''|escapejs }}', '{% if s.verification_document %}{% url 'accounts:view_verification_doc' s.pk %}{% endif %}', '{{ s.verification_status }}', '{{ s.verification_rejection_reason|default:''|escapejs }}', '{{ s.verification_submitted_at|date:'M d, Y H:i'|default:'' }}')" title="Artisan KYC / Trust details">
+                        <i class="bi bi-shield-check {% if s.is_verified %}text-success{% else %}text-muted{% endif %}"></i>
+                      </button>
+                    {% endif %}
+                    <a href="{% url 'platform_admin:manage_products' %}?q={{ s.business_name|urlencode }}" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-secondary shadow-2xs" style="width: 30px; height: 30px;" title="View items in catalog">
+                      <i class="bi bi-boxes"></i>
+                    </a>
+                    {% if s.user.is_active %}
+                      <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-warning shadow-2xs" style="width: 30px; height: 30px;" onclick="openSuspendModal('{{ s.pk }}', '{{ s.business_name|escapejs }}', '{{ s.product_count }}', 'suspend')" title="Suspend seller for malpractice">
+                        <i class="bi bi-slash-circle"></i>
+                      </button>
+                    {% else %}
+                      <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-success shadow-2xs" style="width: 30px; height: 30px;" onclick="openSuspendModal('{{ s.pk }}', '{{ s.business_name|escapejs }}', '{{ s.product_count }}', 'restore')" title="Restore seller to active standing">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                      </button>
+                    {% endif %}
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center text-danger shadow-2xs" style="width: 30px; height: 30px;" onclick="openDeleteSellerModal('{{ s.pk }}', '{{ s.business_name|escapejs }}')" title="Permanently delete seller">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-5">No registered sellers found.</td></tr>
+              {% endfor %}
+              <tr id="sellerNoResultsRow" style="display: none;">
+                <td colspan="7" class="text-center text-muted py-5">
+                  <i class="bi bi-search fs-3 text-secondary d-block mb-2"></i>
+                  No artisans match your search filter.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer border-top bg-light px-4 py-2.5 d-flex justify-content-between align-items-center">
+        <span class="text-muted small"><i class="bi bi-shield-lock me-1 text-primary"></i>Use <strong>Suspend</strong> to immediately freeze rogue sellers and take down their storefront listings.</span>
+        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Suspend / Restore Seller Confirmation Modal -->
+<div class="modal fade" id="suspendSellerModal" tabindex="-1" aria-labelledby="suspendSellerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3" id="suspendModalHeader">
+        <h5 class="modal-title h6 fw-bold mb-0" id="suspendSellerModalLabel">
+          <i class="bi bi-shield-exclamation me-2"></i>Seller Moderation
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="suspendSellerForm" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="suspendActionInput" value="suspend">
+        <div class="modal-body p-4">
+          <p class="mb-2 text-dark" id="suspendPromptText"></p>
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <strong class="d-block text-dark mb-0.5" id="suspendSellerName"></strong>
+            <span class="text-muted small" id="suspendSellerStats"></span>
+          </div>
+          <div id="suspendNoticeBox" class="small p-2.5 rounded-3 border">
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light px-4 py-2.5 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="suspendSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-semibold shadow-sm">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reusable Delete Seller Confirmation Modal -->
+<div class="modal fade" id="deleteSellerModal" tabindex="-1" aria-labelledby="deleteSellerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom bg-danger-subtle px-4 py-3">
+        <h5 class="modal-title h6 fw-bold text-danger mb-0" id="deleteSellerModalLabel">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Permanently Delete Seller
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="deleteSellerForm" action="">
+        {% csrf_token %}
+        <div class="modal-body p-4">
+          <p class="mb-2 text-dark">Are you sure you want to permanently delete this seller account?</p>
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <strong class="d-block text-dark mb-0.5" id="deleteSellerName"></strong>
+          </div>
+          <div class="text-danger small bg-danger-subtle p-2.5 rounded-3 border border-danger-subtle">
+            <i class="bi bi-info-circle me-1"></i> <strong>Note:</strong> If this seller has completed buyer orders, the system will prevent deletion to preserve financial audit trails. In that case, please <strong>Suspend</strong> the seller instead.
+          </div>
+        </div>
+        <div class="modal-footer border-top bg-light px-4 py-2.5 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-semibold shadow-sm">Permanently Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Artisan Identity & KYC Verification Review Modal -->
+<div class="modal fade" id="reviewKycModal" tabindex="-1" aria-labelledby="reviewKycModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light" id="kycModalHeader">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-primary" style="width:34px; height:34px; background:#eff6ff;">
+            <i class="bi bi-shield-check fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title h6 fw-bold text-dark mb-0" id="reviewKycModalLabel">Artisan Verification Review (KYC)</h5>
+            <span class="text-muted small">Validate official craftsperson credentials</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Artisan Summary Banner -->
+        <div class="p-3 bg-light rounded-3 border mb-4">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+            <div>
+              <h5 class="h6 fw-bold text-dark mb-0" id="kycSellerBusinessName"></h5>
+              <div class="text-muted small">
+                <span id="kycSellerOwner"></span> &bull; <span id="kycSellerEmail"></span>
+                <span id="kycSellerPhoneWrap" style="display:none;"> &bull; <i class="bi bi-telephone text-secondary"></i> <span id="kycSellerPhone"></span></span>
+              </div>
+            </div>
+            <div id="kycCurrentStatusBadge"></div>
+          </div>
+        </div>
+
+        <!-- Credential Details Grid -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 border bg-white h-100">
+              <span class="text-secondary small fw-semibold text-uppercase d-block mb-1" style="font-size:0.7rem; letter-spacing:0.04em;">Document Type</span>
+              <div class="fw-bold text-dark small" id="kycDocType">Not specified</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3 border bg-white h-100">
+              <span class="text-secondary small fw-semibold text-uppercase d-block mb-1" style="font-size:0.7rem; letter-spacing:0.04em;">Card / Registration No</span>
+              <div class="fw-bold text-dark small" id="kycIdNumber">Not provided</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attached Document Preview Link -->
+        <div class="p-3 rounded-3 border bg-white mb-4">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <strong class="d-block text-dark small mb-0.5">Uploaded Credential Document Proof</strong>
+              <span class="text-muted small" id="kycSubmittedAt">Submission date: —</span>
+            </div>
+            <div>
+              <a href="#" target="_blank" id="kycDocLink" class="btn btn-sm btn-primary rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5" style="display:none;">
+                <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                <span>Open Document File</span>
+              </a>
+              <span id="kycNoDocMsg" class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1 small" style="display:none;">
+                No file attached
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Previous Rejection Note (if any) -->
+        <div id="kycPrevRejectionBox" class="alert alert-danger bg-danger-subtle border-danger-subtle small py-2.5 px-3 rounded-3 mb-4" style="display:none;">
+          <strong class="text-danger d-block mb-1"><i class="bi bi-info-circle me-1"></i>Previous Rejection Reason:</strong>
+          <span id="kycPrevRejectionText" class="text-dark"></span>
+        </div>
+
+        <!-- Form for Admin Action -->
+        <form method="post" id="kycActionForm" action="">
+          {% csrf_token %}
+          <input type="hidden" name="action" id="kycActionInput" value="approve">
+
+          <!-- Rejection Reason input (collapsible or toggled) -->
+          <div id="kycRejectReasonContainer" class="mb-3" style="display:none;">
+            <label class="form-label fw-semibold small text-danger">Rejection Feedback to Artisan <span class="text-danger">*</span></label>
+            <textarea name="rejection_reason" id="kycRejectionReason" class="form-control form-control-sm" rows="3" placeholder="Explain why the document was rejected (e.g. image blurry, certificate expired, name mismatch)..."></textarea>
+            <div class="form-text small text-muted">This note will appear directly in the artisan's portal so they can fix and re-upload.</div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-3 border-top">
+            <div id="kycRevokeWrap" style="display:none;">
+              <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="submitKycAction('revoke')">
+                <i class="bi bi-x-circle me-1"></i>Revoke Verification Badge
+              </button>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+              <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+              
+              <button type="button" id="kycRejectToggleBtn" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="toggleKycRejectMode()">
+                <i class="bi bi-x-lg me-1"></i>Reject Document
+              </button>
+
+              <button type="button" id="kycConfirmRejectBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-semibold shadow-sm" style="display:none;" onclick="submitKycAction('reject')">
+                Confirm Rejection
+              </button>
+
+              <button type="button" id="kycApproveBtn" class="btn btn-sm btn-success text-white rounded-pill px-4 fw-semibold shadow-sm" onclick="submitKycAction('approve')">
+                <i class="bi bi-check2-circle me-1"></i>Approve &amp; Verify Artisan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSuspendModal(pk, name, count, action) {
+  const form = document.getElementById('suspendSellerForm');
+  form.action = `/admin-panel/toggle-seller-suspension/${pk}/`;
+  document.getElementById('suspendActionInput').value = action;
+  document.getElementById('suspendSellerName').textContent = name;
+  document.getElementById('suspendSellerStats').textContent = `${count} product listings in catalog`;
+  
+  const header = document.getElementById('suspendModalHeader');
+  const title = document.getElementById('suspendSellerModalLabel');
+  const prompt = document.getElementById('suspendPromptText');
+  const notice = document.getElementById('suspendNoticeBox');
+  const btn = document.getElementById('suspendSubmitBtn');
+
+  if (action === 'suspend') {
+    header.className = 'modal-header border-bottom bg-warning-subtle px-4 py-3';
+    title.className = 'modal-title h6 fw-bold text-warning-emphasis mb-0';
+    title.innerHTML = '<i class="bi bi-shield-x me-2"></i>Suspend Seller for Malpractice';
+    prompt.textContent = 'Are you sure you want to suspend this seller account?';
+    notice.className = 'small p-2.5 rounded-3 border text-warning-emphasis bg-warning-subtle border-warning-subtle';
+    notice.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>Immediate Enforcement:</strong> The seller will be instantly locked out of their vendor portal and all their active products will be removed from the public storefront.';
+    btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-4 fw-semibold shadow-sm';
+    btn.textContent = 'Confirm Suspension';
+  } else {
+    header.className = 'modal-header border-bottom bg-success-subtle px-4 py-3';
+    title.className = 'modal-title h6 fw-bold text-success mb-0';
+    title.innerHTML = '<i class="bi bi-shield-check me-2"></i>Restore Seller Account';
+    prompt.textContent = 'Are you sure you want to restore this seller to active standing?';
+    notice.className = 'small p-2.5 rounded-3 border text-success bg-success-subtle border-success-subtle';
+    notice.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> <strong>Reinstatement:</strong> The seller will regain access to their portal and their products will be reactivated on the live marketplace.';
+    btn.className = 'btn btn-sm btn-success text-white rounded-pill px-4 fw-semibold shadow-sm';
+    btn.textContent = 'Restore Seller';
+  }
+
+  // Close parent modal if open so stacking works smoothly
+  const sellersModalEl = document.getElementById('sellersModal');
+  const sellersModal = bootstrap.Modal.getInstance(sellersModalEl);
+  if (sellersModal) sellersModal.hide();
+
+  new bootstrap.Modal(document.getElementById('suspendSellerModal')).show();
+}
+
+function openDeleteSellerModal(pk, name) {
+  const form = document.getElementById('deleteSellerForm');
+  form.action = `/admin-panel/delete-seller/${pk}/`;
+  document.getElementById('deleteSellerName').textContent = name;
+
+  // Close parent modal if open
+  const sellersModalEl = document.getElementById('sellersModal');
+  const sellersModal = bootstrap.Modal.getInstance(sellersModalEl);
+  if (sellersModal) sellersModal.hide();
+
+  new bootstrap.Modal(document.getElementById('deleteSellerModal')).show();
+}
+
+function openReviewKycModal(pk, bName, ownerName, email, phone, docType, idNumber, docUrl, status, rejectionReason, submittedAt) {
+  const form = document.getElementById('kycActionForm');
+  form.action = `/admin-panel/review-seller-verification/${pk}/`;
+
+  document.getElementById('kycSellerBusinessName').textContent = bName;
+  document.getElementById('kycSellerOwner').textContent = ownerName;
+  document.getElementById('kycSellerEmail').textContent = email;
+
+  const phoneWrap = document.getElementById('kycSellerPhoneWrap');
+  if (phone) {
+    phoneWrap.style.display = 'inline';
+    document.getElementById('kycSellerPhone').textContent = phone;
+  } else {
+    phoneWrap.style.display = 'none';
+  }
+
+  document.getElementById('kycDocType').textContent = docType || 'Not specified';
+  document.getElementById('kycIdNumber').textContent = idNumber || 'Not provided';
+  document.getElementById('kycSubmittedAt').textContent = submittedAt ? `Submitted: ${submittedAt}` : 'Submission date: —';
+
+  const docLink = document.getElementById('kycDocLink');
+  const noDoc = document.getElementById('kycNoDocMsg');
+  if (docUrl) {
+    docLink.href = docUrl;
+    docLink.style.display = 'inline-flex';
+    noDoc.style.display = 'none';
+  } else {
+    docLink.style.display = 'none';
+    noDoc.style.display = 'inline-block';
+  }
+
+  // Status badge in modal
+  const badgeEl = document.getElementById('kycCurrentStatusBadge');
+  if (status === 'verified') {
+    badgeEl.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold"><i class="bi bi-patch-check-fill me-1"></i>Verified Artisan</span>';
+  } else if (status === 'pending') {
+    badgeEl.innerHTML = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1 fw-semibold"><i class="bi bi-clock-history me-1"></i>Pending Review</span>';
+  } else if (status === 'rejected') {
+    badgeEl.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-semibold"><i class="bi bi-exclamation-circle me-1"></i>Needs Attention</span>';
+  } else {
+    badgeEl.innerHTML = '<span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1 fw-semibold">Not Submitted</span>';
+  }
+
+  // Previous rejection note
+  const prevRejBox = document.getElementById('kycPrevRejectionBox');
+  const prevRejText = document.getElementById('kycPrevRejectionText');
+  if (status === 'rejected' && rejectionReason) {
+    prevRejBox.style.display = 'block';
+    prevRejText.textContent = rejectionReason;
+  } else {
+    prevRejBox.style.display = 'none';
+  }
+
+  // Reset reject container
+  document.getElementById('kycRejectReasonContainer').style.display = 'none';
+  document.getElementById('kycConfirmRejectBtn').style.display = 'none';
+  const rejectToggle = document.getElementById('kycRejectToggleBtn');
+  const approveBtn = document.getElementById('kycApproveBtn');
+  if (rejectToggle) rejectToggle.innerHTML = '<i class="bi bi-x-lg me-1"></i>Reject Document';
+
+  if (status === 'verified') {
+    if (rejectToggle) rejectToggle.style.display = 'none';
+    if (approveBtn) approveBtn.style.display = 'none';
+  } else {
+    if (rejectToggle) rejectToggle.style.display = 'inline-block';
+    if (approveBtn) approveBtn.style.display = 'inline-block';
+  }
+
+  // Revoke button visibility
+  const revokeWrap = document.getElementById('kycRevokeWrap');
+  if (status === 'verified') {
+    revokeWrap.style.display = 'block';
+  } else {
+    revokeWrap.style.display = 'none';
+  }
+
+  // Close parent modal if open so stacking works smoothly
+  const sellersModalEl = document.getElementById('sellersModal');
+  const sellersModal = bootstrap.Modal.getInstance(sellersModalEl);
+  if (sellersModal) sellersModal.hide();
+
+  new bootstrap.Modal(document.getElementById('reviewKycModal')).show();
+}
+
+function toggleKycRejectMode() {
+  const container = document.getElementById('kycRejectReasonContainer');
+  const confirmBtn = document.getElementById('kycConfirmRejectBtn');
+  const toggleBtn = document.getElementById('kycRejectToggleBtn');
+  const approveBtn = document.getElementById('kycApproveBtn');
+
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    confirmBtn.style.display = 'inline-block';
+    approveBtn.style.display = 'none';
+    toggleBtn.textContent = 'Cancel Rejection';
+  } else {
+    container.style.display = 'none';
+    confirmBtn.style.display = 'none';
+    approveBtn.style.display = 'inline-block';
+    toggleBtn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Reject Document';
+  }
+}
+
+function submitKycAction(action) {
+  const form = document.getElementById('kycActionForm');
+  document.getElementById('kycActionInput').value = action;
+  if (action === 'reject') {
+    const reason = document.getElementById('kycRejectionReason').value.trim();
+    if (!reason) {
+      alert('Please provide a brief feedback note to help the artisan re-upload.');
+      return;
+    }
+  }
+  form.submit();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Auto reopen sellers modal after action if open_sellers=1
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('open_sellers') === '1' || window.location.hash === '#sellersModal') {
+    const modalEl = document.getElementById('sellersModal');
+    if (modalEl) {
+      new bootstrap.Modal(modalEl).show();
+    }
+  }
+
+  // Filter button handlers
+  const filterBtns = document.querySelectorAll('.seller-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => {
+        b.classList.remove('active', 'btn-dark', 'btn-warning', 'btn-success', 'btn-secondary', 'text-dark', 'text-white');
+        if (b.dataset.filter === 'all') b.classList.add('btn-outline-dark');
+        else if (b.dataset.filter === 'pending') b.classList.add('btn-outline-warning');
+        else if (b.dataset.filter === 'verified') b.classList.add('btn-outline-success');
+        else b.classList.add('btn-outline-secondary');
+      });
+      this.classList.add('active');
+      if (this.dataset.filter === 'all') {
+        this.classList.remove('btn-outline-dark');
+        this.classList.add('btn-dark');
+      } else if (this.dataset.filter === 'pending') {
+        this.classList.remove('btn-outline-warning');
+        this.classList.add('btn-warning', 'text-dark');
+      } else if (this.dataset.filter === 'verified') {
+        this.classList.remove('btn-outline-success');
+        this.classList.add('btn-success', 'text-white');
+      } else {
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('btn-secondary', 'text-white');
+      }
+      applySellerFilters();
+    });
+  });
+
+  function applySellerFilters() {
+    const activeFilterBtn = document.querySelector('.seller-filter-btn.active');
+    const filter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
+    const term = (document.getElementById('modalSellerSearch')?.value || '').toLowerCase().trim();
+
+    const rows = document.querySelectorAll('#sellersTableBody tr.seller-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const kyc = row.dataset.kyc;
+      const text = row.textContent.toLowerCase();
+
+      let matchFilter = true;
+      if (filter === 'pending') matchFilter = (kyc === 'pending');
+      else if (filter === 'verified') matchFilter = (kyc === 'verified');
+      else if (filter === 'unsubmitted') matchFilter = (kyc === 'unsubmitted' || !kyc);
+
+      const matchSearch = text.includes(term);
+
+      if (matchFilter && matchSearch) {
+        row.style.display = '';
+        visible++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    const countEl = document.getElementById('sellerVisibleCount');
+    if (countEl) countEl.textContent = visible;
+    const noResults = document.getElementById('sellerNoResultsRow');
+    if (noResults) noResults.style.display = (visible === 0) ? '' : 'none';
+  }
+
+  // Live instant search
+  const sellerSearch = document.getElementById('modalSellerSearch');
+  if (sellerSearch) {
+    sellerSearch.addEventListener('input', applySellerFilters);
+  }
+});
+</script>
+{% endblock %}
