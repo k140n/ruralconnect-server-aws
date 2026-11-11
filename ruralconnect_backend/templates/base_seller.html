@@ -20,8 +20,8 @@
 <div class="dash">
   <!-- Sidebar -->
   <aside class="sidebar" aria-label="Seller portal navigation">
-    <a class="logo" href="{% url 'seller:dashboard' %}">
-      <span class="brand text-white">rural<span style="color:#ffffff;">connect</span><span class="dot" style="color:#1c70c9;">.</span></span>
+    <a class="logo" href="{% url 'seller:dashboard' %}" aria-label="Seller Portal">
+      <img src="{% static 'images/logo.png' %}" alt="RuralConnect" class="bg-white rounded px-2 py-1" style="max-height: 38px; width: auto; object-fit: contain;">
     </a>
     <div class="portal-badge">Seller portal</div>
     <nav class="nav flex-column gap-1">

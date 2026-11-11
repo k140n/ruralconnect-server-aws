@@ -559,6 +559,16 @@
     font-style: normal;
   }
 
+  .brand img,
+  .brand-logo img,
+  .site-logo {
+    max-height: 38px;
+    width: auto;
+    display: inline-block;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+
   /* ==========================================================================
    Header & Navigation
    ========================================================================== */

@@ -42,7 +42,7 @@
 <header class="site-header">
   <div class="topbar header-wrap">
     <!-- Brand Logo -->
-    <a class="brand" href="{% url 'marketplace:home' %}" aria-label="RuralConnect home">rural<span>connect</span><i>.</i></a>
+    <a class="brand" href="{% url 'marketplace:home' %}" aria-label="RuralConnect home"><img src="{% static 'images/logo.png' %}" alt="RuralConnect" class="site-logo"></a>
 
     <!-- Modern Search Form with Autocomplete -->
     <div class="search-wrapper position-relative flex-grow-1" id="headerSearchWrapper" style="max-width: 660px;">
@@ -197,7 +197,7 @@
 <footer class="footer">
   <div class="footer-inner page-wrap">
     <div class="footer-brand">
-      <a class="brand" href="{% url 'marketplace:home' %}">rural<span>connect</span><i>.</i></a>
+      <a class="brand" href="{% url 'marketplace:home' %}" aria-label="RuralConnect"><img src="{% static 'images/logo.png' %}" alt="RuralConnect" class="site-logo" style="max-height: 32px;"></a>
       <p>Bringing everyday essentials, authentic heritage crafts, and great value closer to you.</p>
     </div>
     <div class="footer-links">
@@ -233,7 +233,7 @@
 <div class="offcanvas offcanvas-start mobile-nav-drawer" tabindex="-1" id="mobileNavDrawer" aria-labelledby="mobileNavDrawerLabel">
   <div class="offcanvas-header border-bottom">
     <div class="d-flex align-items-center gap-2" id="mobileNavDrawerLabel">
-      <a class="brand" href="{% url 'marketplace:home' %}" style="font-size: 24px;">rural<span>connect</span><i>.</i></a>
+      <a class="brand" href="{% url 'marketplace:home' %}" aria-label="RuralConnect"><img src="{% static 'images/logo.png' %}" alt="RuralConnect" class="site-logo" style="max-height: 30px;"></a>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
